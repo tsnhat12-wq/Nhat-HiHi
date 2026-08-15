@@ -58,7 +58,7 @@ ClearOldGUI()
 -- ===================================================
 _G.SPEED = 250
 _G.DOCAO_MOB = 45
-_G.DOCAO_CHEST = 4
+_G.DOCAO_CHEST = 1
 _G.DOCAO_FRUIT = 1
 _G.DOXATP = 0
 
