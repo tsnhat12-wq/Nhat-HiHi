@@ -58,7 +58,7 @@ ClearOldGUI()
 -- ===================================================
 _G.SPEED = 250
 _G.DOCAO_MOB = 45
-_G.DOCAO_CHEST = 4
+_G.DOCAO_CHEST = 1
 _G.DOCAO_FRUIT = 1
 _G.DOXATP = 0
 
@@ -355,12 +355,11 @@ local SeaIslandsData = {
         {"Đảo Nóng Lạnh", "CircleIslandIce"}, {"Đảo Lãng Quên", "ForgottenIsland"}
     },
     [3] = {
-        {"Đảo Big Mom", "IceCream"}, {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"},
-        {"Lâu Đài Bóng Tối", "HauntedCastle"}, {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"},
-        {"Đảo Socola", "Chocolate"}, {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"},
-        {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"}, {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"},
-        {"Dinh Thự", "BigMansion"}, {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"},
-        {"Thị Trấn Cảng", "Default"}
+        {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
+        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"}
+        {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
+        {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"}, {"Dinh Thự", "BigMansion"},
+        {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"}, {"Thị Trấn Cảng", "Default"}
     }
 }
 
@@ -501,7 +500,7 @@ mobStroke.Color = Color3.fromRGB(170, 0, 255)
 
 MobBtn.MouseButton1Click:Connect(function()
     MobEnabled = not MobEnabled
-    if MobEnabled me
+    if MobEnabled then
         MobBtn.Text = "TP TỚI QUÁI: ON"
         MobBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
         mobStroke.Color = Color3.fromRGB(0, 255, 150)
