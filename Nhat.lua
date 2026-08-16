@@ -1,5 +1,5 @@
 -- ===================================================
--- 1. THÔNG BÁO ĐẾM NGƯỢC 10 GIÂY (ĐÃ TĂNG KÍCH THƯỚC)
+-- 1. ThÔNG BÁO ĐẾM NGƯỢC 10 GIÂY
 -- ===================================================
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -14,30 +14,25 @@ NoticeGui.ResetOnSpawn = false
 pcall(function() NoticeGui.Parent = CoreGui end)
 if not NoticeGui.Parent then NoticeGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
--- Tăng Kích Thước Khung (Rộng 350px, Cao 70px)
 local NoticeFrame = Instance.new("Frame", NoticeGui)
-NoticeFrame.Size = UDim2.new(0, 350, 0, 70)
-NoticeFrame.Position = UDim2.new(0.5, -175, 0.4, -35) -- Căn chính giữa màn hình cho dễ nhìn
+NoticeFrame.Size = UDim2.new(0, 220, 0, 45)
+NoticeFrame.Position = UDim2.new(0.5, -110, 0.85, 0)
 NoticeFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
-NoticeFrame.BackgroundTransparency = 0.15
-Instance.new("UICorner", NoticeFrame).CornerRadius = UDim.new(0, 12)
-
+NoticeFrame.BackgroundTransparency = 0.2
+Instance.new("UICorner", NoticeFrame).CornerRadius = UDim.new(0, 8)
 local noticeStroke = Instance.new("UIStroke", NoticeFrame)
-noticeStroke.Thickness = 2.5
+noticeStroke.Thickness = 1.5
 noticeStroke.Color = Color3.fromRGB(0, 170, 255)
 
--- Tăng Kích Thước Chữ (Size 22) & Viền Chữ
 local NoticeText = Instance.new("TextLabel", NoticeFrame)
 NoticeText.Size = UDim2.new(1, 0, 1, 0)
 NoticeText.Font = Enum.Font.Cartoon
-NoticeText.TextSize = 22
-NoticeText.TextColor3 = Color3.fromRGB(100, 220, 255)
-NoticeText.TextStrokeColor3 = Color3.fromRGB(0, 50, 100)
-NoticeText.TextStrokeTransparency = 0.2
+NoticeText.TextSize = 14
+NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
 
 for i = 10, 1, -1 do
-    NoticeText.Text = "⏳ Đang tải Game... " .. i .. "s"
+    NoticeText.Text = "Đang tải Game... " .. i .. "s"
     task.wait(1)
 end
 NoticeGui:Destroy()
@@ -360,11 +355,12 @@ local SeaIslandsData = {
         {"Đảo Nóng Lạnh", "CircleIslandIce"}, {"Đảo Lãng Quên", "ForgottenIsland"}
     },
     [3] = {
-        {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
-        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"},
-        {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
-        {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"}, {"Dinh Thự", "BigMansion"},
-        {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"}, {"Thị Trấn Cảng", "Default"}
+        {"Đảo Big Mom", "IceCream"}, {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"},
+        {"Lâu Đài Bóng Tối", "HauntedCastle"}, {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"},
+        {"Đảo Socola", "Chocolate"}, {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"},
+        {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"}, {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"},
+        {"Dinh Thự", "BigMansion"}, {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"},
+        {"Thị Trấn Cảng", "Default"}
     }
 }
 
@@ -505,7 +501,7 @@ mobStroke.Color = Color3.fromRGB(170, 0, 255)
 
 MobBtn.MouseButton1Click:Connect(function()
     MobEnabled = not MobEnabled
-    if MobEnabled then
+    if MobEnabled me
         MobBtn.Text = "TP TỚI QUÁI: ON"
         MobBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
         mobStroke.Color = Color3.fromRGB(0, 255, 150)
