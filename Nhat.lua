@@ -32,7 +32,7 @@ NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
 
 for i = 10, 1, -1 do
-    NoticeText.Text = "Đang tải Game... " .. i .. "s"
+    NoticeText.Text = "Đang tải dữ liệu... " .. i .. "s"
     task.wait(1)
 end
 NoticeGui:Destroy()
@@ -356,7 +356,7 @@ local SeaIslandsData = {
     },
     [3] = {
         {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
-        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"},
+        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCeam"}
         {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
         {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"}, {"Dinh Thự", "BigMansion"},
         {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"}, {"Thị Trấn Cảng", "Default"}
