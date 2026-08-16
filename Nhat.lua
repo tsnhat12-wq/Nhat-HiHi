@@ -356,7 +356,7 @@ local SeaIslandsData = {
     },
     [3] = {
         {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
-        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"}
+        {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"},
         {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
         {"Đảo Phụ Nữ (Hydra 2)", "Hydra2"}, {"Đảo Phụ Nữ (Hydra 3)", "Hydra3"}, {"Dinh Thự", "BigMansion"},
         {"Dinh Thự (Cổng)", "MansionEntrance"}, {"Đảo Rùa", "PineappleTown"}, {"Thị Trấn Cảng", "Default"}
