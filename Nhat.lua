@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
 local LocalPlayer = Players.LocalPlayer
 
 local NoticeGui = Instance.new("ScreenGui")
@@ -57,8 +58,10 @@ ClearOldGUI()
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
 _G.SPEED = 250
+_G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
+_G.BOOST_DISTANCE = 60
 _G.DOCAO_MOB = 45
-_G.DOCAO_CHEST = 1
+_G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
 _G.DOXATP = 0
 
@@ -72,8 +75,9 @@ local TargetFruit = nil
 
 local BodyVelocity = nil
 local NoclipConnection = nil
-local IgnoredChests = {}
+local IgnoredChests = setmetatable({}, {__mode = "k"})
 local TouchTimer = 0
+local SEARCH_MOB_DISTANCE = 5000
 
 local function GetRoot()
     local Character = LocalPlayer.Character
@@ -86,8 +90,8 @@ local function EnableAntiGravity(root)
         BodyVelocity = Instance.new("BodyVelocity")
         BodyVelocity.Name = "AxiomHover"
         BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        BodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-        BodyVelocity.P = 9000
+        BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        BodyVelocity.P = 12500
         BodyVelocity.Parent = root
     end
     local Character = LocalPlayer.Character
@@ -124,7 +128,7 @@ local function DisableNoclip()
 end
 
 -- ===================================================
--- 4. LOGIC TÌM KIẾM MỤC TIÊU (QUÁI, RƯƠNG, TRÁI QUỶ)
+-- 4. LOGIC TÌM KIẾM MỤC TIÊU
 -- ===================================================
 local function IsBloxFruitsMob(Model)
     if not Model or not Model:IsA("Model") then return false end
@@ -139,12 +143,16 @@ local function IsBloxFruitsMob(Model)
     return true
 end
 
+-- THUẬT TOÁN TÌM QUÁI TỐI ƯU MỚI
 local function FindNearestMob()
     local MyRoot = GetRoot()
     if not MyRoot then return nil end
-    local Nearest, NearestDistance = nil, 5000
+
+    local Nearest = nil
+    local NearestDistance = SEARCH_MOB_DISTANCE
     local EnemiesFolder = Workspace:FindFirstChild("Enemies")
     local MobList = EnemiesFolder and EnemiesFolder:GetChildren() or Workspace:GetChildren()
+
     for _, Object in ipairs(MobList) do
         if IsBloxFruitsMob(Object) then
             local Root = Object:FindFirstChild("HumanoidRootPart") or Object.PrimaryPart
@@ -157,35 +165,47 @@ local function FindNearestMob()
             end
         end
     end
-    return Nearest
-end
 
-local function GetChestPart(Object)
-    if not Object or not Object.Parent then return nil end
-    local name = Object.Name:lower()
-    if name:find("chest") then
-        if Object:IsA("BasePart") then return Object
-        elseif Object:IsA("Model") then
-            return Object.PrimaryPart or (Object:FindFirstChild("TouchInterest", true) and Object:FindFirstChild("TouchInterest", true).Parent) or Object:FindFirstChildOfClass("BasePart")
-        end
-    end
-    return nil
-end
-
-local function FindNearestChest()
-    local MyRoot = GetRoot()
-    if not MyRoot then return nil end
-    local Nearest, NearestDistance = nil, 10000
-    for _, Object in ipairs(Workspace:GetDescendants()) do
-        local ChestPart = GetChestPart(Object)
-        if ChestPart and not IgnoredChests[ChestPart] then
-            local Distance = (ChestPart.Position - MyRoot.Position).Magnitude
-            if Distance < NearestDistance then
-                Nearest = ChestPart
-                NearestDistance = Distance
+    if not Nearest and EnemiesFolder then
+        for _, Object in ipairs(Workspace:GetChildren()) do
+            if Object ~= EnemiesFolder and IsBloxFruitsMob(Object) then
+                local Root = Object:FindFirstChild("HumanoidRootPart") or Object.PrimaryPart
+                if Root then
+                    local Distance = (Root.Position - MyRoot.Position).Magnitude
+                    if Distance < NearestDistance then
+                        Nearest = Object
+                        NearestDistance = Distance
+                    end
+                end
             end
         end
     end
+
+    return Nearest
+end
+
+-- THUẬT TOÁN TÌM RƯƠNG MỚI BẰNG TAG-BASED
+local function FindNearestTaggedChest()
+    local MyRoot = GetRoot()
+    if not MyRoot then return nil end
+
+    local Position = MyRoot.Position
+    local Chests = CollectionService:GetTagged("_ChestTagged")
+    local Distance, Nearest = math.huge, nil
+
+    for i = 1, #Chests do
+        local Chest = Chests[i]
+        if Chest and Chest.Parent and not IgnoredChests[Chest] then
+            if not Chest:GetAttribute("IsDisabled") then
+                local Magnitude = (Chest:GetPivot().Position - Position).Magnitude
+                if Magnitude < Distance then
+                    Distance = Magnitude
+                    Nearest = Chest
+                end
+            end
+        end
+    end
+
     return Nearest
 end
 
@@ -270,7 +290,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             MyRoot.CFrame = MyRoot.CFrame:Lerp(TargetCFrame, Alpha)
         end
 
-    -- UUTIEN 2: TP MOB
+    -- UUTIEN 2: TP MOB (DYNAMIC BOOST SPEED)
     elseif MobEnabled then
         if not TargetMob or not TargetMob.Parent or not IsBloxFruitsMob(TargetMob) then
             TargetMob = FindNearestMob()
@@ -281,27 +301,35 @@ RunService.Heartbeat:Connect(function(DeltaTime)
                 local TargetCFrame = MobRoot.CFrame * CFrame.new(_G.DOXATP, _G.DOCAO_MOB, 0)
                 local Distance = (TargetCFrame.Position - MyRoot.Position).Magnitude
                 if Distance > 0.05 then
-                    local Speed = math.max(0, tonumber(_G.SPEED) or 250)
-                    local Alpha = math.clamp((Speed * DeltaTime) / Distance, 0, 1)
+                    local ActiveSpeed = (Distance <= _G.BOOST_DISTANCE) and _G.BOOST_SPEED or _G.SPEED
+                    local StepProgress = (ActiveSpeed * DeltaTime) / math.max(Distance, 0.001)
+                    local Alpha = math.clamp(StepProgress, 0, 1)
                     MyRoot.CFrame = MyRoot.CFrame:Lerp(TargetCFrame, Alpha)
                 end
             end
         end
 
-    -- UUTIEN 3: FARM CHEST
+    -- UUTIEN 3: FARM CHEST (TAG-BASED + BOOST SPEED)
     elseif ChestEnabled then
-        if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] then
-            TargetChest = FindNearestChest()
+        if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] or TargetChest:GetAttribute("IsDisabled") then
+            TargetChest = FindNearestTaggedChest()
             TouchTimer = 0
         end
+
         if TargetChest then
-            local TargetCFrame = TargetChest.CFrame * CFrame.new(0, _G.DOCAO_CHEST, 0)
+            local TargetCFrame = TargetChest:GetPivot() * CFrame.new(0, _G.DOCAO_CHEST, 0)
             local Distance = (TargetCFrame.Position - MyRoot.Position).Magnitude
+
+            local ActiveSpeed = (Distance <= _G.BOOST_DISTANCE) and _G.BOOST_SPEED or _G.SPEED
+
             if Distance <= 4 then
                 TouchTimer = TouchTimer + DeltaTime
                 if firetouchinterest then
-                    firetouchinterest(MyRoot, TargetChest, 0)
-                    firetouchinterest(MyRoot, TargetChest, 1)
+                    local touchPart = TargetChest:IsA("BasePart") and TargetChest or TargetChest.PrimaryPart or TargetChest:FindFirstChildOfClass("BasePart")
+                    if touchPart then
+                        firetouchinterest(MyRoot, touchPart, 0)
+                        firetouchinterest(MyRoot, touchPart, 1)
+                    end
                 end
                 if TouchTimer >= 0.4 then
                     IgnoredChests[TargetChest] = true
@@ -312,8 +340,8 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             else
                 TouchTimer = 0
             end
-            local Speed = math.max(0, tonumber(_G.SPEED) or 250)
-            local Alpha = math.clamp((Speed * DeltaTime) / Distance, 0, 1)
+
+            local Alpha = math.clamp((ActiveSpeed * DeltaTime) / math.max(Distance, 0.001), 0, 1)
             MyRoot.CFrame = MyRoot.CFrame:Lerp(TargetCFrame, Alpha)
         end
     end
@@ -423,21 +451,17 @@ ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.V
 local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
-    -- XỬ LÝ RIÊNG CHO TEMPLE OF TIME (KHẮC PHỤC LỖI RỚT MAP)
     if spawnArg == "TempleOfTime" then 
-        -- 1. Gọi Remote TP
         pcall(function() 
             commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
         end) 
         
-        -- 2. Đặt CFrame nhân vật tới điểm an toàn & Giữ vị trí không bị rơi
         task.spawn(function()
             local hrp = GetRoot()
             if hrp then
                 hrp.CFrame = CFrame.new(28286.35546875, 14895.3017578125, 102.62469482421875)
             end
             
-            -- Ép Noclip giữ nhân vật trong 2 giây đầu tránh rớt
             for i = 1, 20 do
                 local char = LocalPlayer.Character
                 if char then
@@ -449,7 +473,6 @@ local function SpawnToIsland(spawnArg)
             end
         end)
 
-        -- 3. Load Map "Temple of Time" liên tục cho đến khi xuất hiện ở Workspace
         task.spawn(function()
             for i = 1, 10 do
                 local mapFolder = Workspace:FindFirstChild("Map") or Workspace
@@ -466,7 +489,7 @@ local function SpawnToIsland(spawnArg)
                 task.wait(0.3)
             end
         end)
-        return -- Dừng lại luôn, không tự tử (Reset Character)
+        return
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
@@ -531,7 +554,7 @@ FruitBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 2. NÚT MOB
+-- 2. NÚT MOB (DYNAMIC BOOST ENHANCED)
 local MobBtn = Instance.new("TextButton", Scroll)
 MobBtn.Size = UDim2.new(0.9, 0, 0, 32)
 MobBtn.Text = "TP TỚI QUÁI: OFF"
@@ -559,7 +582,7 @@ MobBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. NÚT CHEST
+-- 3. NÚT CHEST (TAG-BASED + BOOST ENHANCED)
 local ChestBtn = Instance.new("TextButton", Scroll)
 ChestBtn.Size = UDim2.new(0.9, 0, 0, 32)
 ChestBtn.Text = "FARM RƯƠNG: OFF"
