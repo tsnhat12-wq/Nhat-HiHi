@@ -1,5 +1,5 @@
 -- ===================================================
--- 1. ThÔNG BÁO ĐẾM NGƯỢC 10 GIÂY
+-- 1. THÔNG BÁO ĐẾM NGƯỢC 10 GIÂY
 -- ===================================================
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -355,6 +355,7 @@ local SeaIslandsData = {
         {"Đảo Nóng Lạnh", "CircleIslandIce"}, {"Đảo Lãng Quên", "ForgottenIsland"}
     },
     [3] = {
+        {"Đền Thời Gian (Cổng)", "TempleOfTime"}, -- ĐÃ THÊM ĐỀN THỜI GIAN VÀO SEA 3
         {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
         {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"},
         {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
@@ -418,9 +419,17 @@ UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.Visible end)
 
+-- HÀM THỰC THI TELEPORT CỔNG
 local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-    if spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
+    
+    -- ĐÃ THÊM TEMPLE OF TIME VÀO ĐÂY:
+    if spawnArg == "TempleOfTime" then 
+        pcall(function() 
+            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
+        end) 
+        return
+    elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
     elseif spawnArg == "Sky2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-7894.61, 5547.14, -380.29)) end) return
