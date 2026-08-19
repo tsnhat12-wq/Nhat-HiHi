@@ -423,21 +423,49 @@ ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.V
 local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
-    -- XỬ LÝ RIÊNG CHO TEMPLE OF TIME
+    -- XỬ LÝ RIÊNG CHO TEMPLE OF TIME (KHẮC PHỤC LỖI RỚT MAP)
     if spawnArg == "TempleOfTime" then 
-        -- 1. Gọi Remote TP tới Đền Thời Gian
+        -- 1. Gọi Remote TP
         pcall(function() 
             commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
         end) 
         
-        -- 2. Load Map "Temple of Time" từ ReplicatedStorage ra Workspace nếu chưa có
-        local mapFolder = Workspace:FindFirstChild("Map")
-        if mapFolder and not mapFolder:FindFirstChild("Temple of Time") then
-            local stash = ReplicatedStorage:FindFirstChild("MapStash")
-            if stash and stash:FindFirstChild("Temple of Time") then
-                stash["Temple of Time"].Parent = mapFolder
+        -- 2. Đặt CFrame nhân vật tới điểm an toàn & Giữ vị trí không bị rơi
+        task.spawn(function()
+            local hrp = GetRoot()
+            if hrp then
+                hrp.CFrame = CFrame.new(28286.35546875, 14895.3017578125, 102.62469482421875)
             end
-        end
+            
+            -- Ép Noclip giữ nhân vật trong 2 giây đầu tránh rớt
+            for i = 1, 20 do
+                local char = LocalPlayer.Character
+                if char then
+                    for _, p in ipairs(char:GetDescendants()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+
+        -- 3. Load Map "Temple of Time" liên tục cho đến khi xuất hiện ở Workspace
+        task.spawn(function()
+            for i = 1, 10 do
+                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
+                if not mapFolder:FindFirstChild("Temple of Time") then
+                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
+                    local tot = stash:FindFirstChild("Temple of Time")
+                    if tot then
+                        tot.Parent = mapFolder
+                        break
+                    end
+                else
+                    break
+                end
+                task.wait(0.3)
+            end
+        end)
         return -- Dừng lại luôn, không tự tử (Reset Character)
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
