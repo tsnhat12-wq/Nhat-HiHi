@@ -425,10 +425,20 @@ local function SpawnToIsland(spawnArg)
     
     -- XỬ LÝ RIÊNG CHO TEMPLE OF TIME
     if spawnArg == "TempleOfTime" then 
+        -- 1. Gọi Remote TP tới Đền Thời Gian
         pcall(function() 
-            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741, -0.469690144, -2.85620132e-08, -0.882831335, -3.23509219e-08, 1, -1.51411736e-08, 0.882831335, 2.14487486e-08, -0.469690144))
+            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
         end) 
-        return -- Dừng lại luôn, không cho nhân vật tự tử
+        
+        -- 2. Load Map "Temple of Time" từ ReplicatedStorage ra Workspace nếu chưa có
+        local mapFolder = Workspace:FindFirstChild("Map")
+        if mapFolder and not mapFolder:FindFirstChild("Temple of Time") then
+            local stash = ReplicatedStorage:FindFirstChild("MapStash")
+            if stash and stash:FindFirstChild("Temple of Time") then
+                stash["Temple of Time"].Parent = mapFolder
+            end
+        end
+        return -- Dừng lại luôn, không tự tử (Reset Character)
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
