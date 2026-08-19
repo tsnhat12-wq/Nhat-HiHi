@@ -122,6 +122,7 @@ local function DisableNoclip()
         NoclipConnection = nil
     end
 end
+
 -- ===================================================
 -- 4. LOGIC TÌM KIẾM MỤC TIÊU (QUÁI, RƯƠNG, TRÁI QUỶ)
 -- ===================================================
@@ -317,7 +318,6 @@ RunService.Heartbeat:Connect(function(DeltaTime)
         end
     end
 end)
-
 -- ===================================================
 -- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
 -- ===================================================
@@ -355,7 +355,7 @@ local SeaIslandsData = {
         {"Đảo Nóng Lạnh", "CircleIslandIce"}, {"Đảo Lãng Quên", "ForgottenIsland"}
     },
     [3] = {
-        {"Đền Thời Gian (Cổng)", "TempleOfTime"}, -- ĐÃ THÊM ĐỀN THỜI GIAN VÀO SEA 3
+        {"Đền Thời Gian (Cổng)", "TempleOfTime"},
         {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
         {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"},
         {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
@@ -423,12 +423,12 @@ ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.V
 local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
-    -- ĐÃ THÊM TEMPLE OF TIME VÀO ĐÂY:
+    -- XỬ LÝ RIÊNG CHO TEMPLE OF TIME
     if spawnArg == "TempleOfTime" then 
         pcall(function() 
-            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
+            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741, -0.469690144, -2.85620132e-08, -0.882831335, -3.23509219e-08, 1, -1.51411736e-08, 0.882831335, 2.14487486e-08, -0.469690144))
         end) 
-        return
+        return -- Dừng lại luôn, không cho nhân vật tự tử
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
