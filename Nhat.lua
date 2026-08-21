@@ -63,7 +63,7 @@ _G.BOOST_DISTANCE = 150
 _G.DOCAO_MOB = 45
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
-_G.DOXATP = 0
+_G.DOXATP = 5
 
 local MobEnabled = false
 local ChestEnabled = false
@@ -143,7 +143,7 @@ local function IsBloxFruitsMob(Model)
     return true
 end
 
--- THUẬT TOÁN TÌM QUÁI TỐI ƯU MỚI
+-- THUẬT TOÁN TÌM QUÁI TỐI ƯU
 local function FindNearestMob()
     local MyRoot = GetRoot()
     if not MyRoot then return nil end
@@ -184,15 +184,16 @@ local function FindNearestMob()
     return Nearest
 end
 
--- THUẬT TOÁN TÌM RƯƠNG MỚI BẰNG TAG-BASED
+-- THUẬT TOÁN TÌM RƯƠNG NÂNG CẤP (QUÉT TAG + DỰ PHÒNG WORKSPACE)
 local function FindNearestTaggedChest()
     local MyRoot = GetRoot()
     if not MyRoot then return nil end
 
     local Position = MyRoot.Position
-    local Chests = CollectionService:GetTagged("_ChestTagged")
     local Distance, Nearest = math.huge, nil
 
+    -- 1. Quét theo Tag CollectionService (Nhanh & Tối ưu)
+    local Chests = CollectionService:GetTagged("_ChestTagged")
     for i = 1, #Chests do
         local Chest = Chests[i]
         if Chest and Chest.Parent and not IgnoredChests[Chest] then
@@ -201,6 +202,22 @@ local function FindNearestTaggedChest()
                 if Magnitude < Distance then
                     Distance = Magnitude
                     Nearest = Chest
+                end
+            end
+        end
+    end
+
+    -- 2. Quét dự phòng trực tiếp trong Workspace (Nếu Tag bỏ sót rương)
+    if not Nearest then
+        for _, object in ipairs(Workspace:GetChildren()) do
+            if object.Name:find("Chest") and not IgnoredChests[object] then
+                local touchPart = object:IsA("BasePart") and object or object.PrimaryPart or object:FindFirstChildOfClass("BasePart")
+                if touchPart then
+                    local Magnitude = (touchPart.Position - Position).Magnitude
+                    if Magnitude < Distance then
+                        Distance = Magnitude
+                        Nearest = object
+                    end
                 end
             end
         end
@@ -309,7 +326,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             end
         end
 
-    -- UUTIEN 3: FARM CHEST (TAG-BASED + BOOST SPEED)
+    -- UUTIEN 3: FARM CHEST (TAG + WORKSPACE BACKUP)
     elseif ChestEnabled then
         if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] or TargetChest:GetAttribute("IsDisabled") then
             TargetChest = FindNearestTaggedChest()
@@ -582,7 +599,7 @@ MobBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- 3. NÚT CHEST (TAG-BASED + BOOST ENHANCED)
+-- 3. NÚT CHEST (TAG + WORKSPACE BACKUP + BOOST ENHANCED)
 local ChestBtn = Instance.new("TextButton", Scroll)
 ChestBtn.Size = UDim2.new(0.9, 0, 0, 32)
 ChestBtn.Text = "FARM RƯƠNG: OFF"
