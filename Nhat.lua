@@ -1,6 +1,3 @@
--- ===================================================
--- 1. THÔNG BÁO ĐẾM NGƯỢC 10 GIÂY
--- ===================================================
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -59,11 +56,11 @@ ClearOldGUI()
 -- ===================================================
 _G.SPEED = 250
 _G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
-_G.BOOST_DISTANCE = 150
+_G.BOOST_DISTANCE = 60
 _G.DOCAO_MOB = 45
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
-_G.DOXATP = 5
+_G.DOXATP = 0
 
 local MobEnabled = false
 local ChestEnabled = false
@@ -78,6 +75,14 @@ local NoclipConnection = nil
 local IgnoredChests = setmetatable({}, {__mode = "k"})
 local TouchTimer = 0
 local SEARCH_MOB_DISTANCE = 5000
+
+-- ROUTE TRUNG GIAN DÀNH CHO CÁC ĐẢO Ở XA
+local IntermediateRoutes = {
+    ["GreatTree"] = {"SeaCastle", "GreatTree"},          -- Lâu Đài Bóng Tối -> Pháo Đài Trên Biển -> Cây Đại Thụ
+    ["Tiki"] = {"SeaCastle", "Tiki"},                   -- Đảo Tiki
+    ["PineappleTown"] = {"MansionEntrance", "PineappleTown"}, -- Đảo Rùa
+    ["Chocolate"] = {"IceCream", "Chocolate"}            -- Đảo Socola
+}
 
 local function GetRoot()
     local Character = LocalPlayer.Character
@@ -363,9 +368,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
         end
     end
 end)
--- ===================================================
--- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
--- ===================================================
+
 local function GetCurrentSea()
     local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
     if playerGui then
@@ -464,10 +467,36 @@ UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.Visible end)
 
--- HÀM THỰC THI TELEPORT CỔNG
+-- HÀM THỰC THI SPAWN THEO ROUTE TRUNG GIAN
+local function SpawnViaRoute(routeList)
+    task.spawn(function()
+        local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+        for _, spawnPoint in ipairs(routeList) do
+            local char = LocalPlayer.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                pcall(function() 
+                    commF:InvokeServer("SetLastSpawnPoint", spawnPoint) 
+                end)
+                hum.Health = 0
+                LocalPlayer.CharacterAdded:Wait()
+                task.wait(1.5)
+            end
+        end
+    end)
+end
+
+-- HÀM THỰC THI TELEPORT CỔNG VÀ ĐẢO
 local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
+    -- 1. ƯU TIÊN ROUTE TRUNG GIAN DÀNH CHO CÁC ĐẢO Ở XA
+    if IntermediateRoutes[spawnArg] then
+        SpawnViaRoute(IntermediateRoutes[spawnArg])
+        return
+    end
+
+    -- 2. CÁC CỔNG REQUEST ENTRANCE ĐẶC BIỆT
     if spawnArg == "TempleOfTime" then 
         pcall(function() 
             commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
@@ -478,7 +507,6 @@ local function SpawnToIsland(spawnArg)
             if hrp then
                 hrp.CFrame = CFrame.new(28286.35546875, 14895.3017578125, 102.62469482421875)
             end
-            
             for i = 1, 20 do
                 local char = LocalPlayer.Character
                 if char then
@@ -517,6 +545,7 @@ local function SpawnToIsland(spawnArg)
     elseif spawnArg == "HydraEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(5681.00, 1013.11, -307.12)) end) return
     end
 
+    -- 3. SET SPAWN TRỰC TIẾP CHO ĐẢO GẦN
     local char = LocalPlayer.Character
     if char and char:FindFirstChildOfClass("Humanoid") then
         char.Humanoid.Health = 0
