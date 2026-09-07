@@ -378,7 +378,7 @@ local function GetCurrentSea()
         end
     end
     if game.PlaceId == 85211729168715 then return 1 end
-    if game.PlaceId == 4442272183 then return 2 end
+    if game.PlaceId == 79091703265657 then return 2 end
     if game.PlaceId == 7449423635 then return 3 end
     return 3
 end
