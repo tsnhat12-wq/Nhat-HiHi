@@ -57,13 +57,13 @@ ClearOldGUI()
 -- ===================================================
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
-_G.SPEED = 250
+_G.SPEED = 140
 _G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
-_G.BOOST_DISTANCE = 150
+_G.BOOST_DISTANCE = 90
 _G.DOCAO_MOB = 45
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
-_G.DOXATP = 5
+_G.DOXATP = 0
 
 local MobEnabled = false
 local ChestEnabled = false
@@ -377,7 +377,7 @@ local function GetCurrentSea()
             end
         end
     end
-    if game.PlaceId == 2753915549 then return 1 end
+    if game.PlaceId == 85211729168715 then return 1 end
     if game.PlaceId == 4442272183 then return 2 end
     if game.PlaceId == 7449423635 then return 3 end
     return 3
@@ -388,7 +388,7 @@ local CurrentSeaNum = GetCurrentSea()
 local SeaIslandsData = {
     [1] = {
         {"Đảo Khỉ", "Jungle"}, {"Làng Hải Tặc", "Pirate"}, {"Đảo Khởi Đầu", "Default"},
-        {"Sa Mạc", "Desert"}, {"Thị Trấn Trung Tâm", "Town"}, {"Đảo Tuyết", "SnowIsland"},
+        {"Sa Mạc", "Desert"}, {"Thị Trấn Trung Tâm", "Town"}, {"Đảo Tuyết", "Ice"},
         {"Pháo Đài Hải Quân", "MarineBase"}, {"Đảo Trời 1", "Sky"}, {"Đảo Trời 2 (Cổng)", "Sky2Entrance"},
         {"Nhà Tù", "Prison"}, {"Đấu Trường", "Colosseum"}, {"Đảo Magma", "Magma"},
         {"Thành Phố Đài Phun Nước", "Fountain"}, {"Đảo Dưới Nước (Cổng)", "UnderwaterEntrance"}
@@ -476,7 +476,7 @@ local function SpawnToIsland(spawnArg)
         task.spawn(function()
             local hrp = GetRoot()
             if hrp then
-                hrp.CFrame = CFrame.new(28286.35546875, 14895.3017578125, 102.62469482421875)
+                hrp.CFrame = CFrame.new(28310.0234, 14895.1123, 109.456741)
             end
             
             for i = 1, 20 do
@@ -548,7 +548,7 @@ end
 -- 1. NÚT FRUIT
 local FruitBtn = Instance.new("TextButton", Scroll)
 FruitBtn.Size = UDim2.new(0.9, 0, 0, 32)
-FruitBtn.Text = "FARM TRÁI QUỶ: OFF"
+FruitBtn.Text = "BAY TỚI TRÁI: OFF"
 FruitBtn.Font = Enum.Font.Cartoon
 FruitBtn.TextSize = 13
 FruitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -562,11 +562,11 @@ fruitStroke.Color = Color3.fromRGB(0, 255, 127)
 FruitBtn.MouseButton1Click:Connect(function()
     FruitEnabled = not FruitEnabled
     if FruitEnabled then
-        FruitBtn.Text = "FARM TRÁI QUỶ: ON"
+        FruitBtn.Text = "BAY TỚI TRÁI: ON"
         FruitBtn.TextColor3 = Color3.fromRGB(0, 255, 127)
     else
         TargetFruit = nil
-        FruitBtn.Text = "FARM TRÁI QUỶ: OFF"
+        FruitBtn.Text = "BAY TỚI TRÁI: OFF"
         FruitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end
 end)
@@ -574,7 +574,7 @@ end)
 -- 2. NÚT MOB (DYNAMIC BOOST ENHANCED)
 local MobBtn = Instance.new("TextButton", Scroll)
 MobBtn.Size = UDim2.new(0.9, 0, 0, 32)
-MobBtn.Text = "TP TỚI QUÁI: OFF"
+MobBtn.Text = "BAY TỚI QUÁI: OFF"
 MobBtn.Font = Enum.Font.Cartoon
 MobBtn.TextSize = 13
 MobBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -588,12 +588,12 @@ mobStroke.Color = Color3.fromRGB(170, 0, 255)
 MobBtn.MouseButton1Click:Connect(function()
     MobEnabled = not MobEnabled
     if MobEnabled then
-        MobBtn.Text = "TP TỚI QUÁI: ON"
+        MobBtn.Text = "BAY TỚI QUÁI: ON"
         MobBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
         mobStroke.Color = Color3.fromRGB(0, 255, 150)
     else
         TargetMob = nil
-        MobBtn.Text = "TP TỚI QUÁI: OFF"
+        MobBtn.Text = "BAY TỚI QUÁI: OFF"
         MobBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         mobStroke.Color = Color3.fromRGB(170, 0, 255)
     end
