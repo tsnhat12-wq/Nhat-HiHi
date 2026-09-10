@@ -514,7 +514,7 @@ local function SpawnToIsland(spawnArg)
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
-    elseif spawnArg == "Sky2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-7894.61, 5547.14, -380.29)) end) return
+    elseif spawnArg == "Sky2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-6023.57666015625, 5469.7197265625, 2203.308349609375)) end) return
     elseif spawnArg == "UnderwaterEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(61163.85, 11.68, 1819.78)) end) return
     elseif spawnArg == "SeaCastleEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-5089.14, 314.58, -3164.46)) end) return
     elseif spawnArg == "MansionEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-12549.40, 336.98, -7576.59)) end) return
