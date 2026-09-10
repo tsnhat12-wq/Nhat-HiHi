@@ -1,5 +1,5 @@
 -- ===================================================
--- 1. THÔNG BÁO ĐẾM NGƯỢC 10 GIÂY
+-- 1. THÔNG BÁO ĐẾM NGƯỢC 5.0s -> 0.0s (BẢNG TO HƠN)
 -- ===================================================
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -16,11 +16,11 @@ pcall(function() NoticeGui.Parent = CoreGui end)
 if not NoticeGui.Parent then NoticeGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
 local NoticeFrame = Instance.new("Frame", NoticeGui)
-NoticeFrame.Size = UDim2.new(0, 220, 0, 45)
-NoticeFrame.Position = UDim2.new(0.5, -110, 0.85, 0)
+NoticeFrame.Size = UDim2.new(0, 280, 0, 60) -- Tăng chiều rộng lên 280, cao lên 60
+NoticeFrame.Position = UDim2.new(0.5, -140, 0.85, 0) -- Căn giữa lại theo kích thước mới (-140 = 280/2)
 NoticeFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
 NoticeFrame.BackgroundTransparency = 0.2
-Instance.new("UICorner", NoticeFrame).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", NoticeFrame).CornerRadius = UDim.new(0, 10)
 local noticeStroke = Instance.new("UIStroke", NoticeFrame)
 noticeStroke.Thickness = 1.5
 noticeStroke.Color = Color3.fromRGB(0, 170, 255)
@@ -28,15 +28,19 @@ noticeStroke.Color = Color3.fromRGB(0, 170, 255)
 local NoticeText = Instance.new("TextLabel", NoticeFrame)
 NoticeText.Size = UDim2.new(1, 0, 1, 0)
 NoticeText.Font = Enum.Font.Cartoon
-NoticeText.TextSize = 15
+NoticeText.TextSize = 18 -- Tăng cỡ chữ lên 18 cho dễ nhìn
 NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
+NoticeText.TextXAlignment = Enum.TextXAlignment.Center
+NoticeText.TextYAlignment = Enum.TextYAlignment.Center
 
-for i = 10, 1, -1 do
-    NoticeText.Text = "Đang Load Menu... " .. i .. "s"
-    task.wait(1)
+-- Đếm ngược từ 5.0s về 0.0s
+for i = 50, 0, -1 do
+    NoticeText.Text = string.format("Đang Load Menu... %.1fs", i / 10)
+    task.wait(0.1)
 end
 NoticeGui:Destroy()
+
 
 -- ===================================================
 -- 2. CLEAR OLD GUI & LOGIC
