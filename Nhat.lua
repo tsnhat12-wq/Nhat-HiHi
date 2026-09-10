@@ -28,12 +28,12 @@ noticeStroke.Color = Color3.fromRGB(0, 170, 255)
 local NoticeText = Instance.new("TextLabel", NoticeFrame)
 NoticeText.Size = UDim2.new(1, 0, 1, 0)
 NoticeText.Font = Enum.Font.Cartoon
-NoticeText.TextSize = 14
+NoticeText.TextSize = 15
 NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
 
 for i = 10, 1, -1 do
-    NoticeText.Text = "Đang tải Game... " .. i .. "s"
+    NoticeText.Text = "Đang Load Menu... " .. i .. "s"
     task.wait(1)
 end
 NoticeGui:Destroy()
