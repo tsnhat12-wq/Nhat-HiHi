@@ -470,42 +470,35 @@ local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
     if spawnArg == "TempleOfTime" then 
-        pcall(function() 
-            commF:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741)) 
-        end) 
-        
         task.spawn(function()
             local hrp = GetRoot()
-            if hrp then
-                hrp.CFrame = CFrame.new(28310.0234, 14895.1123, 109.456741)
-            end
-            
-            for i = 1, 20 do
-                local char = LocalPlayer.Character
-                if char then
-                    for _, p in ipairs(char:GetDescendants()) do
-                        if p:IsA("BasePart") then p.CanCollide = false end
-                    end
-                end
-                task.wait(0.1)
-            end
-        end)
+            if not hrp then return end
 
-        task.spawn(function()
-            for i = 1, 10 do
-                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
-                if not mapFolder:FindFirstChild("Temple of Time") then
-                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                    local tot = stash:FindFirstChild("Temple of Time")
-                    if tot then
-                        tot.Parent = mapFolder
-                        break
-                    end
-                else
-                    break
-                end
-                task.wait(0.3)
+            local targetCFrame = CFrame.new(3035.22, 2280.89, -7321.22)
+            local flySpeed = tonumber(_G.SPEED) or 250
+
+            -- Bật Noclip và AntiGravity trong lúc bay
+            EnableAntiGravity(hrp)
+            EnableNoclip()
+
+            -- Vòng lặp bay từ từ (Lerp) tới tọa độ Đền Thời Gian
+            while (targetCFrame.Position - hrp.Position).Magnitude > 5 do
+                local currentHrp = GetRoot()
+                if not currentHrp then break end
+                
+                local distance = (targetCFrame.Position - currentHrp.Position).Magnitude
+                local alpha = math.clamp((flySpeed * task.wait()) / distance, 0, 1)
+                currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)
             end
+
+            -- Đã tới nơi -> Khôi phục nhân vật & gửi Remote
+            DisableAntiGravity()
+            DisableNoclip()
+
+            local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+            pcall(function() 
+                commF:InvokeServer("RaceV4Progress", "Teleport") 
+            end)
         end)
         return
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
