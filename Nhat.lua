@@ -520,7 +520,7 @@ local function SpawnToIsland(spawnArg)
 
                 -- GIAI ĐOẠN 1: Bay tới Cổng ngoài Đền Thời Gian
                 if phase == 1 then
-                    if distance <= 3 then
+                    if distance <= 0.5 then
                         phase = 2 -- Tạm dừng di chuyển để gửi Remote
                         
                         -- Gửi Remote teleport vào trong Đền
@@ -530,7 +530,7 @@ local function SpawnToIsland(spawnArg)
                         end)
 
                         task.spawn(function()
-                            task.wait(1.2) -- Chờ Game load vị trí vào trong Đền
+                            task.wait(1) -- Chờ Game load vị trí vào trong Đền
 
                             -- Tự động kiểm tra Tộc người chơi
                             local raceVal = LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Race") and LocalPlayer.Data.Race.Value
