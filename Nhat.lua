@@ -401,7 +401,7 @@ local SeaIslandsData = {
         {"Đảo Nóng Lạnh", "CircleIslandIce"}, {"Đảo Lãng Quên", "ForgottenIsland"}
     },
     [3] = {
-        {"Đền Thời Gian (Cổng)", "TempleOfTime"},
+        {"Đền Thời Gian", "TempleOfTime"},
         {"Pháo Đài Trên Biển", "SeaCastle"}, {"Pháo Đài Trên Biển (Cổng)", "SeaCastleEntrance"}, {"Lâu Đài Bóng Tối", "HauntedCastle"},
         {"Đảo Tiki", "Tiki"}, {"Đảo Bánh Kem / Katakuri", "Loaf"}, {"Đảo Socola", "Chocolate"}, {"Đảo Big Mom", "IceCream"},
         {"Cây Đại Thụ", "GreatTree"}, {"Đảo Hydra (Cổng)", "HydraEntrance"}, {"Đảo Phụ Nữ (Hydra 1)", "Hydra1"},
@@ -470,34 +470,64 @@ local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
     if spawnArg == "TempleOfTime" then 
+        -- Bấm lần 2: Đang bay thì ngắt kết nối để DỪNG BAY ngay lập tức
+        if TempleFlyConnection then
+            TempleFlyConnection:Disconnect()
+            TempleFlyConnection = nil
+            DisableAntiGravity()
+            DisableNoclip()
+            return
+        end
+
         task.spawn(function()
+            local targetCFrame = CFrame.new(3035.22, 2280.89, -7321.22)
             local hrp = GetRoot()
             if not hrp then return end
-
-            local targetCFrame = CFrame.new(3035.22, 2280.89, -7321.22)
-            local flySpeed = tonumber(_G.SPEED) or 250
-
-            -- Bật Noclip và AntiGravity trong lúc bay
+            
             EnableAntiGravity(hrp)
             EnableNoclip()
 
-            -- Vòng lặp bay từ từ (Lerp) tới tọa độ Đền Thời Gian
-            while (targetCFrame.Position - hrp.Position).Magnitude > 5 do
+            -- Lưu vòng lặp vào biến TempleFlyConnection
+            TempleFlyConnection = RunService.Heartbeat:Connect(function(deltaTime)
                 local currentHrp = GetRoot()
-                if not currentHrp then break end
-                
+                if not currentHrp then 
+                    if TempleFlyConnection then 
+                        TempleFlyConnection:Disconnect() 
+                        TempleFlyConnection = nil
+                    end
+                    DisableAntiGravity()
+                    DisableNoclip()
+                    return 
+                end
+
                 local distance = (targetCFrame.Position - currentHrp.Position).Magnitude
-                local alpha = math.clamp((flySpeed * task.wait()) / distance, 0, 1)
+
+                -- Đến đích -> Tắt bay và gửi Remote
+                if distance <= 3 then
+                    if TempleFlyConnection then
+                        TempleFlyConnection:Disconnect()
+                        TempleFlyConnection = nil
+                    end
+                    DisableAntiGravity()
+                    DisableNoclip()
+
+                    local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+                    pcall(function() 
+                        commF:InvokeServer("RaceV4Progress", "Teleport") 
+                    end)
+                    return
+                end
+
+                -- Áp dụng tốc độ bay chuẩn
+                local boostDist = tonumber(_G.BOOST_DISTANCE) or 90
+                local boostSpeed = tonumber(_G.BOOST_SPEED) or 1000
+                local normalSpeed = tonumber(_G.SPEED) or 250
+
+                local activeSpeed = (distance <= boostDist) and boostSpeed or normalSpeed
+                local stepProgress = (activeSpeed * deltaTime) / math.max(distance, 0.001)
+                local alpha = math.clamp(stepProgress, 0, 1)
+
                 currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)
-            end
-
-            -- Đã tới nơi -> Khôi phục nhân vật & gửi Remote
-            DisableAntiGravity()
-            DisableNoclip()
-
-            local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-            pcall(function() 
-                commF:InvokeServer("RaceV4Progress", "Teleport") 
             end)
         end)
         return
