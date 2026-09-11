@@ -471,10 +471,12 @@ local function SpawnToIsland(spawnArg)
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
     
     if spawnArg == "TempleOfTime" then 
-        -- Bấm lần 2: Đang bay thì ngắt kết nối để DỪNG BAY ngay lập tức
-        if TempleFlyConnection then
-            TempleFlyConnection:Disconnect()
-            TempleFlyConnection = nil
+        -- Bấm lần 2: Đang bay hoặc đang lơ lửng thì tắt hẳn để rơi xuống / reset
+        if TempleFlyConnection or BodyVelocity then
+            if TempleFlyConnection then
+                TempleFlyConnection:Disconnect()
+                TempleFlyConnection = nil
+            end
             DisableAntiGravity()
             DisableNoclip()
             return
@@ -488,7 +490,6 @@ local function SpawnToIsland(spawnArg)
             EnableAntiGravity(hrp)
             EnableNoclip()
 
-            -- Lưu vòng lặp vào biến TempleFlyConnection
             TempleFlyConnection = RunService.Heartbeat:Connect(function(deltaTime)
                 local currentHrp = GetRoot()
                 if not currentHrp then 
@@ -503,14 +504,13 @@ local function SpawnToIsland(spawnArg)
 
                 local distance = (targetCFrame.Position - currentHrp.Position).Magnitude
 
-                -- Đến đích -> Tắt bay và gửi Remote
-                if distance <= 0.5 then
+                -- Đến đích -> Dừng bay NHƯNG GIỮ LẠI AntiGravity để không bị rớt
+                if distance <= 3 then
                     if TempleFlyConnection then
                         TempleFlyConnection:Disconnect()
                         TempleFlyConnection = nil
                     end
-                    DisableAntiGravity()
-                    DisableNoclip()
+                    DisableNoclip() -- Chỉ tắt noclip để đứng trên sàn đền, giữ nguyên AntiGravity
 
                     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
                     pcall(function() 
@@ -519,7 +519,6 @@ local function SpawnToIsland(spawnArg)
                     return
                 end
 
-                -- Áp dụng tốc độ bay chuẩn
                 local boostDist = tonumber(_G.BOOST_DISTANCE) or 90
                 local boostSpeed = tonumber(_G.BOOST_SPEED) or 1000
                 local normalSpeed = tonumber(_G.SPEED) or 250
@@ -532,6 +531,7 @@ local function SpawnToIsland(spawnArg)
             end)
         end)
         return
+    end
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
     elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(2284.90, 15.53, 905.46)) end) return
