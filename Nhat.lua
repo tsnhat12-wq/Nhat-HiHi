@@ -504,7 +504,7 @@ local function SpawnToIsland(spawnArg)
                 local distance = (targetCFrame.Position - currentHrp.Position).Magnitude
 
                 -- Đến đích -> Tắt bay và gửi Remote
-                if distance <= 3 then
+                if distance <= 0.5 then
                     if TempleFlyConnection then
                         TempleFlyConnection:Disconnect()
                         TempleFlyConnection = nil
