@@ -73,6 +73,7 @@ local FruitEnabled = false
 local TargetMob = nil
 local TargetChest = nil
 local TargetFruit = nil
+local TempleFlyConnection = nil -- <-- THÊM DÒNG NÀY VÀO ĐÂY LÀ XONG!
 
 local BodyVelocity = nil
 local NoclipConnection = nil
