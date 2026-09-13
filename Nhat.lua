@@ -518,7 +518,7 @@ local function SpawnToIsland(spawnArg)
                 local alpha = math.clamp(stepProgress, 0, 1)
 
                 if phase == 1 then
-                    if distance <= 4 then
+                    if distance <= 0.5 then
                         phase = 2 
                         
                         -- Gửi remote chuyển cảnh vào Đền
