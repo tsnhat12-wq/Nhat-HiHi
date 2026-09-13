@@ -519,61 +519,61 @@ local function SpawnToIsland(spawnArg)
 
                 -- GIAI ĐOẠN 1: Bay tới Cổng ngoài Đền Thời Gian
                 if phase == 1 then
-                    if distance <= 0.5 then
-                        phase = 2 -- Tạm dừng di chuyển để gửi 
-                                
-                task.spawn(function()
-                            -- ÉP GAME LOAD MAP ĐỀN THỜI GIAN NGAY LẬP TỨC
-                            for i = 1, 10 do
-                                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
-                                if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                                    local tot = stash:FindFirstChild("Temple of Time")
-                                    if tot then
-                                        tot.Parent = mapFolder
-                                        break
-                                    end
-                                else
-                                    break
-                                end
-                                task.wait(0.3)
-                            end
+    if distance <= 0.5 then -- Phải giữ mốc 4 studs để không bị lướt qua
+        phase = 2 
 
-                            task.wait(0.5)
-                -- Gửi Remote teleport vào trong Đền
-                        local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-                        pcall(function() 
-                            commF:InvokeServer("RaceV4Progress", "Teleport") 
-                        end)
-
-                        task.spawn(function()
-                            task.wait(1) -- Chờ Game load vị trí vào trong Đền
-
-                            -- Tự động kiểm tra Tộc người chơi
-                            local raceVal = LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data:FindFirstChild("Race") and LocalPlayer.Data.Race.Value
-                            local raceStr = tostring(raceVal)
-
-                            if raceStr == "Fishman" then
-                                raceCFrame = CFrame.new(28224.056640625, 14889.4267578125, -210.5872039794922)
-                            elseif raceStr == "Cyborg" then
-                                raceCFrame = CFrame.new(28492.4140625, 14894.4267578125, -422.1100158691406)
-                            elseif raceStr == "Skypiea" then
-                                raceCFrame = CFrame.new(28967.408203125, 14918.0751953125, 234.31198120117188)
-                            elseif raceStr == "Ghoul" then
-                                raceCFrame = CFrame.new(28672.720703125, 14889.1279296875, 454.5961608886719)
-                            elseif raceStr == "Human" then
-                                raceCFrame = CFrame.new(29237.294921875, 14889.4267578125, -206.94955444335938)
-                            else -- Tộc Mink (hoặc mặc định)
-                                raceCFrame = CFrame.new(29020.66015625, 14889.4267578125, -379.2682800292969)
-                            end
-
-                            phase = 3 -- Chuyển sang bay tới Cửa Tộc
-                        end)
-                    else
-                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)
+        task.spawn(function()
+            -- 1. ÉP LOAD MAP ĐỀN TRƯỚC
+            for i = 1, 10 do
+                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
+                if not mapFolder:FindFirstChild("Temple of Time") then
+                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
+                    local tot = stash:FindFirstChild("Temple of Time")
+                    if tot then
+                        tot.Parent = mapFolder
+                        break
                     end
+                else
+                    break
+                end
+                task.wait(0.3)
+            end
 
-                -- GIAI ĐOẠN 2 (Phase 3): Bay từ trong Đền tới Cửa Tộc tương ứng
+            task.wait(0.2)
+
+            -- 2. GỬI REMOTE TELEPORT VÀO ĐỀN
+            local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+            pcall(function()
+                commF:InvokeServer("RaceV4Progress", "Teleport")
+            end)
+
+            task.wait(1) -- Chờ game xử lý vị trí nhân vật
+
+            -- 3. CHECK TỘC AN TOÀN VÀ GÁN TỌA ĐỘ
+            local data = LocalPlayer:FindFirstChild("Data")
+            local raceObj = data and data:FindFirstChild("Race")
+            local raceStr = raceObj and tostring(raceObj.Value) or ""
+
+            if raceStr == "Fishman" then
+                raceCFrame = CFrame.new(28224.056640625, 14889.4267578125, -210.5872039794922)
+            elseif raceStr == "Cyborg" then
+                raceCFrame = CFrame.new(28492.4140625, 14894.4267578125, -422.1100158691406)
+            elseif raceStr == "Skypiea" then
+                raceCFrame = CFrame.new(28967.408203125, 14918.0751953125, 234.31198120117188)
+            elseif raceStr == "Ghoul" then
+                raceCFrame = CFrame.new(28672.720703125, 14889.1279296875, 454.5961608886719)
+            elseif raceStr == "Human" then
+                raceCFrame = CFrame.new(29237.294921875, 14889.4267578125, -206.94955444335938)
+            else
+                raceCFrame = CFrame.new(29020.66015625, 14889.4267578125, -379.2682800292969)
+            end
+
+            phase = 3 -- Chuyển sang bay tới cửa Tộc
+        end)
+    else
+        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)   
+    end
+       -- GIAI ĐOẠN 2 (Phase 3): Bay từ trong Đền tới Cửa Tộc tương ứng
                 elseif phase == 3 then
                     if distance <= 3 then
                         if TempleFlyConnection then
