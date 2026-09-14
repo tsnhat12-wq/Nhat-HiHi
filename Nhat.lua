@@ -32,8 +32,8 @@ NoticeText.TextSize = 14
 NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
 
--- Đếm ngược từ 5.0s về 0.0s
-for i = 50, 0, -1 do
+-- Đếm ngược từ 1.0s về 0.0s
+for i = 10, 0, -1 do
     NoticeText.Text = string.format("Đang Load Menu... %.1fs", i / 10)
     task.wait(0.1)
 end
