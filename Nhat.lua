@@ -466,16 +466,24 @@ UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.Visible end)
 
+-- ========================================================
 -- HÀM THỰC THI TELEPORT CỔNG
+-- ========================================================
 local function SpawnToIsland(spawnArg)
-    local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-     if spawnArg == "TempleOfTime" then 
-        -- Bấm lần 2: Đang bay/lơ lửng ở bất kỳ đâu thì ngắt kết nối để dừng lại
+    local commF = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    -- ========================================================
+    -- TEMPLE OF TIME
+    -- ========================================================
+    if spawnArg == "TempleOfTime" then
+
+        -- Nếu đang bay thì bấm lần nữa để dừng
         if TempleFlyConnection or BodyVelocity then
             if TempleFlyConnection then
                 TempleFlyConnection:Disconnect()
                 TempleFlyConnection = nil
             end
+
             DisableAntiGravity()
             DisableNoclip()
             return
@@ -483,111 +491,220 @@ local function SpawnToIsland(spawnArg)
 
         task.spawn(function()
             local hrp = GetRoot()
-            if not hrp then return end
-            
+            if not hrp then
+                return
+            end
+
             EnableAntiGravity(hrp)
             EnableNoclip()
 
-            local entranceCFrame = CFrame.new(3035.22, 2280.89, -7321.22)
-            local phase = 1 -- Phase 1: Bay cổng đền | Phase 2: Chờ TP | Phase 3: Bay cửa tộc
+            local entranceCFrame = CFrame.new(
+                3035.22,
+                2280.89,
+                -7321.22
+            )
+
+            local phase = 1
             local raceCFrame = nil
 
             TempleFlyConnection = RunService.Heartbeat:Connect(function(deltaTime)
                 local currentHrp = GetRoot()
-                if not currentHrp then 
-                    if TempleFlyConnection then 
-                        TempleFlyConnection:Disconnect() 
+
+                if not currentHrp then
+                    if TempleFlyConnection then
+                        TempleFlyConnection:Disconnect()
                         TempleFlyConnection = nil
                     end
+
                     DisableAntiGravity()
                     DisableNoclip()
-                    return 
+                    return
                 end
 
-                local targetCFrame = (phase == 1) and entranceCFrame or raceCFrame
-                if not targetCFrame then return end
+                -- ========================================================
+                -- GIỮ NHÂN VẬT KHÔNG BỊ RƠI
+                -- ========================================================
+                currentHrp.AssemblyLinearVelocity = Vector3.zero
+                currentHrp.AssemblyAngularVelocity = Vector3.zero
 
-                local distance = (targetCFrame.Position - currentHrp.Position).Magnitude
+                -- ========================================================
+                -- PHASE 2: ĐANG CHỜ GAME TELEPORT
+                -- ========================================================
+                if phase == 2 then
+                    return
+                end
 
-                local boostDist = tonumber(_G.BOOST_DISTANCE) or 90
-                local boostSpeed = tonumber(_G.BOOST_SPEED) or 1000
-                local normalSpeed = tonumber(_G.SPEED) or 250
+                -- ========================================================
+                -- CHƯA CÓ TỌA ĐỘ ĐÍCH
+                -- ========================================================
+                local targetCFrame
 
-                local activeSpeed = (distance <= boostDist) and boostSpeed or normalSpeed
-                local stepProgress = (activeSpeed * deltaTime) / math.max(distance, 0.001)
-                local alpha = math.clamp(stepProgress, 0, 1)
-
-                -- GIAI ĐOẠN 1: Bay tới Cổng ngoài Đền Thời Gian
                 if phase == 1 then
-    if distance <= 0.5 then -- Phải giữ mốc 4 studs để không bị lướt qua
-        phase = 2 
-
-        task.spawn(function()
-            -- 1. ÉP LOAD MAP ĐỀN TRƯỚC
-            for i = 1, 10 do
-                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
-                if not mapFolder:FindFirstChild("Temple of Time") then
-                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                    local tot = stash:FindFirstChild("Temple of Time")
-                    if tot then
-                        tot.Parent = mapFolder
-                        break
-                    end
-                else
-                    break
-                end
-                task.wait(0.3)
-            end
-
-            task.wait(0.2)
-
-            -- 2. GỬI REMOTE TELEPORT VÀO ĐỀN
-            local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-            pcall(function()
-                commF:InvokeServer("RaceV4Progress", "Teleport")
-            end)
-
-            task.wait(1) -- Chờ game xử lý vị trí nhân vật
-
-            -- 3. CHECK TỘC AN TOÀN VÀ GÁN TỌA ĐỘ
-            local data = LocalPlayer:FindFirstChild("Data")
-            local raceObj = data and data:FindFirstChild("Race")
-            local raceStr = raceObj and tostring(raceObj.Value) or ""
-
-            if raceStr == "Fishman" then
-                raceCFrame = CFrame.new(28224.056640625, 14889.4267578125, -210.5872039794922)
-            elseif raceStr == "Cyborg" then
-                raceCFrame = CFrame.new(28492.4140625, 14894.4267578125, -422.1100158691406)
-            elseif raceStr == "Skypiea" then
-                raceCFrame = CFrame.new(28967.408203125, 14918.0751953125, 234.31198120117188)
-            elseif raceStr == "Ghoul" then
-                raceCFrame = CFrame.new(28672.720703125, 14889.1279296875, 454.5961608886719)
-            elseif raceStr == "Human" then
-                raceCFrame = CFrame.new(29237.294921875, 14889.4267578125, -206.94955444335938)
-            else
-                raceCFrame = CFrame.new(29020.66015625, 14889.4267578125, -379.2682800292969)
-            end
-
-            phase = 3 -- Chuyển sang bay tới cửa Tộc
-        end)
-    else
-        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)   
-    end
-       -- GIAI ĐOẠN 2 (Phase 3): Bay từ trong Đền tới Cửa Tộc tương ứng
+                    targetCFrame = entranceCFrame
                 elseif phase == 3 then
+                    targetCFrame = raceCFrame
+                end
+
+                if not targetCFrame then
+                    return
+                end
+
+                -- ========================================================
+                -- TÍNH KHOẢNG CÁCH
+                -- ========================================================
+                local distance = (
+                    currentHrp.Position - targetCFrame.Position
+                ).Magnitude
+
+                -- ========================================================
+                -- SPEED GIỐNG MOB / CHEST
+                -- ========================================================
+                local boostDistance = tonumber(_G.BOOST_DISTANCE) or 90
+                local boostSpeed = tonumber(_G.BOOST_SPEED) or 1000
+                local normalSpeed = tonumber(_G.SPEED) or 140
+
+                local activeSpeed
+
+                if distance <= boostDistance then
+                    activeSpeed = boostSpeed
+                else
+                    activeSpeed = normalSpeed
+                end
+
+                local stepProgress =
+                    (activeSpeed * deltaTime)
+                    / math.max(distance, 0.001)
+
+                local alpha = math.clamp(
+                    stepProgress,
+                    0,
+                    1
+                )
+
+                -- ========================================================
+                -- PHASE 1: BAY TỚI CỔNG TEMPLE
+                -- ========================================================
+                if phase == 1 then
+
+                    if distance <= 0.5 then
+                        phase = 2
+
+                        task.spawn(function()
+                            -- Chờ map load
+                            pcall(function()
+                                game:GetService("ReplicatedStorage")
+                                    :WaitForChild("Remotes")
+                                    :WaitForChild("CommF_")
+                                    :InvokeServer(
+                                        "RaceV4Progress",
+                                        "Teleport"
+                                    )
+                            end)
+
+                            task.wait(1)
+
+                            -- ========================================================
+                            -- LẤY RACE CỦA PLAYER
+                            -- ========================================================
+                            local race = nil
+
+                            pcall(function()
+                                race = LocalPlayer.Data.Race.Value
+                            end)
+
+                            -- ========================================================
+                            -- TỌA ĐỘ THEO RACE
+                            -- ========================================================
+                            if race == "Fishman" then
+
+                                raceCFrame = CFrame.new(
+                                    28224.056640625,
+                                    14889.4267578125,
+                                    -210.5872039794922
+                                )
+
+                            elseif race == "Cyborg" then
+
+                                raceCFrame = CFrame.new(
+                                    28492.4140625,
+                                    14894.4267578125,
+                                    -422.1100158691406
+                                )
+
+                            elseif race == "Skypiea" then
+
+                                raceCFrame = CFrame.new(
+                                    28967.408203125,
+                                    14918.0751953125,
+                                    234.31198120117188
+                                )
+
+                            elseif race == "Ghoul" then
+
+                                raceCFrame = CFrame.new(
+                                    28672.720703125,
+                                    14889.1279296875,
+                                    454.5961608886719
+                                )
+
+                            elseif race == "Human" then
+
+                                raceCFrame = CFrame.new(
+                                    29237.294921875,
+                                    14889.4267578125,
+                                    -206.94955444335938
+                                )
+
+                            else
+
+                                raceCFrame = CFrame.new(
+                                    29020.66015625,
+                                    14889.4267578125,
+                                    -379.2682800292969
+                                )
+
+                            end
+
+                            -- Cho phép bắt đầu bay tới Race
+                            phase = 3
+                        end)
+
+                    else
+                        currentHrp.CFrame =
+                            currentHrp.CFrame:Lerp(
+                                targetCFrame,
+                                alpha
+                            )
+                    end
+
+                -- ========================================================
+                -- PHASE 3: BAY TỚI VỊ TRÍ RACE
+                -- ========================================================
+                elseif phase == 3 then
+
                     if distance <= 3 then
+
                         if TempleFlyConnection then
                             TempleFlyConnection:Disconnect()
                             TempleFlyConnection = nil
                         end
-                        DisableNoclip() -- Giữ lơ lửng trước cửa Tộc
+
+                        DisableAntiGravity()
+                        DisableNoclip()
+
                         return
+
                     else
-                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame, alpha)
+                        currentHrp.CFrame =
+                            currentHrp.CFrame:Lerp(
+                                targetCFrame,
+                                alpha
+                            )
                     end
                 end
             end)
         end)
+
         return
     elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(923.21, 126.97, 32852.83)) end) return
     elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance", Vector3.new(-325.47, 331.92, 600.17)) end) return
