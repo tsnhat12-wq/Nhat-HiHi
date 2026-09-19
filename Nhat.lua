@@ -466,6 +466,7 @@ UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 ToggleBtn.MouseButton1Click:Connect(function() MainMenu.Visible = not MainMenu.Visible end)
 
+
 -- HÀM THỰC THI TELEPORT CỔNG
 local function SpawnToIsland(spawnArg)
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -474,7 +475,6 @@ local function SpawnToIsland(spawnArg)
 
     -- TEMPLE OF TIME
     if spawnArg == "TempleOfTime" then
-
         -- Nếu đang bay thì bấm lần nữa để dừng
         if TempleFlyConnection or BodyVelocity then
             if TempleFlyConnection then
@@ -497,7 +497,6 @@ local function SpawnToIsland(spawnArg)
             EnableNoclip()
 
             local entranceCFrame = CFrame.new(3035.22,2280.89,-7321.22)
-
             local phase = 1
             local raceCFrame = nil
 
@@ -536,9 +535,7 @@ local function SpawnToIsland(spawnArg)
                     return
                 end
 
-                local distance = (
-                    currentHrp.Position - targetCFrame.Position
-                ).Magnitude
+                local distance = (currentHrp.Position - targetCFrame.Position).Magnitude
 
                 -- Speed giống Mob / Chest
                 local boostDistance = tonumber(_G.BOOST_DISTANCE) or 90
@@ -553,33 +550,22 @@ local function SpawnToIsland(spawnArg)
                     activeSpeed = normalSpeed
                 end
 
-                local stepProgress =
-                    (activeSpeed * deltaTime)
-                    / math.max(distance, 0.001)
-
+                local stepProgress = (activeSpeed * deltaTime) / math.max(distance,0.001)
                 local alpha = math.clamp(stepProgress,0,1)
 
                 -- BAY TỚI CỔNG TEMPLE
                 if phase == 1 then
-
                     if distance <= 0.5 then
                         phase = 2
 
                         task.spawn(function()
-
                             -- 1. ÉP LOAD MAP ĐỀN TRƯỚC
-                            for i = 1, 10 do
-                                local mapFolder =
-                                    Workspace:FindFirstChild("Map")
-                                    or Workspace
+                            for i = 1,10 do
+                                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
 
                                 if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash =
-                                        ReplicatedStorage:FindFirstChild("MapStash")
-                                        or ReplicatedStorage
-
-                                    local tot =
-                                        stash:FindFirstChild("Temple of Time")
+                                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
+                                    local tot = stash:FindFirstChild("Temple of Time")
 
                                     if tot then
                                         tot.Parent = mapFolder
@@ -592,24 +578,18 @@ local function SpawnToIsland(spawnArg)
                                 task.wait(0.3)
                             end
 
-                            -- Đợi 1 giây sau khi ép load map
-                            task.wait(1)
+                            task.wait(0.5)
 
-                            -- 2. GỬI REMOTE TELEPORT VÀO ĐỀN
-                            local commF =
-                                ReplicatedStorage
-                                :WaitForChild("Remotes")
-                                :WaitForChild("CommF_")
-
+                            -- 2. GỬI REQUEST ENTRANCE VÀO TEMPLE OF TIME
                             pcall(function()
                                 commF:InvokeServer(
-                                    "RaceV4Progress",
-                                    "Teleport"
+                                    "requestEntrance",
+                                    Vector3.new(28310.0234,14895.1123,109.456741)
                                 )
                             end)
 
                             -- Đợi game xử lý teleport
-                            task.wait(1)
+                            task.wait(0.5)
 
                             -- 3. LẤY RACE CỦA PLAYER
                             local race = nil
@@ -620,60 +600,34 @@ local function SpawnToIsland(spawnArg)
 
                             -- 4. TỌA ĐỘ THEO RACE
                             if race == "Fishman" then
-
                                 raceCFrame = CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
 
                             elseif race == "Cyborg" then
-
                                 raceCFrame = CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
 
                             elseif race == "Skypiea" then
-
                                 raceCFrame = CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
 
                             elseif race == "Ghoul" then
-
-                                raceCFrame = CFrame.new(
-                                    28672.720703125,
-                                    14889.1279296875,
-                                    454.5961608886719
-                                )
+                                raceCFrame = CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
 
                             elseif race == "Human" then
-
-                                raceCFrame = CFrame.new(
-                                    29237.294921875,
-                                    14889.4267578125,
-                                    -206.94955444335938
-                                )
+                                raceCFrame = CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
 
                             else
-
-                                raceCFrame = CFrame.new(
-                                    29020.66015625,
-                                    14889.4267578125,
-                                    -379.2682800292969
-                                )
-
+                                raceCFrame = CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
                             end
 
                             -- Cho phép bay tiếp tới vị trí Race
                             phase = 3
                         end)
-
                     else
-                        currentHrp.CFrame =
-                            currentHrp.CFrame:Lerp(
-                                targetCFrame,
-                                alpha
-                            )
+                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame,alpha)
                     end
 
                 -- BAY TỚI VỊ TRÍ RACE
                 elseif phase == 3 then
-
                     if distance <= 3 then
-
                         if TempleFlyConnection then
                             TempleFlyConnection:Disconnect()
                             TempleFlyConnection = nil
@@ -681,15 +635,9 @@ local function SpawnToIsland(spawnArg)
 
                         DisableAntiGravity()
                         DisableNoclip()
-
                         return
-
                     else
-                        currentHrp.CFrame =
-                            currentHrp.CFrame:Lerp(
-                                targetCFrame,
-                                alpha
-                            )
+                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame,alpha)
                     end
                 end
             end)
