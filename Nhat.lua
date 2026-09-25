@@ -426,26 +426,28 @@ local function CreateRainbowBars(parent,size,barLength,barThickness)
     holder.Position = UDim2.new(0.5,0,0.5,0)
     holder.BackgroundTransparency = 1
     holder.BorderSizePixel = 0
-    holder.ZIndex = parent.ZIndex + 5
+    holder.ZIndex = parent.ZIndex + 1
 
     local bars = {}
 
-    for i=1,3 do
+    for i=1,4 do
         local bar = Instance.new("Frame",holder)
         bar.Size = UDim2.new(0,barLength,0,barThickness)
         bar.AnchorPoint = Vector2.new(0.5,0.5)
         bar.BackgroundColor3 = RainbowColors[i]
         bar.BorderSizePixel = 0
-        bar.ZIndex = holder.ZIndex + 1
+        bar.ZIndex = parent.ZIndex + 2
         Instance.new("UICorner",bar).CornerRadius = UDim.new(1,0)
         bars[i] = bar
     end
 
-    bars[1].Position = UDim2.new(0.5,0,0,2)
-    bars[2].Position = UDim2.new(1,-2,0.5,0)
+    bars[1].Position = UDim2.new(0.5,0,0,0)
+    bars[2].Position = UDim2.new(1,0,0.5,0)
     bars[2].Rotation = 90
-    bars[3].Position = UDim2.new(0.5,0,1,-2)
+    bars[3].Position = UDim2.new(0.5,0,1,0)
     bars[3].Rotation = 180
+    bars[4].Position = UDim2.new(0,0,0.5,0)
+    bars[4].Rotation = 270
 
     return holder,bars
 end
@@ -458,7 +460,7 @@ ToggleBtn.Size = UDim2.new(0,42,0,42)
 ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(10,15,25)
 ToggleBtn.BackgroundTransparency = 0.05
-ToggleBtn.Image = "rbxassetid://118492596948240"
+ToggleBtn.Image = "rbxassetid://137085832615070"
 ToggleBtn.ScaleType = Enum.ScaleType.Fit
 ToggleBtn.Draggable = true
 ToggleBtn.ZIndex = 20
@@ -469,7 +471,7 @@ local toggleStroke = Instance.new("UIStroke",ToggleBtn)
 toggleStroke.Thickness = 1.5
 toggleStroke.Color = Color3.fromRGB(0,170,255)
 
-local ToggleRainbow = CreateRainbowBars(ToggleBtn,UDim2.new(1,18,1,18),20,3)
+local ToggleRainbow = CreateRainbowBars(ToggleBtn,UDim2.new(1,4,1,4),20,2)
 ToggleRainbow.ZIndex = 21
 
 -- ===================================================
@@ -491,8 +493,8 @@ local menuStroke = Instance.new("UIStroke",MainMenu)
 menuStroke.Thickness = 1.5
 menuStroke.Color = Color3.fromRGB(0,170,255)
 
-local MenuRainbow = CreateRainbowBars(MainMenu,UDim2.new(1,26,1,26),55,4)
-MenuRainbow.ZIndex = 3
+local MenuRainbow = CreateRainbowBars(MainMenu,UDim2.new(1,4,1,4),55,3)
+MenuRainbow.ZIndex = 6
 
 -- ===================================================
 -- TIÊU ĐỀ
@@ -502,6 +504,8 @@ Title.Size = UDim2.new(1,0,0,35)
 Title.Text = "BYPASS TP SEA "..CurrentSeaNum
 Title.Font = Enum.Font.Cartoon
 Title.TextSize = 15
+Title.TextStrokeTransparency = 0.75
+Title.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 Title.BackgroundTransparency = 1
 Title.ZIndex = 10
 
@@ -540,7 +544,6 @@ local MenuOpen = false
 
 RunService.RenderStepped:Connect(function(dt)
     RainbowTime += dt
-
     local ToggleSpeed = MenuOpen and 260 or 80
     ToggleRainbow.Rotation = (RainbowTime*ToggleSpeed)%360
 
@@ -593,13 +596,9 @@ local function SpawnToIsland(spawnArg)
     local Workspace = game:GetService("Workspace")
     local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
-    -- TEMPLE OF TIME
     if spawnArg == "TempleOfTime" then
         if TempleFlyConnection or BodyVelocity then
-            if TempleFlyConnection then
-                TempleFlyConnection:Disconnect()
-                TempleFlyConnection = nil
-            end
+            if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
             DisableAntiGravity()
             DisableNoclip()
             return
@@ -620,10 +619,7 @@ local function SpawnToIsland(spawnArg)
                 local currentHrp = GetRoot()
 
                 if not currentHrp then
-                    if TempleFlyConnection then
-                        TempleFlyConnection:Disconnect()
-                        TempleFlyConnection = nil
-                    end
+                    if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
                     DisableAntiGravity()
                     DisableNoclip()
                     return
@@ -635,13 +631,7 @@ local function SpawnToIsland(spawnArg)
                 if phase == 2 then return end
 
                 local targetCFrame
-
-                if phase == 1 then
-                    targetCFrame = entranceCFrame
-                elseif phase == 3 then
-                    targetCFrame = raceCFrame
-                end
-
+                if phase == 1 then targetCFrame = entranceCFrame elseif phase == 3 then targetCFrame = raceCFrame end
                 if not targetCFrame then return end
 
                 local distance = (currentHrp.Position-targetCFrame.Position).Magnitude
@@ -663,11 +653,7 @@ local function SpawnToIsland(spawnArg)
                                 if not mapFolder:FindFirstChild("Temple of Time") then
                                     local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
                                     local tot = stash:FindFirstChild("Temple of Time")
-
-                                    if tot then
-                                        tot.Parent = mapFolder
-                                        break
-                                    end
+                                    if tot then tot.Parent = mapFolder break end
                                 else
                                     break
                                 end
@@ -707,10 +693,7 @@ local function SpawnToIsland(spawnArg)
                     end
                 elseif phase == 3 then
                     if distance <= 3 then
-                        if TempleFlyConnection then
-                            TempleFlyConnection:Disconnect()
-                            TempleFlyConnection = nil
-                        end
+                        if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
                         DisableAntiGravity()
                         DisableNoclip()
                         return
@@ -766,11 +749,9 @@ for _,island in ipairs(CurrentList) do
         SpawnToIsland(spawnArg)
     end)
 end
-
 -- ===================================================
 -- 6. CÁC NÚT TÍNH NĂNG
 -- ===================================================
-
 local FeatureButtons = {}
 
 local function AddRainbowButton(button,stroke)
@@ -883,7 +864,7 @@ RunService.RenderStepped:Connect(function(dt)
     for i,data in ipairs(FeatureButtons) do
         local button = data.Button
         local stroke = data.Stroke
-        local index = (math.floor(FeatureRainbowTime*6)+i*2)%#RainbowColors+1
+        local index = (math.floor(FeatureRainbowTime*1)+i*2)%#RainbowColors+1
         local color = RainbowColors[index]
 
         button.TextColor3 = color
