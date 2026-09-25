@@ -58,9 +58,9 @@ ClearOldGUI()
 -- ===================================================
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
-_G.SPEED = 180
-_G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
-_G.BOOST_DISTANCE = 90
+_G.SPEED = 350
+_G.BOOST_SPEED = 1000 
+_G.BOOST_DISTANCE = 100
 _G.DOCAO_MOB = 45
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
@@ -369,20 +369,26 @@ end)
 -- ===================================================
 -- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
 -- ===================================================
+
 local function GetCurrentSea()
-    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-    if playerGui then
-        for _,v in ipairs(playerGui:GetDescendants()) do
-            if v:IsA("TextLabel") and v.Text:find("v3") and v.Text:find("Sea") then
-                if v.Text:find("Sea1") then return 1 end
-                if v.Text:find("Sea2") then return 2 end
-                if v.Text:find("Sea3") then return 3 end
+    local pg = player:FindFirstChild("PlayerGui")
+    if pg then
+        for _,v in ipairs(pg:GetDescendants()) do
+            if v:IsA("TextLabel") or v:IsA("TextButton") then
+                local text = string.lower(v.Text or "")
+                if string.find(text,"v3") and string.find(text,"sea") then
+                    if string.find(text,"sea 1") then return 1 end
+                    if string.find(text,"sea 2") then return 2 end
+                    if string.find(text,"sea 3") then return 3 end
+                end
             end
         end
     end
-    if game.PlaceId == 85211729168715 then return 1 end
-    if game.PlaceId == 79091703265657 then return 2 end
-    if game.PlaceId == 7449423635 then return 3 end
+
+    local id = game.PlaceId
+    if id == 85211729168715 then return 1 end
+    if id == 79091703265657 then return 2 end
+    if id == 7449423635 then return 3 end
     return 3
 end
 
@@ -390,33 +396,160 @@ local CurrentSeaNum = GetCurrentSea()
 
 local SeaIslandsData = {
     [1] = {
-        {"Đảo Khỉ","Jungle"},{"Làng Hải Tặc","Pirate"},{"Đảo Khởi Đầu","Default"},{"Sa Mạc","Desert"},{"Thị Trấn Trung Tâm","Town"},{"Đảo Tuyết","Ice"},{"Pháo Đài Hải Quân","MarineBase"},{"Đảo Trời 1","Sky"},{"Đảo Trời 2 (Cổng)","Sky2Entrance"},{"Nhà Tù","Prison"},{"Đấu Trường","Colosseum"},{"Đảo Magma","Magma"},{"Thành Phố Đài Phun Nước","Fountain"},{"Đảo Dưới Nước (Cổng)","UnderwaterEntrance"}
+        {"Đảo Khỉ","Jungle"},
+        {"Làng Hải Tặc","Pirate"},
+        {"Đảo Khởi Đầu","Default"},
+        {"Sa Mạc","Desert"},
+        {"Thị Trấn Trung Tâm","Town"},
+        {"Đảo Tuyết","Ice"},
+        {"Pháo Đài Hải Quân","MarineBase"},
+        {"Đảo Trời 1","Sky"},
+        {"Đảo Trời 2 (Cổng)","Sky2Entrance"},
+        {"Nhà Tù","Prison"},
+        {"Đấu Trường","Colosseum"},
+        {"Đảo Magma","Magma"},
+        {"Thành Phố Đài Phun Nước","Fountain"},
+        {"Đảo Dưới Nước (Cổng)","UnderwaterEntrance"}
     },
     [2] = {
-        {"Quán Cà Phê (Cafe)","Bar"},{"Vương Quốc Hoa Hồng","Default"},{"Dinh Thự Sea 2 (Cổng)","MansionSea2Entrance"},{"Phòng Swan (Cổng)","SwanRoomEntrance"},{"Đảo Nghĩa Địa","Graveyard"},{"Vườn Thực Vật","Greenb"},{"Núi Tuyết","Snowy"},{"Lâu Đài Băng","IceCastle"},{"Thuyền Ma (Cổng)","CursedShipEntrance"},{"Đảo Nóng Lạnh","CircleIslandIce"},{"Đảo Lãng Quên","ForgottenIsland"}
+        {"Quán Cà Phê (Cafe)","Bar"},
+        {"Vương Quốc Hoa Hồng","Default"},
+        {"Dinh Thự Sea 2 (Cổng)","MansionSea2Entrance"},
+        {"Phòng Swan (Cổng)","SwanRoomEntrance"},
+        {"Đảo Nghĩa Địa","Graveyard"},
+        {"Vườn Thực Vật","Greenb"},
+        {"Núi Tuyết","Snowy"},
+        {"Lâu Đài Băng","IceCastle"},
+        {"Thuyền Ma (Cổng)","CursedShipEntrance"},
+        {"Đảo Nóng Lạnh","CircleIslandIce"},
+        {"Đảo Lãng Quên","ForgottenIsland"}
     },
     [3] = {
-        {"Đền Thời Gian","TempleOfTime"},{"Pháo Đài Trên Biển","SeaCastle"},{"Pháo Đài Trên Biển (Cổng)","SeaCastleEntrance"},{"Lâu Đài Bóng Tối","HauntedCastle"},{"Đảo Tiki","Tiki"},{"Đảo Bánh Kem / Katakuri","Loaf"},{"Đảo Socola","Chocolate"},{"Đảo Big Mom","IceCream"},{"Cây Đại Thụ","GreatTree"},{"Đảo Hydra (Cổng)","HydraEntrance"},{"Đảo Phụ Nữ (Hydra 1)","Hydra1"},{"Đảo Phụ Nữ (Hydra 2)","Hydra2"},{"Đảo Phụ Nữ (Hydra 3)","Hydra3"},{"Dinh Thự","BigMansion"},{"Dinh Thự (Cổng)","MansionEntrance"},{"Đảo Rùa","PineappleTown"},{"Thị Trấn Cảng","Default"}
+        {"Đền Thời Gian","TempleOfTime"},
+        {"Pháo Đài Trên Biển","SeaCastle"},
+        {"Pháo Đài Trên Biển (Cổng)","SeaCastleEntrance"},
+        {"Lâu Đài Bóng Tối","HauntedCastle"},
+        {"Đảo Tiki","Tiki"},
+        {"Đảo Bánh Kem / Katakuri","Loaf"},
+        {"Đảo Socola","Chocolate"},
+        {"Đảo Big Mom","IceCream"},
+        {"Cây Đại Thụ","GreatTree"},
+        {"Đảo Hydra (Cổng)","HydraEntrance"},
+        {"Đảo Phụ Nữ (Hydra 1)","Hydra1"},
+        {"Đảo Phụ Nữ (Hydra 2)","Hydra2"},
+        {"Đảo Phụ Nữ (Hydra 3)","Hydra3"},
+        {"Dinh Thự","BigMansion"},
+        {"Dinh Thự (Cổng)","MansionEntrance"},
+        {"Đảo Rùa","PineappleTown"},
+        {"Thị Trấn Cảng","Default"}
     }
 }
 
-local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
+local function SpawnToIsland(spawnArg)
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Workspace = game:GetService("Workspace")
+    local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
--- ===================================================
--- SCREEN GUI
--- ===================================================
+    if spawnArg == "TempleOfTime" then
+        if TempleFlyConnection then
+            TempleFlyConnection:Disconnect()
+            TempleFlyConnection = nil
+        end
+
+        local character = player.Character or player.CharacterAdded:Wait()
+        local root = character:WaitForChild("HumanoidRootPart")
+
+        root.CFrame = CFrame.new(3035.22,2280.89,-7321.22)
+
+        task.wait(0.5)
+
+        pcall(function()
+            commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
+        end)
+
+        task.wait(0.5)
+
+        local race = player.Data.Race.Value
+        local targetCFrame
+
+        if race == "Fishman" then
+            targetCFrame = CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
+        elseif race == "Cyborg" then
+            targetCFrame = CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
+        elseif race == "Skypiea" then
+            targetCFrame = CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
+        elseif race == "Ghoul" then
+            targetCFrame = CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
+        elseif race == "Human" then
+            targetCFrame = CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
+        else
+            targetCFrame = CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
+        end
+
+        EnableAntiGravity()
+        EnableNoclip()
+
+        TempleFlyConnection = RunService.Heartbeat:Connect(function()
+            if root and root.Parent then
+                root.CFrame = targetCFrame
+            end
+        end)
+
+        task.delay(1,function()
+            if TempleFlyConnection then
+                TempleFlyConnection:Disconnect()
+                TempleFlyConnection = nil
+            end
+        end)
+
+        return
+    end
+
+    local entrances = {
+        CursedShipEntrance = Vector3.new(923.21,126.97,32852.83),
+        MansionSea2Entrance = Vector3.new(-325.47,331.92,600.17),
+        SwanRoomEntrance = Vector3.new(2284.90,15.53,905.46),
+        Sky2Entrance = Vector3.new(-6023.57666015625,5469.7197265625,2203.308349609375),
+        UnderwaterEntrance = Vector3.new(61163.85,11.68,1819.78),
+        SeaCastleEntrance = Vector3.new(-5089.14,314.58,-3164.46),
+        MansionEntrance = Vector3.new(-12549.40,336.98,-7576.59),
+        HydraEntrance = Vector3.new(5681.00,1013.11,-307.12)
+    }
+
+    if entrances[spawnArg] then
+        pcall(function()
+            commF:InvokeServer("requestEntrance",entrances[spawnArg])
+        end)
+        task.wait(0.5)
+    end
+
+    pcall(function()
+        commF:InvokeServer("SetLastSpawnPoint",spawnArg)
+    end)
+
+    local character = player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        humanoid.Health = 0
+    end
+end
+
 local SeaGui = Instance.new("ScreenGui")
-SeaGui.Name = "SeaMenu_Gui"
+SeaGui.Name = "NhatSeaGui"
 SeaGui.ResetOnSpawn = false
-pcall(function() SeaGui.Parent = CoreGui end)
-if not SeaGui.Parent then SeaGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+SeaGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+SeaGui.Parent = player:WaitForChild("PlayerGui")
 
--- ===================================================
--- RAINBOW
--- ===================================================
 local RainbowColors = {
-    Color3.fromRGB(255,0,0),Color3.fromRGB(255,120,0),Color3.fromRGB(255,255,0),Color3.fromRGB(0,255,100),
-    Color3.fromRGB(0,200,255),Color3.fromRGB(80,100,255),Color3.fromRGB(180,0,255),Color3.fromRGB(255,0,180)
+    Color3.fromRGB(255,0,0),
+    Color3.fromRGB(255,120,0),
+    Color3.fromRGB(255,255,0),
+    Color3.fromRGB(0,255,100),
+    Color3.fromRGB(0,200,255),
+    Color3.fromRGB(80,100,255),
+    Color3.fromRGB(180,0,255),
+    Color3.fromRGB(255,0,180)
 }
 
 local function CreateRainbowBars(parent,size,barLength,barThickness)
@@ -441,42 +574,53 @@ local function CreateRainbowBars(parent,size,barLength,barThickness)
         bars[i] = bar
     end
 
-    bars[1].Position = UDim2.new(0.5,0,0,0)
-    bars[2].Position = UDim2.new(1,0,0.5,0)
-    bars[2].Rotation = 90
-    bars[3].Position = UDim2.new(0.5,0,1,0)
-    bars[3].Rotation = 180
-    bars[4].Position = UDim2.new(0,0,0.5,0)
-    bars[4].Rotation = 270
-
     return holder,bars
 end
 
--- ===================================================
--- NÚT MỞ MENU
--- ===================================================
+local function UpdateRainbowBars(holder,bars,time,speed)
+    local w = holder.AbsoluteSize.X
+    local h = holder.AbsoluteSize.Y
+    local perimeter = w*2+h*2
+
+    for i,bar in ipairs(bars) do
+        local offset = ((time*speed)+(i-1)*(perimeter/4))%perimeter
+        local x,y,rotation
+
+        if offset < w then
+            x,y,rotation = offset,0,0
+        elseif offset < w+h then
+            x,y,rotation = w,offset-w,90
+        elseif offset < w*2+h then
+            x,y,rotation = w-(offset-w-h),h,180
+        else
+            x,y,rotation = 0,h-(offset-w*2-h),270
+        end
+
+        bar.Position = UDim2.new(0,x,0,y)
+        bar.Rotation = rotation
+
+        local index = (math.floor(time*5)+i-1)%#RainbowColors+1
+        bar.BackgroundColor3 = RainbowColors[index]
+    end
+end
+
 local ToggleBtn = Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size = UDim2.new(0,42,0,42)
 ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(10,15,25)
 ToggleBtn.BackgroundTransparency = 0.05
-ToggleBtn.Image = "rbxassetid://137085832615070"
+ToggleBtn.Image = "rbxassetid://118492596948240"
 ToggleBtn.ScaleType = Enum.ScaleType.Fit
 ToggleBtn.Draggable = true
 ToggleBtn.ZIndex = 20
-
-Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
 toggleStroke.Thickness = 1.5
 toggleStroke.Color = Color3.fromRGB(0,170,255)
 
-local ToggleRainbow = CreateRainbowBars(ToggleBtn,UDim2.new(1,4,1,4),20,2)
+local ToggleRainbow,ToggleBars = CreateRainbowBars(ToggleBtn,UDim2.new(1,4,1,4),18,2)
 ToggleRainbow.ZIndex = 21
 
--- ===================================================
--- MAIN MENU
--- ===================================================
 local MainMenu = Instance.new("Frame",SeaGui)
 MainMenu.Size = UDim2.new(0,230,0,290)
 MainMenu.AnchorPoint = Vector2.new(0.5,0.5)
@@ -487,18 +631,13 @@ MainMenu.Visible = false
 MainMenu.Draggable = true
 MainMenu.ZIndex = 5
 
-Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
-
 local menuStroke = Instance.new("UIStroke",MainMenu)
 menuStroke.Thickness = 1.5
 menuStroke.Color = Color3.fromRGB(0,170,255)
 
-local MenuRainbow = CreateRainbowBars(MainMenu,UDim2.new(1,4,1,4),55,3)
+local MenuRainbow,MenuBars = CreateRainbowBars(MainMenu,UDim2.new(1,4,1,4),45,3)
 MenuRainbow.ZIndex = 6
 
--- ===================================================
--- TIÊU ĐỀ
--- ===================================================
 local Title = Instance.new("TextLabel",MainMenu)
 Title.Size = UDim2.new(1,0,0,35)
 Title.Text = "BYPASS TP SEA "..CurrentSeaNum
@@ -519,62 +658,55 @@ RunService.RenderStepped:Connect(function(dt)
     Title.TextColor3 = TitleBlue:Lerp(TitleWhite,t)
 end)
 
--- ===================================================
--- SCROLL
--- ===================================================
 local Scroll = Instance.new("ScrollingFrame",MainMenu)
-Scroll.Size = UDim2.new(1,0,1,-40)
-Scroll.Position = UDim2.new(0,0,0,38)
+Scroll.Size = UDim2.new(1,-10,1,-45)
+Scroll.Position = UDim2.new(0,5,0,40)
 Scroll.BackgroundTransparency = 1
 Scroll.BorderSizePixel = 0
 Scroll.ScrollBarThickness = 3
-Scroll.CanvasSize = UDim2.new(0,0,0,(#CurrentList+3)*38)
+Scroll.CanvasSize = UDim2.new(0,0,0,0)
+Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 Scroll.ZIndex = 10
 
-local UIList = Instance.new("UIListLayout",Scroll)
-UIList.SortOrder = Enum.SortOrder.LayoutOrder
-UIList.Padding = UDim.new(0,6)
-UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+local Layout = Instance.new("UIListLayout",Scroll)
+Layout.Padding = UDim.new(0,4)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- ===================================================
--- ANIMATION RAINBOW
--- ===================================================
-local RainbowTime = 0
+local Padding = Instance.new("UIPadding",Scroll)
+Padding.PaddingTop = UDim.new(0,2)
+Padding.PaddingBottom = UDim.new(0,4)
+
+local function AddIslandButton(text,spawnArg)
+    local button = Instance.new("TextButton",Scroll)
+    button.Size = UDim2.new(1,-4,0,30)
+    button.BackgroundColor3 = Color3.fromRGB(15,20,30)
+    button.BackgroundTransparency = 0.1
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 12
+    button.TextColor3 = Color3.fromRGB(100,200,255)
+    button.AutoButtonColor = false
+    button.ZIndex = 11
+
+    local stroke = Instance.new("UIStroke",button)
+    stroke.Thickness = 1
+    stroke.Color = Color3.fromRGB(0,170,255)
+
+    Instance.new("UICorner",button).CornerRadius = UDim.new(0,5)
+
+    button.MouseButton1Click:Connect(function()
+        SpawnToIsland(spawnArg)
+    end)
+end
+
+for _,data in ipairs(SeaIslandsData[CurrentSeaNum] or {}) do
+    AddIslandButton(data[1],data[2])
+end
+
 local MenuOpen = false
+local RainbowTime = 0
 
-RunService.RenderStepped:Connect(function(dt)
-    RainbowTime += dt
-    local ToggleSpeed = MenuOpen and 260 or 80
-    ToggleRainbow.Rotation = (RainbowTime*ToggleSpeed)%360
-
-    if MainMenu.Visible then
-        MenuRainbow.Rotation = (RainbowTime*100)%360
-    else
-        MenuRainbow.Rotation = 0
-    end
-
-    for i,bar in ipairs(ToggleRainbow:GetChildren()) do
-        if bar:IsA("Frame") then
-            local index = ((math.floor(RainbowTime*5)+i-1)%#RainbowColors)+1
-            bar.BackgroundColor3 = RainbowColors[index]
-        end
-    end
-
-    for i,bar in ipairs(MenuRainbow:GetChildren()) do
-        if bar:IsA("Frame") then
-            local index = ((math.floor(RainbowTime*5)+i-1)%#RainbowColors)+1
-            bar.BackgroundColor3 = RainbowColors[index]
-        end
-    end
-
-    local index = (math.floor(RainbowTime*6)%#RainbowColors)+1
-    toggleStroke.Color = RainbowColors[index]
-    menuStroke.Color = RainbowColors[index]
-end)
-
--- ===================================================
--- BẬT / TẮT MENU
--- ===================================================
 ToggleBtn.MouseButton1Click:Connect(function()
     MenuOpen = not MenuOpen
     MainMenu.Visible = MenuOpen
@@ -588,287 +720,117 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ===================================================
--- HÀM THỰC THI TELEPORT CỔNG
--- ===================================================
-local function SpawnToIsland(spawnArg)
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Workspace = game:GetService("Workspace")
-    local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+RunService.RenderStepped:Connect(function(dt)
+    RainbowTime += dt
 
-    if spawnArg == "TempleOfTime" then
-        if TempleFlyConnection or BodyVelocity then
-            if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
-            DisableAntiGravity()
-            DisableNoclip()
-            return
-        end
+    local ToggleSpeed = MenuOpen and 220 or 90
+    local MenuSpeed = MenuOpen and 160 or 80
 
-        task.spawn(function()
-            local hrp = GetRoot()
-            if not hrp then return end
+    UpdateRainbowBars(ToggleRainbow,ToggleBars,RainbowTime,ToggleSpeed)
 
-            EnableAntiGravity(hrp)
-            EnableNoclip()
-
-            local entranceCFrame = CFrame.new(3035.22,2280.89,-7321.22)
-            local phase = 1
-            local raceCFrame = nil
-
-            TempleFlyConnection = RunService.Heartbeat:Connect(function(deltaTime)
-                local currentHrp = GetRoot()
-
-                if not currentHrp then
-                    if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
-                    DisableAntiGravity()
-                    DisableNoclip()
-                    return
-                end
-
-                currentHrp.AssemblyLinearVelocity = Vector3.zero
-                currentHrp.AssemblyAngularVelocity = Vector3.zero
-
-                if phase == 2 then return end
-
-                local targetCFrame
-                if phase == 1 then targetCFrame = entranceCFrame elseif phase == 3 then targetCFrame = raceCFrame end
-                if not targetCFrame then return end
-
-                local distance = (currentHrp.Position-targetCFrame.Position).Magnitude
-                local boostDistance = tonumber(_G.BOOST_DISTANCE) or 90
-                local boostSpeed = tonumber(_G.BOOST_SPEED) or 1000
-                local normalSpeed = tonumber(_G.SPEED) or 140
-                local activeSpeed = distance <= boostDistance and boostSpeed or normalSpeed
-                local stepProgress = (activeSpeed*deltaTime)/math.max(distance,0.001)
-                local alpha = math.clamp(stepProgress,0,1)
-
-                if phase == 1 then
-                    if distance <= 0.5 then
-                        phase = 2
-
-                        task.spawn(function()
-                            for i=1,10 do
-                                local mapFolder = Workspace:FindFirstChild("Map") or Workspace
-
-                                if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash = ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                                    local tot = stash:FindFirstChild("Temple of Time")
-                                    if tot then tot.Parent = mapFolder break end
-                                else
-                                    break
-                                end
-
-                                task.wait(0.3)
-                            end
-
-                            task.wait(0.5)
-
-                            pcall(function()
-                                commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
-                            end)
-
-                            task.wait(0.5)
-
-                            local race = nil
-                            pcall(function() race = LocalPlayer.Data.Race.Value end)
-
-                            if race == "Fishman" then
-                                raceCFrame = CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
-                            elseif race == "Cyborg" then
-                                raceCFrame = CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
-                            elseif race == "Skypiea" then
-                                raceCFrame = CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
-                            elseif race == "Ghoul" then
-                                raceCFrame = CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
-                            elseif race == "Human" then
-                                raceCFrame = CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
-                            else
-                                raceCFrame = CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
-                            end
-
-                            phase = 3
-                        end)
-                    else
-                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                elseif phase == 3 then
-                    if distance <= 3 then
-                        if TempleFlyConnection then TempleFlyConnection:Disconnect() TempleFlyConnection = nil end
-                        DisableAntiGravity()
-                        DisableNoclip()
-                        return
-                    else
-                        currentHrp.CFrame = currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                end
-            end)
-        end)
-
-        return
-    elseif spawnArg == "CursedShipEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(923.21,126.97,32852.83)) end) return
-    elseif spawnArg == "MansionSea2Entrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(-325.47,331.92,600.17)) end) return
-    elseif spawnArg == "SwanRoomEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(2284.90,15.53,905.46)) end) return
-    elseif spawnArg == "Sky2Entrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(-6023.57666015625,5469.7197265625,2203.308349609375)) end) return
-    elseif spawnArg == "UnderwaterEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(61163.85,11.68,1819.78)) end) return
-    elseif spawnArg == "SeaCastleEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(-5089.14,314.58,-3164.46)) end) return
-    elseif spawnArg == "MansionEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(-12549.40,336.98,-7576.59)) end) return
-    elseif spawnArg == "HydraEntrance" then pcall(function() commF:InvokeServer("requestEntrance",Vector3.new(5681.00,1013.11,-307.12)) end) return
+    if MainMenu.Visible then
+        UpdateRainbowBars(MenuRainbow,MenuBars,RainbowTime,MenuSpeed)
     end
 
-    local char = LocalPlayer.Character
-
-    if char and char:FindFirstChildOfClass("Humanoid") then
-        char.Humanoid.Health = 0
-        pcall(function() commF:InvokeServer("SetLastSpawnPoint",spawnArg) end)
-    end
-end
-
--- ===================================================
--- NÚT ĐẢO
--- ===================================================
-for _,island in ipairs(CurrentList) do
-    local btnName,spawnArg = island[1],island[2]
-
-    local Btn = Instance.new("TextButton",Scroll)
-    Btn.Size = UDim2.new(0.9,0,0,32)
-    Btn.Text = btnName
-    Btn.Font = Enum.Font.Cartoon
-    Btn.TextSize = 13
-    Btn.TextColor3 = Color3.fromRGB(100,200,255)
-    Btn.BackgroundColor3 = Color3.fromRGB(25,35,50)
-    Btn.BackgroundTransparency = 0.3
-    Btn.ZIndex = 11
-
-    Instance.new("UICorner",Btn).CornerRadius = UDim.new(0,6)
-
-    local btnS = Instance.new("UIStroke",Btn)
-    btnS.Thickness = 1
-    btnS.Color = Color3.fromRGB(0,120,200)
-
-    Btn.MouseButton1Click:Connect(function()
-        SpawnToIsland(spawnArg)
-    end)
-end
+    local index = (math.floor(RainbowTime*6)%#RainbowColors)+1
+    toggleStroke.Color = RainbowColors[index]
+    menuStroke.Color = RainbowColors[index]
+end)
 -- ===================================================
 -- 6. CÁC NÚT TÍNH NĂNG
 -- ===================================================
+
 local FeatureButtons = {}
+local BlueColor = Color3.fromRGB(100,200,255)
 
 local function AddRainbowButton(button,stroke)
     table.insert(FeatureButtons,{Button=button,Stroke=stroke})
 end
 
--- ===================================================
--- 1. BAY TỚI TRÁI
--- ===================================================
-local FruitBtn = Instance.new("TextButton",Scroll)
-FruitBtn.Size = UDim2.new(0.9,0,0,32)
-FruitBtn.Text = "BAY TỚI TRÁI: OFF"
-FruitBtn.Font = Enum.Font.Cartoon
-FruitBtn.TextSize = 13
-FruitBtn.TextColor3 = Color3.fromRGB(255,255,255)
-FruitBtn.BackgroundColor3 = Color3.fromRGB(20,50,35)
-FruitBtn.BackgroundTransparency = 0.2
-FruitBtn.ZIndex = 11
+local function AddFeatureButton(text,callback)
+    local button = Instance.new("TextButton",Scroll)
+    button.Size = UDim2.new(1,-4,0,30)
+    button.BackgroundColor3 = Color3.fromRGB(15,20,30)
+    button.BackgroundTransparency = 0.1
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 12
+    button.TextColor3 = BlueColor
+    button.AutoButtonColor = false
+    button.ZIndex = 11
 
-Instance.new("UICorner",FruitBtn).CornerRadius = UDim.new(0,6)
+    local stroke = Instance.new("UIStroke",button)
+    stroke.Thickness = 1
+    stroke.Color = BlueColor
 
-local fruitStroke = Instance.new("UIStroke",FruitBtn)
-fruitStroke.Thickness = 1.5
+    Instance.new("UICorner",button).CornerRadius = UDim.new(0,5)
 
-AddRainbowButton(FruitBtn,fruitStroke)
+    button.MouseButton1Click:Connect(function()
+        callback(button,stroke)
+    end)
 
-FruitBtn.MouseButton1Click:Connect(function()
-    FruitEnabled = not FruitEnabled
+    return button,stroke
+end
 
-    if FruitEnabled then
-        FruitBtn.Text = "BAY TỚI TRÁI: ON"
-    else
-        TargetFruit = nil
-        FruitBtn.Text = "BAY TỚI TRÁI: OFF"
+local FruitEnabled = false
+local MobEnabled = false
+local ChestEnabled = false
+
+local FruitButton,FruitStroke = AddFeatureButton(
+    "BAY TỚI TRÁI: OFF",
+    function(button,stroke)
+        FruitEnabled = not FruitEnabled
+
+        if FruitEnabled then
+            button.Text = "BAY TỚI TRÁI: ON"
+        else
+            button.Text = "BAY TỚI TRÁI: OFF"
+            TargetFruit = nil
+        end
     end
-end)
+)
 
--- ===================================================
--- 2. BAY TỚI QUÁI
--- ===================================================
-local MobBtn = Instance.new("TextButton",Scroll)
-MobBtn.Size = UDim2.new(0.9,0,0,32)
-MobBtn.Text = "BAY TỚI QUÁI: OFF"
-MobBtn.Font = Enum.Font.Cartoon
-MobBtn.TextSize = 13
-MobBtn.TextColor3 = Color3.fromRGB(255,255,255)
-MobBtn.BackgroundColor3 = Color3.fromRGB(35,25,50)
-MobBtn.BackgroundTransparency = 0.2
-MobBtn.ZIndex = 11
+local MobButton,MobStroke = AddFeatureButton(
+    "BAY TỚI QUÁI: OFF",
+    function(button,stroke)
+        MobEnabled = not MobEnabled
 
-Instance.new("UICorner",MobBtn).CornerRadius = UDim.new(0,6)
-
-local mobStroke = Instance.new("UIStroke",MobBtn)
-mobStroke.Thickness = 1.5
-
-AddRainbowButton(MobBtn,mobStroke)
-
-MobBtn.MouseButton1Click:Connect(function()
-    MobEnabled = not MobEnabled
-
-    if MobEnabled then
-        MobBtn.Text = "BAY TỚI QUÁI: ON"
-    else
-        TargetMob = nil
-        MobBtn.Text = "BAY TỚI QUÁI: OFF"
+        if MobEnabled then
+            button.Text = "BAY TỚI QUÁI: ON"
+        else
+            button.Text = "BAY TỚI QUÁI: OFF"
+            TargetMob = nil
+        end
     end
-end)
+)
 
--- ===================================================
--- 3. FARM RƯƠNG
--- ===================================================
-local ChestBtn = Instance.new("TextButton",Scroll)
-ChestBtn.Size = UDim2.new(0.9,0,0,32)
-ChestBtn.Text = "FARM RƯƠNG: OFF"
-ChestBtn.Font = Enum.Font.Cartoon
-ChestBtn.TextSize = 13
-ChestBtn.TextColor3 = Color3.fromRGB(255,255,255)
-ChestBtn.BackgroundColor3 = Color3.fromRGB(50,40,20)
-ChestBtn.BackgroundTransparency = 0.2
-ChestBtn.ZIndex = 11
+local ChestButton,ChestStroke = AddFeatureButton(
+    "FARM RƯƠNG: OFF",
+    function(button,stroke)
+        ChestEnabled = not ChestEnabled
 
-Instance.new("UICorner",ChestBtn).CornerRadius = UDim.new(0,6)
-
-local chestStroke = Instance.new("UIStroke",ChestBtn)
-chestStroke.Thickness = 1.5
-
-AddRainbowButton(ChestBtn,chestStroke)
-
-ChestBtn.MouseButton1Click:Connect(function()
-    ChestEnabled = not ChestEnabled
-
-    if ChestEnabled then
-        LastBeli = GetCurrentBeli()
-        ChestBtn.Text = "FARM RƯƠNG: ON"
-    else
-        TargetChest = nil
-        TouchTimer = 0
-        ChestBtn.Text = "FARM RƯƠNG: OFF"
+        if ChestEnabled then
+            button.Text = "FARM RƯƠNG: ON"
+            LastBeli = GetCurrentBeli()
+        else
+            button.Text = "FARM RƯƠNG: OFF"
+            TargetChest = nil
+            TouchTimer = 0
+        end
     end
-end)
+)
+
+AddRainbowButton(FruitButton,FruitStroke)
+AddRainbowButton(MobButton,MobStroke)
+AddRainbowButton(ChestButton,ChestStroke)
 
 -- ===================================================
--- ANIMATION ĐỔI MÀU
+-- MÀU NÚT TÍNH NĂNG
 -- ===================================================
-local FeatureRainbowTime = 0
 
-RunService.RenderStepped:Connect(function(dt)
-    FeatureRainbowTime += dt
-
-    for i,data in ipairs(FeatureButtons) do
-        local button = data.Button
-        local stroke = data.Stroke
-        local index = (math.floor(FeatureRainbowTime*1)+i*2)%#RainbowColors+1
-        local color = RainbowColors[index]
-
-        button.TextColor3 = color
-        stroke.Color = color
-        button.BackgroundColor3 = Color3.fromRGB(15,20,30)
-    end
-end)
+for _,data in ipairs(FeatureButtons) do
+    data.Button.TextColor3 = BlueColor
+    data.Stroke.Color = BlueColor
+    data.Button.BackgroundColor3 = Color3.fromRGB(15,20,30)
+end
