@@ -58,9 +58,9 @@ ClearOldGUI()
 -- ===================================================
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
-_G.SPEED = 180
+_G.SPEED = 350
 _G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
-_G.BOOST_DISTANCE = 90
+_G.BOOST_DISTANCE = 100
 _G.DOCAO_MOB = 45
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
