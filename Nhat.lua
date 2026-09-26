@@ -29,7 +29,6 @@ NoticeText.BackgroundTransparency=1
 NoticeText.TextColor3=Color3.fromRGB(100,200,255)
 NoticeText.Font=Enum.Font.Cartoon
 NoticeText.TextSize=18
-NoticeText.Text="Đang Load Menu... 1.0s"
 
 for i=10,0,-1 do
     NoticeText.Text=string.format("Đang Load Menu... %.1fs",i/10)
@@ -82,7 +81,7 @@ local TouchTimer=0
 local SEARCH_MOB_DISTANCE=1000
 
 -- ===================================================
--- HÀM LẤY ROOT
+-- HÀM ROOT
 -- ===================================================
 local function GetRoot(Character)
     return Character and (Character:FindFirstChild("HumanoidRootPart") or Character:FindFirstChild("RootPart"))
@@ -153,11 +152,9 @@ end
 
 local function UpdateTargetBeam(Target)
     RemoveTargetBeam()
-
     if not Target then return end
 
-    local Character=LocalPlayer.Character
-    local Root=GetRoot(Character)
+    local Root=GetRoot(LocalPlayer.Character)
     if not Root then return end
 
     local TargetPart
@@ -170,13 +167,10 @@ local function UpdateTargetBeam(Target)
 
     if not TargetPart then return end
 
-    TargetBeamAttachment=Instance.new("Attachment")
-    TargetBeamAttachment.Parent=Root
+    TargetBeamAttachment=Instance.new("Attachment",Root)
+    TargetBeamTargetAttachment=Instance.new("Attachment",TargetPart)
 
-    TargetBeamTargetAttachment=Instance.new("Attachment")
-    TargetBeamTargetAttachment.Parent=TargetPart
-
-    TargetBeam=Instance.new("Beam")
+    TargetBeam=Instance.new("Beam",Root)
     TargetBeam.Attachment0=TargetBeamAttachment
     TargetBeam.Attachment1=TargetBeamTargetAttachment
     TargetBeam.Width0=0.08
@@ -184,7 +178,6 @@ local function UpdateTargetBeam(Target)
     TargetBeam.FaceCamera=true
     TargetBeam.LightEmission=1
     TargetBeam.Color=ColorSequence.new(Color3.fromRGB(0,170,255))
-    TargetBeam.Parent=Root
 end
 
 -- ===================================================
@@ -204,8 +197,7 @@ local function IsBloxFruitsMob(Model)
 end
 
 local function FindNearestMob()
-    local Character=LocalPlayer.Character
-    local Root=GetRoot(Character)
+    local Root=GetRoot(LocalPlayer.Character)
     if not Root then return nil end
 
     local Nearest=nil
@@ -230,8 +222,7 @@ end
 -- TÌM RƯƠNG
 -- ===================================================
 local function FindNearestTaggedChest()
-    local Character=LocalPlayer.Character
-    local Root=GetRoot(Character)
+    local Root=GetRoot(LocalPlayer.Character)
     if not Root then return nil end
 
     local Nearest=nil
@@ -261,8 +252,7 @@ end
 -- TÌM TRÁI
 -- ===================================================
 local function FindNearestFruit()
-    local Character=LocalPlayer.Character
-    local Root=GetRoot(Character)
+    local Root=GetRoot(LocalPlayer.Character)
     if not Root then return nil end
 
     local Nearest=nil
@@ -272,7 +262,7 @@ local function FindNearestFruit()
         if Obj:IsA("Tool") and Obj:FindFirstChild("Handle") then
             local Handle=Obj.Handle
 
-            if Handle.Name=="Handle" and not Obj:IsDescendantOf(LocalPlayer.Backpack) then
+            if not Obj:IsDescendantOf(LocalPlayer.Backpack) then
                 local Dist=(Handle.Position-Root.Position).Magnitude
 
                 if Dist<Distance then
@@ -388,11 +378,16 @@ RunService.Heartbeat:Connect(function()
         end
 
     elseif TargetType=="Chest" then
-        TargetCFrame=Target:GetPivot()*CFrame.new(0,_G.DOCAO_CHEST,0)
+        local Pivot=Target:GetPivot()
+        TargetCFrame=Pivot*CFrame.new(0,_G.DOCAO_CHEST,0)
 
-        if (Root.Position-Target:GetPivot().Position).Magnitude<=4 then
-            firetouchinterest(Root,Target.PrimaryPart or Root,0)
-            firetouchinterest(Root,Target.PrimaryPart or Root,1)
+        if (Root.Position-Pivot.Position).Magnitude<=4 then
+            local ChestPart=Target.PrimaryPart or Target:FindFirstChildWhichIsA("BasePart")
+
+            if ChestPart then
+                firetouchinterest(Root,ChestPart,0)
+                firetouchinterest(Root,ChestPart,1)
+            end
 
             if tick()-TouchTimer>0.4 then
                 TouchTimer=tick()
@@ -402,20 +397,114 @@ RunService.Heartbeat:Connect(function()
 
     if not TargetCFrame then return end
 
-    if Target~=TargetFruit and Target~=TargetMob and Target~=TargetChest then
-        RemoveTargetBeam()
-    else
-        UpdateTargetBeam(Target)
-    end
+    UpdateTargetBeam(Target)
 
     local Distance=(Root.Position-TargetCFrame.Position).Magnitude
     local Speed=Distance<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED
 
-    Root.CFrame=Root.CFrame:Lerp(TargetCFrame,math.clamp(Speed/1000,0,1))
+    Root.CFrame=Root.CFrame:Lerp(
+        TargetCFrame,
+        math.clamp(Speed/1000,0,1)
+    )
 end)
 
 -- ===================================================
--- 6. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
+-- 6. XÁC ĐỊNH SEA
+-- ===================================================
+local function GetCurrentSea()
+    local PlayerGui=LocalPlayer:FindFirstChild("PlayerGui")
+
+    if PlayerGui then
+        for _,Obj in ipairs(PlayerGui:GetDescendants()) do
+            if Obj:IsA("TextLabel") then
+                local Text=Obj.Text
+
+                if Text:find("Sea 1") or Text:find("Sea1") or Text:find("v3") and Text:find("1") then
+                    return 1
+                elseif Text:find("Sea 2") or Text:find("Sea2") or Text:find("v3") and Text:find("2") then
+                    return 2
+                elseif Text:find("Sea 3") or Text:find("Sea3") or Text:find("v3") and Text:find("3") then
+                    return 3
+                end
+            end
+        end
+    end
+
+    local PlaceId=game.PlaceId
+
+    if PlaceId==85211729168715 then
+        return 1
+    elseif PlaceId==79091703265657 then
+        return 2
+    elseif PlaceId==7449423635 then
+        return 3
+    end
+
+    return 3
+end
+
+local CurrentSeaNum=GetCurrentSea()
+
+-- ===================================================
+-- 7. DỮ LIỆU ĐẢO
+-- ===================================================
+local SeaIslandsData={
+    [1]={
+        {"Đảo Khỉ","Jungle"},
+        {"Làng Hải Tặc","Pirate"},
+        {"Đảo Khởi Đầu","Default"},
+        {"Sa Mạc","Desert"},
+        {"Thị Trấn Trung Tâm","Town"},
+        {"Đảo Tuyết","Ice"},
+        {"Pháo Đài Hải Quân","MarineBase"},
+        {"Đảo Trời 1","Sky"},
+        {"Đảo Trời 2 (Cổng)","Sky2Entrance"},
+        {"Nhà Tù","Prison"},
+        {"Đấu Trường","Colosseum"},
+        {"Đảo Magma","Magma"},
+        {"Thành Phố Đài Phun Nước","Fountain"},
+        {"Đảo Dưới Nước (Cổng)","UnderwaterEntrance"}
+    },
+
+    [2]={
+        {"Quán Cà Phê (Cafe)","Bar"},
+        {"Vương Quốc Hoa Hồng","Default"},
+        {"Dinh Thự Sea 2 (Cổng)","MansionSea2Entrance"},
+        {"Phòng Swan (Cổng)","SwanRoomEntrance"},
+        {"Đảo Nghĩa Địa","Graveyard"},
+        {"Vườn Thực Vật","Greenb"},
+        {"Núi Tuyết","Snowy"},
+        {"Lâu Đài Băng","IceCastle"},
+        {"Thuyền Ma (Cổng)","CursedShipEntrance"},
+        {"Đảo Nóng Lạnh","CircleIslandIce"},
+        {"Đảo Lãng Quên","ForgottenIsland"}
+    },
+
+    [3]={
+        {"Đền Thời Gian","TempleOfTime"},
+        {"Pháo Đài Trên Biển","SeaCastle"},
+        {"Pháo Đài Trên Biển (Cổng)","SeaCastleEntrance"},
+        {"Lâu Đài Ma","HauntedCastle"},
+        {"Đảo Tiki","Tiki"},
+        {"Đảo Loaf","Loaf"},
+        {"Đảo Chocolate","Chocolate"},
+        {"Đảo Kem","IceCream"},
+        {"Cây Khổng Lồ","GreatTree"},
+        {"Hydra (Cổng)","HydraEntrance"},
+        {"Hydra 1","Hydra1"},
+        {"Hydra 2","Hydra2"},
+        {"Hydra 3","Hydra3"},
+        {"Big Mansion","BigMansion"},
+        {"Mansion (Cổng)","MansionEntrance"},
+        {"Thị Trấn Dứa","PineappleTown"},
+        {"Lâu Đài Biển","Default"}
+    }
+}
+
+local CurrentList=SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
+
+-- ===================================================
+-- 8. TẠO GUI SEA
 -- ===================================================
 local SeaGui=Instance.new("ScreenGui")
 SeaGui.Name="SeaMenu_Gui"
@@ -431,9 +520,9 @@ MainMenu.Draggable=true
 
 Instance.new("UICorner",MainMenu).CornerRadius=UDim.new(0,8)
 
-local Stroke=Instance.new("UIStroke",MainMenu)
-Stroke.Color=Color3.fromRGB(0,170,255)
-Stroke.Thickness=1.5
+local MainStroke=Instance.new("UIStroke",MainMenu)
+MainStroke.Color=Color3.fromRGB(0,170,255)
+MainStroke.Thickness=1.5
 
 local Title=Instance.new("TextLabel",MainMenu)
 Title.Size=UDim2.new(1,-45,0,38)
@@ -445,11 +534,14 @@ Title.Font=Enum.Font.Cartoon
 Title.TextSize=18
 Title.TextXAlignment=Enum.TextXAlignment.Left
 
+-- ===================================================
+-- NÚT BẬT/TẮT MENU
+-- ===================================================
 local ToggleBtn=Instance.new("ImageButton",SeaGui)
-ToggleBtn.Size=UDim2.new(0,40,0,40)
-ToggleBtn.Position=UDim2.new(0,20,0.5,-20)
+ToggleBtn.Size=UDim2.new(0,35,0,35)
+ToggleBtn.Position=UDim2.new(0.015,0,0.2,0)
 ToggleBtn.BackgroundTransparency=1
-ToggleBtn.Image="rbxassetid://83352230980105"
+ToggleBtn.Image="rbxassetid://137085832615070"
 ToggleBtn.Active=true
 ToggleBtn.Draggable=true
 
@@ -457,6 +549,9 @@ ToggleBtn.Activated:Connect(function()
     MainMenu.Visible=not MainMenu.Visible
 end)
 
+-- ===================================================
+-- NÚT SPEED
+-- ===================================================
 local SettingsButton=Instance.new("ImageButton",MainMenu)
 SettingsButton.Size=UDim2.new(0,30,0,30)
 SettingsButton.Position=UDim2.new(1,-36,0,4)
@@ -503,7 +598,9 @@ SpeedClose.Activated:Connect(function()
     SpeedMenu.Visible=false
 end)
 
+-- ===================================================
 -- SCROLL SPEED
+-- ===================================================
 local SpeedScroll=Instance.new("ScrollingFrame",SpeedMenu)
 SpeedScroll.Size=UDim2.new(1,-10,1,-45)
 SpeedScroll.Position=UDim2.new(0,5,0,42)
@@ -548,8 +645,7 @@ local function CreateControl(Name,MinValue,MaxValue,DefaultValue,OnValue,OnToggl
     Toggle.Text=""
     Toggle.AutoButtonColor=false
 
-    local ToggleCorner=Instance.new("UICorner",Toggle)
-    ToggleCorner.CornerRadius=UDim.new(0,5)
+    Instance.new("UICorner",Toggle).CornerRadius=UDim.new(0,5)
 
     local ToggleStroke=Instance.new("UIStroke",Toggle)
     ToggleStroke.Color=Color3.fromRGB(100,100,100)
@@ -634,25 +730,6 @@ local function CreateControl(Name,MinValue,MaxValue,DefaultValue,OnValue,OnToggl
         end
     end)
 
-    Slider.InputChanged:Connect(function(InputObject)
-        if InputObject.UserInputType==Enum.UserInputType.MouseMovement or InputObject.UserInputType==Enum.UserInputType.Touch then
-            local Connection
-            Connection=UserInputService.InputChanged:Connect(function(MoveInput)
-                if MoveInput.UserInputType==Enum.UserInputType.MouseMovement or MoveInput.UserInputType==Enum.UserInputType.Touch then
-                    local X=MoveInput.Position.X
-                    local Alpha=math.clamp((X-Slider.AbsolutePosition.X)/Slider.AbsoluteSize.X,0,1)
-                    SetValue(MinValue+(MaxValue-MinValue)*Alpha)
-                end
-            end)
-
-            task.delay(0.3,function()
-                if Connection then
-                    Connection:Disconnect()
-                end
-            end)
-        end
-    end)
-
     SetValue(DefaultValue)
     UpdateToggle()
 
@@ -660,7 +737,7 @@ local function CreateControl(Name,MinValue,MaxValue,DefaultValue,OnValue,OnToggl
 end
 
 -- ===================================================
--- CÁC CONTROL
+-- SPEED / WALK / JUMP / BOAT
 -- ===================================================
 CreateControl("Tốc độ bay",150,300,220,function(Value)
     _G.SPEED=Value
@@ -789,9 +866,9 @@ local function SpawnToIsland(spawnArg)
             local CurrentCharacter=LocalPlayer.Character
             local CurrentRoot=GetRoot(CurrentCharacter)
 
-            if not CurrentRoot then return end
-
-            CurrentRoot.CFrame=CurrentRoot.CFrame:Lerp(TargetCFrame,0.08)
+            if CurrentRoot then
+                CurrentRoot.CFrame=CurrentRoot.CFrame:Lerp(TargetCFrame,0.08)
+            end
         end)
 
         task.delay(3,function()
@@ -830,29 +907,7 @@ local function SpawnToIsland(spawnArg)
 end
 
 -- ===================================================
--- TẠO NÚT ĐẢO
--- ===================================================
-local function CreateIslandButton(Name,SpawnArg,Parent)
-    local Button=Instance.new("TextButton",Parent)
-    Button.Size=UDim2.new(1,0,0,32)
-    Button.BackgroundColor3=Color3.fromRGB(35,35,35)
-    Button.Text=Name
-    Button.TextColor3=Color3.fromRGB(255,255,255)
-    Button.Font=Enum.Font.Gotham
-    Button.TextSize=13
-    Button.AutoButtonColor=false
-
-    Instance.new("UICorner",Button).CornerRadius=UDim.new(0,5)
-
-    Button.Activated:Connect(function()
-        SpawnToIsland(SpawnArg)
-    end)
-
-    return Button
-end
-
--- ===================================================
--- SCROLL ĐẢO
+-- NÚT CHỌN ĐẢO
 -- ===================================================
 local Scroll=Instance.new("ScrollingFrame",MainMenu)
 Scroll.Size=UDim2.new(1,-10,1,-45)
@@ -868,12 +923,33 @@ local List=Instance.new("UIListLayout",Scroll)
 List.SortOrder=Enum.SortOrder.LayoutOrder
 List.Padding=UDim.new(0,5)
 
+local function CreateIslandButton(Name,SpawnArg)
+    local Button=Instance.new("TextButton",Scroll)
+    Button.Size=UDim2.new(1,0,0,32)
+    Button.BackgroundColor3=Color3.fromRGB(35,35,35)
+    Button.Text=Name
+    Button.TextColor3=Color3.fromRGB(255,255,255)
+    Button.Font=Enum.Font.Gotham
+    Button.TextSize=13
+    Button.AutoButtonColor=false
+
+    Instance.new("UICorner",Button).CornerRadius=UDim.new(0,5)
+
+    Button.Activated:Connect(function()
+        SpawnToIsland(SpawnArg)
+    end)
+end
+
+for _,Island in ipairs(CurrentList) do
+    CreateIslandButton(Island[1],Island[2])
+end
+
 List:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize=UDim2.new(0,0,0,List.AbsoluteContentSize.Y+10)
 end)
 
 -- ===================================================
--- TẠO TOGGLE
+-- TOGGLE BAY / FARM
 -- ===================================================
 local function CreateToggle(Name,Callback)
     local Holder=Instance.new("Frame",Scroll)
