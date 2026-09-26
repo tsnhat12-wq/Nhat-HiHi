@@ -585,7 +585,7 @@ ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
 ToggleBtn.BackgroundTransparency = 0.2
 ToggleBtn.Draggable = true
 ToggleBtn.ClipsDescendants = true
-ToggleBtn.Image = "rbxassetid://117301859320189"
+ToggleBtn.Image = "rbxassetid://102291821573166"
 Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
