@@ -1,4 +1,3 @@
-
 -- ===================================================
 -- 1. THÔNG BÁO 0.1 GIÂY 🤣
 -- ===================================================
@@ -578,7 +577,6 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
-
 local ToggleBtn = Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size = UDim2.new(0,35,0,35)
 ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
@@ -591,15 +589,17 @@ ToggleBtn.Image = "rbxassetid://83352230980105"
 Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
-toggleStroke.Thickness = 1.5
+toggleStroke.Thickness = 2
+toggleStroke.Color = Color3.fromRGB(255,255,255)
 
 local toggleGradient = Instance.new("UIGradient")
 toggleGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
+    ColorSequenceKeypoint.new(0.2,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.4,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.6,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.8,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,30,90))
 })
 toggleGradient.Parent = toggleStroke
 
@@ -614,7 +614,7 @@ MainMenu.Draggable = true
 Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
 local menuStroke = Instance.new("UIStroke",MainMenu)
-menuStroke.Thickness = 1.5
+menuStroke.Thickness = 2
 menuStroke.Color = Color3.fromRGB(255,255,255)
 
 local menuGradient = Instance.new("UIGradient")
@@ -655,16 +655,19 @@ UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 10)
 end)
 
-RunService.RenderStepped:Connect(function(delta)
-    local Speed = MainMenu.Visible and 500 or 180
-    toggleGradient.Rotation = (toggleGradient.Rotation + delta * Speed) % 360
-    menuGradient.Rotation = (menuGradient.Rotation + delta * 180) % 360
-end)
-
 local titleText = "BYPASS TP SEA "..CurrentSeaNum
 local titleHue = 0
 
 RunService.RenderStepped:Connect(function(delta)
+    local ToggleSpeed = MainMenu.Visible and 110 or 90
+
+    -- Viền nút ⚡
+    toggleGradient.Rotation = (toggleGradient.Rotation + delta * ToggleSpeed) % 360
+
+    -- Viền MainMenu
+    menuGradient.Rotation = (menuGradient.Rotation + delta * 90) % 360
+
+    -- Rainbow Title chạy trái → phải
     titleHue = (titleHue + delta * 0.35) % 1
     local Text = ""
 
@@ -674,7 +677,7 @@ RunService.RenderStepped:Connect(function(delta)
         if char == " " then
             Text = Text.." "
         else
-            local hue = (titleHue + (i - 1) / #titleText) % 1
+            local hue = (titleHue - (i - 1) / #titleText) % 1
             local color = Color3.fromHSV(hue,1,1)
             local r = math.floor(color.R * 255)
             local g = math.floor(color.G * 255)
@@ -693,6 +696,7 @@ end)
 ToggleBtn.MouseButton1Click:Connect(function()
     MainMenu.Visible = not MainMenu.Visible
 end)
+
 -- ===================================================
 -- HÀM THỰC THI TELEPORT CỔNG
 -- ===================================================
