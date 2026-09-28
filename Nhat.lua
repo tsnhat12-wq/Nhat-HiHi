@@ -595,11 +595,13 @@ toggleStroke.Color = Color3.fromRGB(255,255,255)
 local toggleGradient = Instance.new("UIGradient")
 toggleGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.2,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.4,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.6,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.8,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,30,90))
+    ColorSequenceKeypoint.new(0.18,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.28,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.36,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.64,Color3.fromRGB(100,200,255)),
+    ColorSequenceKeypoint.new(0.72,Color3.fromRGB(100,200,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
 })
 toggleGradient.Parent = toggleStroke
 
@@ -659,7 +661,7 @@ local titleText = "BYPASS TP SEA "..CurrentSeaNum
 local titleHue = 0
 
 RunService.RenderStepped:Connect(function(delta)
-    local ToggleSpeed = MainMenu.Visible and 110 or 90
+    local ToggleSpeed = MainMenu.Visible and 140 or 90
 
     -- Viền nút ⚡
     toggleGradient.Rotation = (toggleGradient.Rotation + delta * ToggleSpeed) % 360
