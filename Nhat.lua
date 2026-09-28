@@ -1,5 +1,6 @@
+
 -- ===================================================
--- 1. THÔNG BÁO ĐẾM NGƯỢC 5.0s -> 0.0s
+-- 1. THÔNG BÁO 0.1 GIÂY 🤣
 -- ===================================================
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -32,11 +33,9 @@ NoticeText.TextSize = 14
 NoticeText.TextColor3 = Color3.fromRGB(100, 200, 255)
 NoticeText.BackgroundTransparency = 1
 
--- Đếm ngược từ 1.0s về 0.0s
-for i = 10, 0, -1 do
-    NoticeText.Text = string.format("Đang Load Menu... %.1fs", i / 10)
-    task.wait(0.1)
-end
+-- Hiện thông báo 0.1s rồi tự tắt
+NoticeText.Text = "Đang Load Menu... 0.1s"
+task.wait(0.1)
 NoticeGui:Destroy()
 
 -- ===================================================
@@ -54,6 +53,13 @@ local function ClearOldGUI()
     end
 end
 ClearOldGUI()
+
+local SeaGui = Instance.new("ScreenGui")
+SeaGui.Name = "SeaMenu_Gui"
+SeaGui.ResetOnSpawn = false
+SeaGui.IgnoreGuiInset = true
+SeaGui.DisplayOrder = 999999
+SeaGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ===================================================
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
