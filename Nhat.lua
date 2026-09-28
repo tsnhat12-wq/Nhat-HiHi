@@ -572,11 +572,6 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
-local SeaGui = Instance.new("ScreenGui")
-SeaGui.Name = "SeaMenu_Gui"
-SeaGui.ResetOnSpawn = false
-pcall(function() SeaGui.Parent = CoreGui end)
-if not SeaGui.Parent then SeaGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
 local ToggleBtn = Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size = UDim2.new(0,35,0,35)
@@ -586,11 +581,21 @@ ToggleBtn.BackgroundTransparency = 0.2
 ToggleBtn.Draggable = true
 ToggleBtn.ClipsDescendants = true
 ToggleBtn.Image = "rbxassetid://83352230980105"
+
 Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
 toggleStroke.Thickness = 1.5
-toggleStroke.Color = Color3.fromRGB(0,170,255)
+
+local toggleGradient = Instance.new("UIGradient")
+toggleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
+})
+toggleGradient.Parent = toggleStroke
 
 local MainMenu = Instance.new("Frame",SeaGui)
 MainMenu.Size = UDim2.new(0,230,0,290)
@@ -604,15 +609,28 @@ Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
 local menuStroke = Instance.new("UIStroke",MainMenu)
 menuStroke.Thickness = 1.5
-menuStroke.Color = Color3.fromRGB(0,170,255)
+menuStroke.Color = Color3.fromRGB(255,255,255)
+
+local menuGradient = Instance.new("UIGradient")
+menuGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
+})
+menuGradient.Parent = menuStroke
 
 local Title = Instance.new("TextLabel",MainMenu)
 Title.Size = UDim2.new(1,0,0,35)
-Title.Text = "BYPASS TP SEA "..CurrentSeaNum
+Title.Position = UDim2.new(0,0,0,0)
+Title.Text = ""
+Title.RichText = true
 Title.Font = Enum.Font.Cartoon
 Title.TextSize = 15
-Title.TextColor3 = Color3.fromRGB(100,200,255)
 Title.BackgroundTransparency = 1
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.TextYAlignment = Enum.TextYAlignment.Center
 
 local Scroll = Instance.new("ScrollingFrame",MainMenu)
 Scroll.Size = UDim2.new(1,0,1,-40)
@@ -631,10 +649,44 @@ UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 10)
 end)
 
+RunService.RenderStepped:Connect(function(delta)
+    local Speed = MainMenu.Visible and 500 or 180
+    toggleGradient.Rotation = (toggleGradient.Rotation + delta * Speed) % 360
+    menuGradient.Rotation = (menuGradient.Rotation + delta * 180) % 360
+end)
+
+local titleText = "BYPASS TP SEA "..CurrentSeaNum
+local titleHue = 0
+
+RunService.RenderStepped:Connect(function(delta)
+    titleHue = (titleHue + delta * 0.35) % 1
+    local Text = ""
+
+    for i = 1,#titleText do
+        local char = titleText:sub(i,i)
+
+        if char == " " then
+            Text = Text.." "
+        else
+            local hue = (titleHue + (i - 1) / #titleText) % 1
+            local color = Color3.fromHSV(hue,1,1)
+            local r = math.floor(color.R * 255)
+            local g = math.floor(color.G * 255)
+            local b = math.floor(color.B * 255)
+
+            Text = Text..string.format(
+                '<font color="rgb(%d,%d,%d)">%s</font>',
+                r,g,b,char
+            )
+        end
+    end
+
+    Title.Text = Text
+end)
+
 ToggleBtn.MouseButton1Click:Connect(function()
     MainMenu.Visible = not MainMenu.Visible
 end)
-
 -- ===================================================
 -- HÀM THỰC THI TELEPORT CỔNG
 -- ===================================================
