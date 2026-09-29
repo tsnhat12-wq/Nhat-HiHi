@@ -1,4 +1,3 @@
-
 -- ===================================================
 -- 1. THÔNG BÁO 0.1 GIÂY 🤣
 -- ===================================================
@@ -586,7 +585,7 @@ ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
 ToggleBtn.BackgroundTransparency = 0.2
 ToggleBtn.Draggable = true
 ToggleBtn.ClipsDescendants = true
-ToggleBtn.Image = "rbxassetid://83352230980105"
+ToggleBtn.Image = "rbxassetid://133182834375630"
 
 Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
