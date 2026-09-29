@@ -577,8 +577,9 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
+
 local ToggleBtn = Instance.new("ImageButton",SeaGui)
-ToggleBtn.Size = UDim2.new(0,35,0,35)
+ToggleBtn.Size = UDim2.new(0,40,0,40)
 ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
 ToggleBtn.BackgroundTransparency = 0.2
@@ -594,12 +595,32 @@ toggleStroke.Color = Color3.fromRGB(255,255,255)
 
 local toggleGradient = Instance.new("UIGradient")
 toggleGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.2,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.4,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.6,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.8,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,30,90))
+    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.055,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 1
+    ColorSequenceKeypoint.new(0.075,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.095,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.115,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.36,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 2
+    ColorSequenceKeypoint.new(0.385,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.405,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.425,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.56,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.67,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 3
+    ColorSequenceKeypoint.new(0.695,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.715,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.735,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.88,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,0,0))
 })
 toggleGradient.Parent = toggleStroke
 
@@ -611,6 +632,7 @@ MainMenu.BackgroundColor3 = Color3.fromRGB(15,20,28)
 MainMenu.BackgroundTransparency = 0.15
 MainMenu.Visible = false
 MainMenu.Draggable = true
+
 Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
 local menuStroke = Instance.new("UIStroke",MainMenu)
@@ -618,13 +640,39 @@ menuStroke.Thickness = 2
 menuStroke.Color = Color3.fromRGB(255,255,255)
 
 local menuGradient = Instance.new("UIGradient")
+
 menuGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
+    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.035,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 1 - DÀI
+    ColorSequenceKeypoint.new(0.06,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.105,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.15,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.20,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.30,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.34,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 2 - DÀI
+    ColorSequenceKeypoint.new(0.365,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.41,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.455,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.505,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.60,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(0.64,Color3.fromRGB(0,0,0)),
+
+    -- ĐOẠN SÁNG 3 - DÀI
+    ColorSequenceKeypoint.new(0.665,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.71,Color3.fromRGB(255,100,190)),
+    ColorSequenceKeypoint.new(0.755,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.805,Color3.fromRGB(0,170,255)),
+
+    ColorSequenceKeypoint.new(0.90,Color3.fromRGB(0,0,0)),
+    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,0,0))
 })
+
 menuGradient.Parent = menuStroke
 
 local Title = Instance.new("TextLabel",MainMenu)
@@ -661,7 +709,7 @@ local titleHue = 0
 RunService.RenderStepped:Connect(function(delta)
     local ToggleSpeed = MainMenu.Visible and 150 or 100
 
-    -- Viền nút ⚡
+    -- 3 đoạn sáng chạy quanh nút
     toggleGradient.Rotation = (toggleGradient.Rotation + delta * ToggleSpeed) % 360
 
     -- Viền MainMenu
@@ -696,7 +744,6 @@ end)
 ToggleBtn.MouseButton1Click:Connect(function()
     MainMenu.Visible = not MainMenu.Visible
 end)
-
 -- ===================================================
 -- HÀM THỰC THI TELEPORT CỔNG
 -- ===================================================
