@@ -1,3 +1,4 @@
+
 -- ===================================================
 -- 1. THÔNG BÁO 0.1 GIÂY 🤣
 -- ===================================================
@@ -525,7 +526,8 @@ RunService.Heartbeat:Connect(function(DeltaTime)
         local Alpha = math.clamp((ActiveSpeed*DeltaTime)/math.max(Distance,0.001),0,1)
         MyRoot.CFrame = MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
     end
-end)        
+end)
+
 -- ===================================================
 -- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
 -- ===================================================
@@ -576,6 +578,31 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
+
+local ToggleBtn = Instance.new("ImageButton",SeaGui)
+ToggleBtn.Size = UDim2.new(0,35,0,35)
+ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
+ToggleBtn.BackgroundTransparency = 0.2
+ToggleBtn.Draggable = true
+ToggleBtn.ClipsDescendants = true
+ToggleBtn.Image = "rbxassetid://83352230980105"
+
+Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
+
+local toggleStroke = Instance.new("UIStroke",ToggleBtn)
+toggleStroke.Thickness = 1.5
+
+local toggleGradient = Instance.new("UIGradient")
+toggleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
+})
+toggleGradient.Parent = toggleStroke
+
 local MainMenu = Instance.new("Frame",SeaGui)
 MainMenu.Size = UDim2.new(0,230,0,290)
 MainMenu.AnchorPoint = Vector2.new(0.5,0.5)
@@ -584,7 +611,6 @@ MainMenu.BackgroundColor3 = Color3.fromRGB(15,20,28)
 MainMenu.BackgroundTransparency = 0.15
 MainMenu.Visible = false
 MainMenu.Draggable = true
-
 Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
 local menuStroke = Instance.new("UIStroke",MainMenu)
@@ -629,68 +655,34 @@ UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 10)
 end)
 
-local titleText = "BYPASS TP SEA "..CurrentSeaNum
+RunService.RenderStepped:Connect(function(delta)
+    local Speed = MainMenu.Visible and 500 or 180
+    toggleGradient.Rotation = (toggleGradient.Rotation + delta * Speed) % 360
+    menuGradient.Rotation = (menuGradient.Rotation + delta * 180) % 360
+end)
 
-local whitePulse = 0
+local titleText = "BYPASS TP SEA "..CurrentSeaNum
 local titleHue = 0
 
 RunService.RenderStepped:Connect(function(delta)
-    local ToggleSpeed = MainMenu.Visible and 150 or 90
-
-    -- Viền nút xoay
-    toggleGradient.Rotation = (toggleGradient.Rotation + delta * ToggleSpeed) % 360
-
-    -- Viền MainMenu
-    menuGradient.Rotation = (menuGradient.Rotation + delta * 90) % 360
-
-    -- Trắng ↔ xanh dương mỗi 1 giây
-    whitePulse = (whitePulse + delta) % 2
-
-    local pulseColor
-    if whitePulse < 1 then
-        pulseColor = Color3.fromRGB(255,255,255):Lerp(
-            Color3.fromRGB(0,170,255),
-            whitePulse
-        )
-    else
-        pulseColor = Color3.fromRGB(0,170,255):Lerp(
-            Color3.fromRGB(255,255,255),
-            whitePulse - 1
-        )
-    end
-
-    toggleGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
-        ColorSequenceKeypoint.new(0.14,Color3.fromRGB(100,200,255)),
-        ColorSequenceKeypoint.new(0.185,pulseColor),
-        ColorSequenceKeypoint.new(0.215,pulseColor),
-        ColorSequenceKeypoint.new(0.35,Color3.fromRGB(0,170,255)),
-
-        ColorSequenceKeypoint.new(0.47,Color3.fromRGB(100,200,255)),
-        ColorSequenceKeypoint.new(0.515,pulseColor),
-        ColorSequenceKeypoint.new(0.545,pulseColor),
-        ColorSequenceKeypoint.new(0.72,Color3.fromRGB(0,170,255)),
-
-        ColorSequenceKeypoint.new(0.84,Color3.fromRGB(100,200,255)),
-        ColorSequenceKeypoint.new(0.885,pulseColor),
-        ColorSequenceKeypoint.new(0.915,pulseColor),
-        ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
-    })
-
-    -- Rainbow Title
     titleHue = (titleHue + delta * 0.35) % 1
     local Text = ""
 
     for i = 1,#titleText do
         local char = titleText:sub(i,i)
+
         if char == " " then
             Text = Text.." "
         else
-            local hue = (titleHue - (i - 1) / #titleText) % 1
+            local hue = (titleHue + (i - 1) / #titleText) % 1
             local color = Color3.fromHSV(hue,1,1)
+            local r = math.floor(color.R * 255)
+            local g = math.floor(color.G * 255)
+            local b = math.floor(color.B * 255)
+
             Text = Text..string.format(
                 '<font color="rgb(%d,%d,%d)">%s</font>',
-                color.R*255,color.G*255,color.B*255,char
+                r,g,b,char
             )
         end
     end
@@ -701,7 +693,6 @@ end)
 ToggleBtn.MouseButton1Click:Connect(function()
     MainMenu.Visible = not MainMenu.Visible
 end)
-
 -- ===================================================
 -- HÀM THỰC THI TELEPORT CỔNG
 -- ===================================================
