@@ -577,11 +577,12 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
+
 local ToggleBtn = Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size = UDim2.new(0,35,0,35)
 ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
-ToggleBtn.BackgroundTransparency = 0.2
+ToggleBtn.BackgroundTransparency = 0.7
 ToggleBtn.Draggable = true
 ToggleBtn.ClipsDescendants = true
 ToggleBtn.Image = "rbxassetid://83352230980105"
@@ -591,6 +592,7 @@ Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
 toggleStroke.Thickness = 2
 toggleStroke.Color = Color3.fromRGB(255,255,255)
+
 
 local toggleGradient = Instance.new("UIGradient")
 toggleGradient.Color = ColorSequence.new({
