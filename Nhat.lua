@@ -525,8 +525,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
         local Alpha = math.clamp((ActiveSpeed*DeltaTime)/math.max(Distance,0.001),0,1)
         MyRoot.CFrame = MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
     end
-end)
-
+end)        
 -- ===================================================
 -- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
 -- ===================================================
@@ -577,42 +576,30 @@ local SeaIslandsData = {
 
 local CurrentList = SeaIslandsData[CurrentSeaNum] or SeaIslandsData[3]
 
+local MainMenu = Instance.new("Frame",SeaGui)
+MainMenu.Size = UDim2.new(0,230,0,290)
+MainMenu.AnchorPoint = Vector2.new(0.5,0.5)
+MainMenu.Position = UDim2.new(0.5,0,0.5,0)
+MainMenu.BackgroundColor3 = Color3.fromRGB(15,20,28)
+MainMenu.BackgroundTransparency = 0.15
+MainMenu.Visible = false
+MainMenu.Draggable = true
 
-local ToggleBtn = Instance.new("ImageButton",SeaGui)
-ToggleBtn.Size = UDim2.new(0,35,0,35)
-ToggleBtn.Position = UDim2.new(0.015,0,0.2,0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(15,25,35)
-ToggleBtn.BackgroundTransparency = 0.7
-ToggleBtn.Draggable = true
-ToggleBtn.ClipsDescendants = true
-ToggleBtn.Image = "rbxassetid://83352230980105"
+Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
-Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
+local menuStroke = Instance.new("UIStroke",MainMenu)
+menuStroke.Thickness = 1.5
+menuStroke.Color = Color3.fromRGB(255,255,255)
 
-local toggleStroke = Instance.new("UIStroke",ToggleBtn)
-toggleStroke.Thickness = 2
-toggleStroke.Color = Color3.fromRGB(255,255,255)
-
-
-local toggleGradient = Instance.new("UIGradient")
-toggleGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.14,Color3.fromRGB(100,200,255)),
-    ColorSequenceKeypoint.new(0.185,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.215,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.35,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.47,Color3.fromRGB(100,200,255)),
-    ColorSequenceKeypoint.new(0.515,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.545,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.72,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.84,Color3.fromRGB(100,200,255)),
-    ColorSequenceKeypoint.new(0.885,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.915,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
+local menuGradient = Instance.new("UIGradient")
+menuGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.5,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(0,170,255))
 })
-toggleGradient.Parent = toggleStroke
+menuGradient.Parent = menuStroke
 
 local Title = Instance.new("TextLabel",MainMenu)
 Title.Size = UDim2.new(1,0,0,35)
@@ -645,6 +632,7 @@ end)
 local titleText = "BYPASS TP SEA "..CurrentSeaNum
 
 local whitePulse = 0
+local titleHue = 0
 
 RunService.RenderStepped:Connect(function(delta)
     local ToggleSpeed = MainMenu.Visible and 150 or 90
