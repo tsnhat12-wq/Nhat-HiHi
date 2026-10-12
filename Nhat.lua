@@ -1,3 +1,4 @@
+
 -- ===================================================
 -- 1. THÔNG BÁO 0.1 GIÂY 🤣
 -- ===================================================
@@ -64,9 +65,9 @@ SeaGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
 _G.SPEED = 230
-_G.BOOST_SPEED = 1000 -- Tốc độ bứt phá khi dưới 60 studs
+_G.BOOST_SPEED = 1000 
 _G.BOOST_DISTANCE = 100
-_G.DOCAO_MOB = 45
+_G.DOCAO_MOB = 35
 _G.DOCAO_CHEST = 0
 _G.DOCAO_FRUIT = 1
 _G.DOXATP = 0
@@ -78,7 +79,7 @@ local FruitEnabled = false
 local TargetMob = nil
 local TargetChest = nil
 local TargetFruit = nil
-local TempleFlyConnection = nil -- <-- THÊM DÒNG NÀY VÀO ĐÂY LÀ XONG!
+local TempleFlyConnection = nil 
 
 local BodyVelocity = nil
 local NoclipConnection = nil
@@ -441,9 +442,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
     -- ƯU TIÊN 2: BAY TỚI QUÁI
     -- ===================================================
     elseif MobEnabled then
-        if not TargetMob or not TargetMob.Parent or not IsBloxFruitsMob(TargetMob) then
-            TargetMob = FindNearestMob()
-        end
+        if _G.BringMonster and BringMons and IsBringValidMob(BringMons[1]) then TargetMob = BringMons[1] elseif not TargetMob or not TargetMob.Parent or not IsBloxFruitsMob(TargetMob) then TargetMob = FindNearestMob() end
 
         if not TargetMob then
             DisableAntiGravity()
@@ -527,6 +526,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
     end
 end)
 
+
 -- ===================================================
 -- 5. DỮ LIỆU ĐẢO VÀ GIAO DIỆN
 -- ===================================================
@@ -590,38 +590,19 @@ ToggleBtn.Image = "rbxassetid://76668922802166"
 Instance.new("UICorner",ToggleBtn).CornerRadius = UDim.new(1,0)
 
 local toggleStroke = Instance.new("UIStroke",ToggleBtn)
-toggleStroke.Thickness = 2
+toggleStroke.Thickness = 1.5
+toggleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+toggleStroke.LineJoinMode = Enum.LineJoinMode.Round
 toggleStroke.Color = Color3.fromRGB(255,255,255)
 
-local toggleGradient = Instance.new("UIGradient")
+local toggleGradient = Instance.new("UIGradient",toggleStroke)
 toggleGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.055,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 1
-    ColorSequenceKeypoint.new(0.075,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.095,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.115,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.36,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 2
-    ColorSequenceKeypoint.new(0.385,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.405,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.425,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.56,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.67,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 3
-    ColorSequenceKeypoint.new(0.695,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.715,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.735,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.88,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,0,0))
-})
+    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
+}) 
 toggleGradient.Parent = toggleStroke
 
 local MainMenu = Instance.new("Frame",SeaGui)
@@ -635,44 +616,48 @@ MainMenu.Draggable = true
 
 Instance.new("UICorner",MainMenu).CornerRadius = UDim.new(0,10)
 
+-- ❄️ HIỆU ỨNG TUYẾT RƠI
+local SnowLayer = Instance.new("Frame",MainMenu)
+SnowLayer.Name = "SnowLayer"
+SnowLayer.Size = UDim2.fromScale(1,1)
+SnowLayer.BackgroundTransparency = 1
+SnowLayer.ClipsDescendants = true
+SnowLayer.ZIndex = 0
+
+local Snowflakes = {}
+
+for i=1,25 do
+    local Snow = Instance.new("Frame",SnowLayer)
+    local Size = math.random(1,3)
+    Snow.Size = UDim2.new(0,Size,0,Size)
+    Snow.Position = UDim2.new(math.random(),0,math.random(),0)
+    Snow.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    Snow.BackgroundTransparency = math.random(20,60)/100
+    Snow.BorderSizePixel = 0
+    Snow.ZIndex = 0
+    Instance.new("UICorner",Snow).CornerRadius = UDim.new(1,0)
+
+    table.insert(Snowflakes,{
+        Object=Snow,
+        Speed=math.random(15,35)/100,
+        Drift=math.random(-8,8)/100
+    })
+end
+
 local menuStroke = Instance.new("UIStroke",MainMenu)
-menuStroke.Thickness = 2
+menuStroke.Thickness = 1.5
+menuStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+menuStroke.LineJoinMode = Enum.LineJoinMode.Round
 menuStroke.Color = Color3.fromRGB(255,255,255)
 
-local menuGradient = Instance.new("UIGradient")
-
+local menuGradient = Instance.new("UIGradient",menuStroke)
 menuGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.035,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 1 - DÀI
-    ColorSequenceKeypoint.new(0.06,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.105,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.15,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.20,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.30,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.34,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 2 - DÀI
-    ColorSequenceKeypoint.new(0.365,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.41,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.455,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.505,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.60,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(0.64,Color3.fromRGB(0,0,0)),
-
-    -- ĐOẠN SÁNG 3 - DÀI
-    ColorSequenceKeypoint.new(0.665,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.71,Color3.fromRGB(255,100,190)),
-    ColorSequenceKeypoint.new(0.755,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.805,Color3.fromRGB(0,170,255)),
-
-    ColorSequenceKeypoint.new(0.90,Color3.fromRGB(0,0,0)),
-    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,0,0))
+    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
+    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0,30,90)),
+    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
 })
-
 menuGradient.Parent = menuStroke
 
 local Title = Instance.new("TextLabel",MainMenu)
@@ -709,36 +694,47 @@ local titleHue = 0
 RunService.RenderStepped:Connect(function(delta)
     local ToggleSpeed = MainMenu.Visible and 150 or 100
 
-    -- 3 đoạn sáng chạy quanh nút
     toggleGradient.Rotation = (toggleGradient.Rotation + delta * ToggleSpeed) % 360
-
-    -- Viền MainMenu
     menuGradient.Rotation = (menuGradient.Rotation + delta * 90) % 360
 
-    -- Rainbow Title chạy trái → phải
-    titleHue = (titleHue + delta * 0.35) % 1
-    local Text = ""
+    for _,flake in ipairs(Snowflakes) do
+        local obj=flake.Object
+        if obj.Parent then
+            local x=obj.Position.X.Scale+flake.Drift*delta
+            local y=obj.Position.Y.Scale+flake.Speed*delta
 
-    for i = 1,#titleText do
-        local char = titleText:sub(i,i)
+            if y>1.05 then
+                y=-0.05
+                x=math.random()
+            end
 
-        if char == " " then
-            Text = Text.." "
-        else
-            local hue = (titleHue - (i - 1) / #titleText) % 1
-            local color = Color3.fromHSV(hue,1,1)
-            local r = math.floor(color.R * 255)
-            local g = math.floor(color.G * 255)
-            local b = math.floor(color.B * 255)
+            if x>1.05 then x=-0.05
+            elseif x< -0.05 then x=1.05 end
 
-            Text = Text..string.format(
-                '<font color="rgb(%d,%d,%d)">%s</font>',
-                r,g,b,char
-            )
+            obj.Position=UDim2.new(x,0,y,0)
         end
     end
 
-    Title.Text = Text
+    titleHue=(titleHue+delta*0.35)%1
+    local Text=""
+
+    for i=1,#titleText do
+        local char=titleText:sub(i,i)
+
+        if char==" " then
+            Text=Text.." "
+        else
+            local hue=(titleHue-(i-1)/#titleText)%1
+            local color=Color3.fromHSV(hue,1,1)
+            local r=math.floor(color.R*255)
+            local g=math.floor(color.G*255)
+            local b=math.floor(color.B*255)
+
+            Text=Text..string.format('<font color="rgb(%d,%d,%d)">%s</font>',r,g,b,char)
+        end
+    end
+
+    Title.Text=Text
 end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
@@ -789,7 +785,7 @@ local function SpawnToIsland(spawnArg)
 
                 currentHrp.AssemblyLinearVelocity = Vector3.zero
                 currentHrp.AssemblyAngularVelocity = Vector3.zero
-
+                EnableNoclip()
                 if phase == 2 then return end
 
                 local targetCFrame
@@ -948,8 +944,9 @@ for _,island in ipairs(CurrentList) do
     end)
 end
 
+
 -- ===================================================
--- 6. TOGGLE BAY TRÁI / QUÁI / FARM RƯƠNG
+-- 6. TOGGLE BAY TRÁI / QUÁI / BRING MOB V2 / FARM RƯƠNG
 -- ===================================================
 
 local BLUE = Color3.fromRGB(0,170,255)
@@ -957,73 +954,442 @@ local OFF_BG = Color3.fromRGB(35,40,48)
 local ON_BG = Color3.fromRGB(15,70,105)
 local TEXT_COLOR = Color3.fromRGB(100,200,255)
 
-local function CreateToggle(Name,Callback)
-    local Holder = Instance.new("Frame",Scroll)
-    Holder.Size = UDim2.new(0.9,0,0,38)
-    Holder.BackgroundTransparency = 1
+-- ===================================================
+-- CẤU HÌNH BRING MOB V2
+-- ===================================================
 
-    local Label = Instance.new("TextLabel",Holder)
-    Label.Size = UDim2.new(1,-65,1,0)
-    Label.Position = UDim2.new(0,5,0,0)
-    Label.BackgroundTransparency = 1
-    Label.Text = Name
-    Label.Font = Enum.Font.Cartoon
-    Label.TextSize = 13
-    Label.TextColor3 = TEXT_COLOR
-    Label.TextXAlignment = Enum.TextXAlignment.Left
+_G.BringMonster = false 
+_G.BringMode = 1000 -- Độ Xa Bring 
+_G.BringSpeed = 700 -- Tốc Độ Bring
+_G.BringMinDistance = 0 -- Độ Xã Các Mod Với Mon 
+_G.BringAllMob = false -- Bring Tất Cả Các Con Khác Tên
+_G.MonCount = 4 -- Gom Nhiều Mon Cùng Lúc 
+_G.PlayerMinDistance = 46 -- Nếu Còn Một Con Thì Kéo Lại 
+_G.LastMobDistance = 10 -- Chống Quái lại Quá Gần Khi Bring
+_G.OrbitRadius = 20 -- Bán Kính Quay
+_G.OrbitHeight = 0 -- Độ Cao So Với Mon
+_G.OrbitSpeed = 4 -- Tốc Độ Quay
 
-    local Switch = Instance.new("TextButton",Holder)
-    Switch.Size = UDim2.new(0,48,0,24)
-    Switch.Position = UDim2.new(1,-53,0.5,-12)
-    Switch.BackgroundColor3 = OFF_BG
-    Switch.AutoButtonColor = false
-    Switch.Text = ""
+local BringBusy = false
+local BringMons = {}
 
-    Instance.new("UICorner",Switch).CornerRadius = UDim.new(1,0)
+-- ===================================================
+-- KIỂM TRA MON
+-- ===================================================
 
-    local Stroke = Instance.new("UIStroke",Switch)
-    Stroke.Thickness = 1
-    Stroke.Color = Color3.fromRGB(70,80,90)
+local function IsBringValidMob(Mon)
+if not Mon or not Mon.Parent then return false end
 
-    local Knob = Instance.new("Frame",Switch)
-    Knob.Size = UDim2.new(0,18,0,18)
-    Knob.Position = UDim2.new(0,3,0.5,-9)
-    Knob.BackgroundColor3 = Color3.fromRGB(170,175,180)
+local Enemies = Workspace:FindFirstChild("Enemies")
+if not Enemies or not Mon:IsDescendantOf(Enemies) then return false end
 
-    Instance.new("UICorner",Knob).CornerRadius = UDim.new(1,0)
+local Humanoid = Mon:FindFirstChildOfClass("Humanoid")
+local Root = Mon:FindFirstChild("HumanoidRootPart") or Mon.PrimaryPart
 
-    local Enabled = false
+return Humanoid and Root and Humanoid.Health > 0
 
-    local function Update()
-        if Enabled then
-            Switch.BackgroundColor3 = ON_BG
-            Stroke.Color = BLUE
-            Knob.BackgroundColor3 = BLUE
-            Knob.Position = UDim2.new(1,-21,0.5,-9)
-        else
-            Switch.BackgroundColor3 = OFF_BG
-            Stroke.Color = Color3.fromRGB(70,80,90)
-            Knob.BackgroundColor3 = Color3.fromRGB(170,175,180)
-            Knob.Position = UDim2.new(0,3,0.5,-9)
+end
+
+-- ===================================================
+-- TÌM MOB GẦN NHẤT CHO BRING
+-- ===================================================
+
+local function GetBringNearestMob()
+local MyRoot = GetRoot()
+local Enemies = Workspace:FindFirstChild("Enemies")
+
+if not MyRoot or not Enemies then
+    return nil
+end
+
+local Closest = nil
+local ClosestDistance = math.huge
+
+for _,Enemy in ipairs(Enemies:GetChildren()) do
+    if IsBringValidMob(Enemy) then
+        local Root = Enemy:FindFirstChild("HumanoidRootPart") or Enemy.PrimaryPart
+
+        if Root then
+            local Distance = (Root.Position - MyRoot.Position).Magnitude
+
+            if Distance < ClosestDistance then
+                ClosestDistance = Distance
+                Closest = Enemy
+            end
         end
+    end
+end
 
-        Callback(Enabled)
+return Closest
+
+end
+
+-- ===================================================
+-- LẤY MOB CÓ TÊN KHÁC NHAU
+-- ===================================================
+
+local function BringNameUsed(Name,Ignore)
+for Index,Mon in ipairs(BringMons) do
+if Index ~= Ignore and IsBringValidMob(Mon) and Mon.Name == Name then
+return true
+end
+end
+
+return false
+
+end
+
+local function GetBringNearestDifferentMob(Ignore)
+local MyRoot = GetRoot()
+local Enemies = Workspace:FindFirstChild("Enemies")
+
+if not MyRoot or not Enemies then
+    return nil
+end
+
+local Closest = nil
+local ClosestDistance = math.huge
+
+for _,Enemy in ipairs(Enemies:GetChildren()) do
+    if IsBringValidMob(Enemy) and not BringNameUsed(Enemy.Name,Ignore) then
+        local Root = Enemy:FindFirstChild("HumanoidRootPart") or Enemy.PrimaryPart
+
+        if Root then
+            local Distance = (Root.Position - MyRoot.Position).Magnitude
+
+            if Distance < ClosestDistance then
+                ClosestDistance = Distance
+                Closest = Enemy
+            end
+        end
+    end
+end
+
+return Closest
+
+end
+
+-- ===================================================
+-- CẬP NHẬT DANH SÁCH MOB
+-- ===================================================
+
+local function UpdateBringMons(Target)
+local Enemies = Workspace:FindFirstChild("Enemies")
+if not Enemies then
+table.clear(BringMons)
+return
+end
+
+local NewList = {}
+
+if IsBringValidMob(Target) then
+    table.insert(NewList,Target)
+end
+
+-- Tìm thêm các mob khác, ưu tiên tên khác nhau
+for _,Enemy in ipairs(Enemies:GetChildren()) do
+    if #NewList >= _G.MonCount then
+        break
     end
 
-    Switch.MouseButton1Click:Connect(function()
-        Enabled = not Enabled
-        Update()
-    end)
+    if IsBringValidMob(Enemy) and Enemy ~= Target then
+        local Used = false
 
-    return {
-        Set = function(Value)
-            Enabled = Value
-            Update()
-        end,
-        Get = function()
-            return Enabled
+        for _,Existing in ipairs(NewList) do
+            if Existing.Name == Enemy.Name then
+                Used = true
+                break
+            end
         end
-    }
+
+        if not Used then
+            table.insert(NewList,Enemy)
+        end
+    end
+end
+
+-- Nếu không đủ tên khác nhau thì lấy mob hợp lệ còn lại
+if #NewList < _G.MonCount then
+    for _,Enemy in ipairs(Enemies:GetChildren()) do
+        if #NewList >= _G.MonCount then
+            break
+        end
+
+        if IsBringValidMob(Enemy) then
+            local Used = false
+
+            for _,Existing in ipairs(NewList) do
+                if Existing == Enemy then
+                    Used = true
+                    break
+                end
+            end
+
+            if not Used then
+                table.insert(NewList,Enemy)
+            end
+        end
+    end
+end
+
+BringMons = NewList
+
+end
+
+-- ===================================================
+-- NETWORK
+-- ===================================================
+
+local function BringNetwork(Part)
+if isnetworkowner then
+local Success,Result = pcall(function()
+return isnetworkowner(Part)
+end)
+
+    if Success then
+        return Result
+    end
+end
+
+return Part.ReceiveAge == 0 and not Part.Anchored
+
+end
+
+-- ===================================================
+-- KHÔNG CHO MOB QUÁ GẦN PLAYER
+-- ===================================================
+
+local function ProtectBringDistance(Position,PlayerPosition)
+local Offset = Position - PlayerPosition
+local Distance = Offset.Magnitude
+
+if Distance < _G.PlayerMinDistance then
+    if Distance > 0.001 then
+        return PlayerPosition + Offset.Unit * _G.PlayerMinDistance
+    else
+        return PlayerPosition + Vector3.new(0,0,_G.PlayerMinDistance)
+    end
+end
+
+return Position
+
+end
+
+-- ===================================================
+-- BRING MOB V2
+-- ===================================================
+
+local function RunBringMob()
+if not _G.BringMonster then
+return
+end
+
+local Enemies = Workspace:FindFirstChild("Enemies")
+local MyRoot = GetRoot()
+
+if not Enemies or not MyRoot then
+    return
+end
+
+pcall(function()
+    if sethiddenproperty then
+        sethiddenproperty(LocalPlayer,"SimulationRadius",math.huge)
+    end
+end)
+
+-- ================================================
+-- NẾU TARGET HIỆN TẠI MẤT THÌ TÌM CON GẦN NHẤT
+-- ================================================
+
+local Target = BringMons[1]
+
+if not IsBringValidMob(Target) then
+    Target = GetBringNearestMob()
+
+    if Target then
+        UpdateBringMons(Target)
+    else
+        table.clear(BringMons)
+        return
+    end
+end
+
+if not IsBringValidMob(Target) then
+    return
+end
+
+local TargetRoot = Target:FindFirstChild("HumanoidRootPart") or Target.PrimaryPart
+local TargetHumanoid = Target:FindFirstChildOfClass("Humanoid")
+
+if not TargetRoot or not TargetHumanoid then
+    return
+end
+
+-- ================================================
+-- KHÓA TARGET
+-- ================================================
+
+TargetRoot.CanCollide = false
+TargetHumanoid.WalkSpeed = 0
+TargetHumanoid.JumpPower = 0
+
+-- ================================================
+-- GOM CÁC MOB QUANH TARGET
+-- ================================================
+
+for Index = 2,#BringMons do
+    local Enemy = BringMons[Index]
+
+    if IsBringValidMob(Enemy) then
+        local Root = Enemy:FindFirstChild("HumanoidRootPart") or Enemy.PrimaryPart
+        local Humanoid = Enemy:FindFirstChildOfClass("Humanoid")
+
+        if Root and Humanoid then
+            local DistanceToTarget = (Root.Position - TargetRoot.Position).Magnitude
+
+            if DistanceToTarget <= _G.BringMode then
+                local Angle = tick() * _G.OrbitSpeed + ((Index - 2) * math.pi * 2 / math.max(#BringMons - 1,1))
+
+                local OrbitPosition = Vector3.new(
+                    TargetRoot.Position.X + math.cos(Angle) * _G.OrbitRadius,
+                    TargetRoot.Position.Y + _G.OrbitHeight,
+                    TargetRoot.Position.Z + math.sin(Angle) * _G.OrbitRadius
+                )
+
+                OrbitPosition = ProtectBringDistance(OrbitPosition,MyRoot.Position)
+
+                Root.CanCollide = false
+                Humanoid.WalkSpeed = 0
+                Humanoid.JumpPower = 0
+
+                if BringNetwork(Root) then
+                    local Distance = (Root.Position - OrbitPosition).Magnitude
+                    local Alpha = math.min(
+                        (_G.BringSpeed * (1/20)) / math.max(Distance,0.001),1)
+
+                    Root.CFrame = Root.CFrame:Lerp(CFrame.new(OrbitPosition),Alpha)
+                end
+            end
+        end
+    end
+end
+
+-- ================================================
+-- GIỮ TARGET Ở VỊ TRÍ FARM
+-- ================================================
+
+TargetRoot.CanCollide = false
+TargetHumanoid.WalkSpeed = 0
+TargetHumanoid.JumpPower = 0
+
+-- ================================================
+-- NẾU TARGET CHẾT -> TÌM MOB GẦN NHẤT MỚI
+-- ================================================
+
+if TargetHumanoid.Health <= 0 then
+    table.remove(BringMons,1)
+
+    local NewTarget = GetBringNearestMob()
+
+    if NewTarget then
+        UpdateBringMons(NewTarget)
+    end
+end
+
+end
+
+-- ===================================================
+-- LOOP BRING
+-- ===================================================
+
+task.spawn(function()
+while task.wait(1/20) do
+if _G.BringMonster then
+RunBringMob()
+end
+end
+end)
+
+-- ===================================================
+-- TẠO TOGGLE
+-- ===================================================
+
+local function CreateToggle(Name,Callback)
+local Holder = Instance.new("Frame",Scroll)
+Holder.Size = UDim2.new(0.9,0,0,38)
+Holder.BackgroundColor3 = Color3.fromRGB(25,35,50)
+Holder.BackgroundTransparency = 0.3
+Holder.BorderSizePixel = 0
+
+Instance.new("UICorner",Holder).CornerRadius = UDim.new(0,6)
+
+local HolderStroke = Instance.new("UIStroke",Holder)
+HolderStroke.Thickness = 1
+HolderStroke.Color = Color3.fromRGB(0,120,200)
+
+local Label = Instance.new("TextLabel",Holder)
+Label.Size = UDim2.new(1,-65,1,0)
+Label.Position = UDim2.new(0,5,0,0)
+Label.BackgroundTransparency = 1
+Label.Text = Name
+Label.Font = Enum.Font.Cartoon
+Label.TextSize = 13
+Label.TextColor3 = TEXT_COLOR
+Label.TextXAlignment = Enum.TextXAlignment.Left
+
+local Switch = Instance.new("TextButton",Holder)
+Switch.Size = UDim2.new(0,48,0,24)
+Switch.Position = UDim2.new(1,-53,0.5,-12)
+Switch.BackgroundColor3 = OFF_BG
+Switch.AutoButtonColor = false
+Switch.Text = ""
+
+Instance.new("UICorner",Switch).CornerRadius = UDim.new(1,0)
+
+local Stroke = Instance.new("UIStroke",Switch)
+Stroke.Thickness = 1
+Stroke.Color = Color3.fromRGB(70,80,90)
+
+local Knob = Instance.new("Frame",Switch)
+Knob.Size = UDim2.new(0,18,0,18)
+Knob.Position = UDim2.new(0,3,0.5,-9)
+Knob.BackgroundColor3 = Color3.fromRGB(170,175,180)
+
+Instance.new("UICorner",Knob).CornerRadius = UDim.new(1,0)
+
+local Enabled = false
+
+local function Update()
+    if Enabled then
+        Switch.BackgroundColor3 = ON_BG
+        Stroke.Color = BLUE
+        Knob.BackgroundColor3 = BLUE
+        Knob.Position = UDim2.new(1,-21,0.5,-9)
+    else
+        Switch.BackgroundColor3 = OFF_BG
+        Stroke.Color = Color3.fromRGB(70,80,90)
+        Knob.BackgroundColor3 = Color3.fromRGB(170,175,180)
+        Knob.Position = UDim2.new(0,3,0.5,-9)
+    end
+
+    Callback(Enabled)
+end
+
+Switch.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+    Update()
+end)
+
+return {
+    Set = function(Value)
+        Enabled = Value
+        Update()
+    end,
+    Get = function()
+        return Enabled
+    end
+}
+
 end
 
 -- ===================================================
@@ -1031,8 +1397,8 @@ end
 -- ===================================================
 
 local FruitToggle = CreateToggle("BAY TỚI TRÁI",function(Value)
-    FruitEnabled = Value
-    TargetFruit = nil
+FruitEnabled = Value
+TargetFruit = nil
 end)
 
 -- ===================================================
@@ -1040,8 +1406,31 @@ end)
 -- ===================================================
 
 local MobToggle = CreateToggle("BAY TỚI QUÁI",function(Value)
-    MobEnabled = Value
-    TargetMob = nil
+MobEnabled = Value
+TargetMob = nil
+end)
+
+
+-- ===================================================
+-- BRING MOB V2
+-- ===================================================
+
+local BringMobToggle = CreateToggle("BRING MOB V2",function(Value)
+_G.BringMonster = Value
+
+if Value then
+    table.clear(BringMons)
+
+    -- Bật Bring thì lấy ngay con gần nhất
+    local Nearest = GetBringNearestMob()
+
+    if Nearest then
+        UpdateBringMons(Nearest)
+    end
+else
+    table.clear(BringMons)
+end
+
 end)
 
 -- ===================================================
@@ -1049,12 +1438,13 @@ end)
 -- ===================================================
 
 local ChestToggle = CreateToggle("FARM RƯƠNG",function(Value)
-    ChestEnabled = Value
+ChestEnabled = Value
 
-    if Value then
-        LastBeli = GetCurrentBeli()
-    end
+if Value then
+    LastBeli = GetCurrentBeli()
+end
 
-    TargetChest = nil
-    TouchTimer = 0
+TargetChest = nil
+TouchTimer = 0
+
 end)
