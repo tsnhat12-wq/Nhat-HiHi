@@ -542,7 +542,7 @@ local function GetCurrentSea()
             end
         end
     end
-    if game.PlaceId == 85211729168715 then return 1 end
+    if game.PlaceId == 2753915549 then return 1 end
     if game.PlaceId == 79091703265657 then return 2 end
     if game.PlaceId == 7449423635 then return 3 end
     return 3
@@ -961,12 +961,12 @@ local TEXT_COLOR = Color3.fromRGB(100,200,255)
 _G.BringMonster = false 
 _G.BringMode = 1000 -- Độ Xa Bring 
 _G.BringSpeed = 700 -- Tốc Độ Bring
-_G.BringMinDistance = 0 -- Độ Xã Các Mod Với Mon 
+_G.BringMinDistance = 5 -- Độ Xã Các Mod Với Mon 
 _G.BringAllMob = false -- Bring Tất Cả Các Con Khác Tên
 _G.MonCount = 4 -- Gom Nhiều Mon Cùng Lúc 
 _G.PlayerMinDistance = 46 -- Nếu Còn Một Con Thì Kéo Lại 
 _G.LastMobDistance = 10 -- Chống Quái lại Quá Gần Khi Bring
-_G.OrbitRadius = 20 -- Bán Kính Quay
+_G.OrbitRadius = 0 -- Bán Kính Quay
 _G.OrbitHeight = 0 -- Độ Cao So Với Mon
 _G.OrbitSpeed = 4 -- Tốc Độ Quay
 
