@@ -64,7 +64,7 @@ SeaGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- ===================================================
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
-_G.SPEED = 230
+_G.SPEED = 220
 _G.BOOST_SPEED = 1000 
 _G.BOOST_DISTANCE = 100
 _G.DOCAO_MOB = 35
