@@ -1,7 +1,7 @@
-
 -- ===================================================
 -- 1. SERVICE
 -- ===================================================
+
 local CoreGui=game:GetService("CoreGui")
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -9,8 +9,15 @@ local RunService=game:GetService("RunService")
 local UserInputService=game:GetService("UserInputService")
 local TweenService=game:GetService("TweenService")
 local Workspace=game:GetService("Workspace")
+local Lighting=game:GetService("Lighting")
 local CollectionService=game:GetService("CollectionService")
 local LocalPlayer=Players.LocalPlayer
+local Player=LocalPlayer
+
+local Sec=1
+local Observation=true
+local Boud=true
+local DestroyHit=true
 
 -- ===================================================
 -- 2. CLEAR OLD GUI & LOGIC
@@ -21,6 +28,7 @@ local function ClearOldGUI()
     for _,name in ipairs(oldNames) do
         local oldCore=CoreGui:FindFirstChild(name)
         if oldCore then oldCore:Destroy() end
+
         if LocalPlayer and LocalPlayer:FindFirstChild("PlayerGui") then
             local oldPlayerGui=LocalPlayer.PlayerGui:FindFirstChild(name)
             if oldPlayerGui then oldPlayerGui:Destroy() end
@@ -54,11 +62,404 @@ local ChestEnabled=false
 local FruitEnabled=false
 local BoatEnabled=false
 
+-- ===================================================
+-- 👁️ ESP TỰ ĐỘNG
+-- ===================================================
+local DevilFruitESP=true
+local EspEventIsland=true
+_G.BoatESP=true
+
+local cachedFruitHandle=nil
+local cachedEventIsland=nil
+local cachedMyBoatCore=nil
+
+local function GetRoot()
+    local char=Player.Character
+    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head"))
+end
+
+-- ===================================================
+-- 🍎 ESP TRÁI
+-- ===================================================
+task.spawn(function()
+    while task.wait(0.2) do
+        if DevilFruitESP then
+            local foundHandle=nil
+
+            for _,v in ipairs(Workspace:GetChildren()) do
+                pcall(function()
+                    if v.Name:find("Fruit") and v:FindFirstChild("Handle") then
+                        foundHandle=v.Handle
+                    end
+                end)
+
+                if foundHandle then break end
+            end
+
+            cachedFruitHandle=foundHandle
+        else
+            cachedFruitHandle=nil
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.01) do
+        if DevilFruitESP and cachedFruitHandle and cachedFruitHandle.Parent then
+            pcall(function()
+                local myRoot=GetRoot()
+                if not myRoot then return end
+
+                local distMeters=math.floor((myRoot.Position-cachedFruitHandle.Position).Magnitude/10)
+                local bill=cachedFruitHandle:FindFirstChild("NameEsp")
+
+                if not bill then
+                    bill=Instance.new("BillboardGui",cachedFruitHandle)
+                    bill.Name="NameEsp"
+                    bill.Size=UDim2.new(0,200,0,50)
+                    bill.StudsOffset=Vector3.new(0,4,0)
+                    bill.AlwaysOnTop=true
+
+                    local name=Instance.new("TextLabel",bill)
+                    name.Name="Text"
+                    name.Size=UDim2.new(1,0,1,0)
+                    name.BackgroundTransparency=1
+                    name.TextSize=9
+                    name.TextColor3=Color3.fromRGB(0,255,255)
+                    name.TextStrokeTransparency=0
+                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                end
+
+                local textLabel=bill:FindFirstChild("Text")
+                if textLabel then
+                    textLabel.Text=cachedFruitHandle.Parent.Name.."\n"..distMeters.." m"
+                end
+            end)
+        end
+    end
+end)
+
+-- ===================================================
+-- 🍎 ADVANCED FRUIT DEALER ESP
+-- ===================================================
+local AdvancedFruitDealerESP=true
+local cachedAdvancedFruitDealer=nil
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if AdvancedFruitDealerESP then
+            local foundDealer=nil
+            local npcs=ReplicatedStorage:FindFirstChild("NPCs")
+
+            if npcs then
+                for _,v in ipairs(npcs:GetChildren()) do
+                    if v.Name=="Advanced Fruit Dealer" then
+                        foundDealer=v
+                        break
+                    end
+                end
+            end
+
+            cachedAdvancedFruitDealer=foundDealer
+        else
+            cachedAdvancedFruitDealer=nil
+
+            local oldAdv=Workspace:FindFirstChild("Adv")
+            if oldAdv then
+                oldAdv:Destroy()
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.01) do
+        if AdvancedFruitDealerESP and cachedAdvancedFruitDealer then
+            pcall(function()
+                local myRoot=GetRoot()
+                local dealerRoot=cachedAdvancedFruitDealer:FindFirstChild("HumanoidRootPart")
+
+                if not myRoot or not dealerRoot then return end
+
+                local adv=Workspace:FindFirstChild("Adv")
+
+                if not adv then
+                    adv=Instance.new("Part")
+                    adv.Name="Adv"
+                    adv.Size=Vector3.new(1,1,1)
+                    adv.Transparency=1
+                    adv.Anchored=true
+                    adv.CanCollide=false
+                    adv.CanTouch=false
+                    adv.CanQuery=false
+                    adv.CFrame=dealerRoot.CFrame
+                    adv.Parent=Workspace
+                else
+                    adv.CFrame=dealerRoot.CFrame
+                end
+
+                local distMeters=math.floor((myRoot.Position-dealerRoot.Position).Magnitude/10)
+                local bill=adv:FindFirstChild("NameEsp")
+
+                if not bill then
+                    bill=Instance.new("BillboardGui",adv)
+                    bill.Name="NameEsp"
+                    bill.Size=UDim2.new(0,200,0,50)
+                    bill.StudsOffset=Vector3.new(0,4,0)
+                    bill.AlwaysOnTop=true
+
+                    local text=Instance.new("TextLabel",bill)
+                    text.Name="Text"
+                    text.Size=UDim2.new(1,0,1,0)
+                    text.BackgroundTransparency=1
+                    text.TextSize=9
+                    text.TextColor3=Color3.fromRGB(80,245,245)
+                    text.TextStrokeTransparency=0
+                    text.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                end
+
+                local textLabel=bill:FindFirstChild("Text")
+
+                if textLabel then
+                    textLabel.Text=cachedAdvancedFruitDealer.Name.."\n"..distMeters.." m"
+                end
+            end)
+        end
+    end
+end)
+-- ===================================================
+-- 🏝️ ESP ĐẢO SỰ KIỆN
+-- ===================================================
+task.spawn(function()
+    while task.wait(0.2) do
+        if EspEventIsland then
+            local foundIsland=nil
+            local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
+            local locationsFolder=worldOrigin and worldOrigin:FindFirstChild("Locations")
+
+            if locationsFolder then
+                for _,v in ipairs(locationsFolder:GetChildren()) do
+                    pcall(function()
+                        if v.Name=="Mirage Island" or v.Name=="Prehistoric Island" or v.Name=="Kitsune Island" or v.Name=="Frozen Dimension" then
+                            foundIsland=v
+                        end
+                    end)
+
+                    if foundIsland then break end
+                end
+            end
+
+            cachedEventIsland=foundIsland
+        else
+            cachedEventIsland=nil
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.01) do
+        if EspEventIsland and cachedEventIsland and cachedEventIsland.Parent then
+            pcall(function()
+                local myRoot=GetRoot()
+                if not myRoot then return end
+
+                local islandPosition=cachedEventIsland:IsA("BasePart") and cachedEventIsland.Position or cachedEventIsland:GetPivot().Position
+                local distMeters=math.floor((myRoot.Position-islandPosition).Magnitude/10)
+                local bill=cachedEventIsland:FindFirstChild("NameEsp")
+
+                if not bill then
+                    bill=Instance.new("BillboardGui",cachedEventIsland)
+                    bill.Name="NameEsp"
+                    bill.StudsOffset=Vector3.new(0,5,0)
+                    bill.Size=UDim2.new(0,200,0,50)
+                    bill.AlwaysOnTop=true
+
+                    local name=Instance.new("TextLabel",bill)
+                    name.Name="Text"
+                    name.Size=UDim2.new(1,0,1,0)
+                    name.BackgroundTransparency=1
+                    name.TextSize=9
+                    name.TextColor3=Color3.fromRGB(80,245,245)
+                    name.TextStrokeTransparency=0
+                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                end
+
+                local textLabel=bill:FindFirstChild("Text")
+                if textLabel then
+                    textLabel.Text=cachedEventIsland.Name.."\n"..distMeters.." m"
+                end
+            end)
+        end
+    end
+end)
+
+-- ===================================================
+-- 🚤 ESP THUYỀN CỦA MÌNH
+-- ===================================================
+task.spawn(function()
+    while task.wait(0.2) do
+        if _G.BoatESP then
+            local foundBoatCore=nil
+
+            pcall(function()
+                local boatsFolder=Workspace:FindFirstChild("Boats")
+                if not boatsFolder then return end
+
+                for _,boat in ipairs(boatsFolder:GetChildren()) do
+                    local isMyBoat=boat.Name:find(Player.Name)~=nil
+
+                    if not isMyBoat then
+                        for _,descendant in ipairs(boat:GetDescendants()) do
+                            if descendant:IsA("ObjectValue") and descendant.Value==Player then
+                                isMyBoat=true
+                                break
+                            elseif descendant:IsA("StringValue") and descendant.Value==Player.Name then
+                                isMyBoat=true
+                                break
+                            end
+                        end
+                    end
+
+                    if isMyBoat then
+                        foundBoatCore=boat.PrimaryPart or boat:FindFirstChild("Hull") or boat:FindFirstChild("Seat") or boat:FindFirstChildOfClass("BasePart")
+                        if foundBoatCore then break end
+                    end
+                end
+            end)
+
+            cachedMyBoatCore=foundBoatCore
+        else
+            cachedMyBoatCore=nil
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.01) do
+        if _G.BoatESP and cachedMyBoatCore and cachedMyBoatCore.Parent then
+            pcall(function()
+                local myRoot=GetRoot()
+                if not myRoot then return end
+
+                local distMeters=math.floor((cachedMyBoatCore.Position-myRoot.Position).Magnitude/10)
+                local bill=cachedMyBoatCore:FindFirstChild("AxiomBoatESP")
+
+                if not bill then
+                    bill=Instance.new("BillboardGui")
+                    bill.Name="AxiomBoatESP"
+                    bill.Size=UDim2.new(0,200,0,50)
+                    bill.StudsOffset=Vector3.new(0,6,0)
+                    bill.AlwaysOnTop=true
+
+                    local txt=Instance.new("TextLabel",bill)
+                    txt.Name="Text"
+                    txt.Size=UDim2.new(1,0,1,0)
+                    txt.BackgroundTransparency=1
+                    txt.TextSize=9
+                    txt.TextColor3=Color3.fromRGB(0,255,255)
+                    txt.TextStrokeTransparency=0
+                    txt.TextStrokeColor3=Color3.fromRGB(0,0,0)
+
+                    bill.Parent=cachedMyBoatCore
+                end
+
+                local textLabel=bill:FindFirstChild("Text")
+                if textLabel then
+                    textLabel.Text="THUYỀN\n"..distMeters.." m"
+                end
+            end)
+        end
+    end
+end)
+
+-- ===================================================
+-- 👁️ OBSERVATION / BUSO
+-- ===================================================
+task.spawn(function()
+    while task.wait() do
+        pcall(function()
+            if Observation then
+                ReplicatedStorage.Remotes.CommE:FireServer("Ken",true)
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(Sec) do
+        pcall(function()
+            if Boud and Player.Character then
+                local _HasBuso={"HasBuso","Buso"}
+
+                if not Player.Character:FindFirstChild(_HasBuso[1]) then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer(_HasBuso[2])
+                end
+            end
+        end)
+    end
+end)
+
+-- ===================================================
+-- 🌊 WATER BASE
+-- ===================================================
+task.spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            local waterPlane=Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("WaterBase-Plane")
+
+            if waterPlane then
+                waterPlane.Size=Vector3.new(1000,112,1000)
+            end
+        end)
+    end
+end)
+
+-- ===================================================
+-- 💡 LIGHTING CLEANUP
+-- ===================================================
+task.spawn(function()
+    while task.wait(2) do
+        pcall(function()
+            if Lighting:FindFirstChild("LightingLayers") then Lighting.LightingLayers:Destroy() end
+            if Lighting:FindFirstChild("SeaTerrorCC") then Lighting.SeaTerrorCC:Destroy() end
+            if Lighting:FindFirstChild("FantasySky") then Lighting.FantasySky:Destroy() end
+
+            Lighting.FogEnd=9e9
+            Lighting.GlobalShadows=false
+        end)
+    end
+end)
+
+-- ===================================================
+-- ⚔️ HIT EFFECT CLEANUP
+-- ===================================================
+local HitEffects={"SlashHit","CurvedRing","SwordSlash","SlashTail"}
+
+task.spawn(function()
+    while task.wait(Sec) do
+        if DestroyHit then
+            pcall(function()
+                local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
+
+                if worldOrigin then
+                    for _,v in pairs(worldOrigin:GetChildren()) do
+                        if table.find(HitEffects,v.Name) then
+                            v:Destroy()
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- ===================================================
+-- 🎯 TARGET VARIABLES
+-- ===================================================
 local TargetMob=nil
 local TargetChest=nil
 local TargetFruit=nil
 local TempleFlyConnection=nil
-
 local BodyVelocity=nil
 local NoclipConnection=nil
 local IgnoredChests=setmetatable({},{__mode="k"})
@@ -479,10 +880,10 @@ SnowLayer.ZIndex=0
 
 local Snowflakes={}
 
-for i=1,25 do
+for i=1,45 do
     local Snow=Instance.new("Frame",SnowLayer)
     local Size=math.random(1,3)
-    Snow.Size=UDim2.new(0,Size,0,Size)
+    Snow.Size=UDim2.new(2,Size,2,Size)
     Snow.Position=UDim2.new(math.random(),0,math.random(),0)
     Snow.BackgroundColor3=Color3.fromRGB(255,255,255)
     Snow.BackgroundTransparency=math.random(20,60)/100
@@ -616,7 +1017,7 @@ SettingsBtn.Name="SettingsButton"
 SettingsBtn.Size=UDim2.new(0,30,0,30)
 SettingsBtn.Position=UDim2.new(1,-35,0,2)
 SettingsBtn.BackgroundColor3=Color3.fromRGB(25,35,50)
-SettingsBtn.BackgroundTransparency=0.15
+SettingsBtn.BackgroundTransparency=1
 SettingsBtn.AutoButtonColor=false
 SettingsBtn.Text="⚙️"
 SettingsBtn.Font=Enum.Font.Cartoon
@@ -635,7 +1036,7 @@ local SettingsClosedSize=UDim2.new(0,140,0,150)
 SettingsGui.Name="SettingsGui"
 SettingsGui.Size=SettingsClosedSize
 SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
-SettingsGui.Position=UDim2.new(0.5,0,0.5,0)
+SettingsGui.Position=UDim2.new(0.5,155,0.5,0)
 SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
 SettingsGui.BackgroundTransparency=0.08
 SettingsGui.Visible=false
@@ -665,8 +1066,8 @@ local SettingsClose=Instance.new("TextButton",SettingsGui)
 SettingsClose.Size=UDim2.new(0,22,0,22)
 SettingsClose.Position=UDim2.new(1,-25,0,3)
 SettingsClose.BackgroundTransparency=1
-SettingsClose.Text="×"
-SettingsClose.Font=Enum.Font.Cartoon
+SettingsClose.Text="X"
+SettingsClose.Font=Enum.Font.Gotham
 SettingsClose.TextSize=20
 SettingsClose.TextColor3=Color3.fromRGB(255,100,100)
 SettingsClose.AutoButtonColor=false
