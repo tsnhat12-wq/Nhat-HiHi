@@ -1,1543 +1,277 @@
--- ===================================================
--- 1. SERVICE
--- ===================================================
 
-local CoreGui=game:GetService("CoreGui")
-local Players=game:GetService("Players")
-local ReplicatedStorage=game:GetService("ReplicatedStorage")
-local RunService=game:GetService("RunService")
-local UserInputService=game:GetService("UserInputService")
-local TweenService=game:GetService("TweenService")
-local Workspace=game:GetService("Workspace")
-local Lighting=game:GetService("Lighting")
-local CollectionService=game:GetService("CollectionService")
-local LocalPlayer=Players.LocalPlayer
-local Player=LocalPlayer
+--[[ Protected by Lua Guard ]]
 
-local Sec=1
-local Observation=true
-local Boud=true
-local DestroyHit=true
-
--- ===================================================
--- 2. CLEAR OLD GUI & LOGIC
--- ===================================================
-local function ClearOldGUI()
-    local oldNames={"SeaMenu_Gui","AxiomTeleportMobBF","AxiomTeleportChestBF","AxiomTeleportFruitBF"}
-
-    for _,name in ipairs(oldNames) do
-        local oldCore=CoreGui:FindFirstChild(name)
-        if oldCore then oldCore:Destroy() end
-
-        if LocalPlayer and LocalPlayer:FindFirstChild("PlayerGui") then
-            local oldPlayerGui=LocalPlayer.PlayerGui:FindFirstChild(name)
-            if oldPlayerGui then oldPlayerGui:Destroy() end
-        end
-    end
-end
-
-ClearOldGUI()
-
-local SeaGui=Instance.new("ScreenGui")
-SeaGui.Name="SeaMenu_Gui"
-SeaGui.ResetOnSpawn=false
-SeaGui.IgnoreGuiInset=true
-SeaGui.DisplayOrder=999999
-SeaGui.Parent=LocalPlayer:WaitForChild("PlayerGui")
-
--- ===================================================
--- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
--- ===================================================
-_G.SPEED=220
-_G.BOOST_SPEED=1000
-_G.BOOST_DISTANCE=100
-_G.DOCAO_MOB=35
-_G.DOCAO_CHEST=0
-_G.DOCAO_FRUIT=1
-_G.DOXATP=0
-_G.BOAT_SPEED=450
-
-local MobEnabled=false
-local ChestEnabled=false
-local FruitEnabled=false
-local BoatEnabled=false
-
--- ===================================================
--- 👁️ ESP TỰ ĐỘNG
--- ===================================================
-local DevilFruitESP=true
-local EspEventIsland=true
-_G.BoatESP=true
-
-local cachedFruitHandle=nil
-local cachedEventIsland=nil
-local cachedMyBoatCore=nil
-
-local function GetRoot()
-    local char=Player.Character
-    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head"))
-end
-
--- ===================================================
--- 🍎 ESP TRÁI
--- ===================================================
-task.spawn(function()
-    while task.wait(0.2) do
-        if DevilFruitESP then
-            local foundHandle=nil
-
-            for _,v in ipairs(Workspace:GetChildren()) do
-                pcall(function()
-                    if v.Name:find("Fruit") and v:FindFirstChild("Handle") then
-                        foundHandle=v.Handle
-                    end
-                end)
-
-                if foundHandle then break end
+( function (...) local _llllIlIIll=game:GetService("\067\111\114\101\071\117\105") local Players=game:GetService("\080\108\097\121\101\114\115") local ReplicatedStorage=game:GetService("\082\101\112\108\105\099\097\116\101\100\083\116\111\114\097\103\101") local RunService=game:GetService("\082\117\110\083\101\114\118\105\099\101") local UserInputService=game:GetService("\085\115\101\114\073\110\112\117\116\083\101\114\118\105\099\101") local TweenService=game:GetService("\084\119\101\101\110\083\101\114\118\105\099\101") local _IlIIlIlIll=game:GetService("\087\111\114\107\115\112\097\099\101") local Lighting=game:GetService("\076\105\103\104\116\105\110\103") local _lIIlIIIIll=game:GetService("\067\111\108\108\101\099\116\105\111\110\083\101\114\118\105\099\101") local _lIlllIlllI=Players.LocalPlayer local _lIllIlllll=_lIlllIlllI local _lIllIlIlll=0x1 local _llIlIIIlIl=true local _IIIlIIIllI=true local _IlIIlllllI=true local function _IlIlIlIlIl() local _IlllllIIII={"\083\101\097\077\101\110\117\095\071\117\105","\065\120\105\111\109\084\101\108\101\112\111\114\116\077\111\098\066\070","\065\120\105\111\109\084\101\108\101\112\111\114\116\067\104\101\115\116\066\070","\065\120\105\111\109\084\101\108\101\112\111\114\116\070\114\117\105\116\066\070"} for _,_IIlllIIlIl in ipairs(_IlllllIIII) do local _lllllllIlI=_llllIlIIll:FindFirstChild(_IIlllIIlIl) if _lllllllIlI then _lllllllIlI:Destroy() end
+ if _lIlllIlllI and _lIlllIlllI:FindFirstChild("\080\108\097\121\101\114\071\117\105") then local _IlIlIIIlll=_lIlllIlllI.PlayerGui:FindFirstChild(_IIlllIIlIl) if _IlIlIIIlll then _IlIlIIIlll:Destroy() end
+ end
+ end
+ end
+ _IlIlIlIlIl() local _lIIIIIIllI=Instance.new("\083\099\114\101\101\110\071\117\105") _lIIIIIIllI.Name="\083\101\097\077\101\110\117\095\071\117\105" _lIIIIIIllI.ResetOnSpawn=false _lIIIIIIllI.IgnoreGuiInset=true _lIIIIIIllI.DisplayOrder=0xF423F _lIIIIIIllI.Parent=_lIlllIlllI:WaitForChild("\080\108\097\121\101\114\071\117\105") _G.SPEED=0xDC _G.BOOST_SPEED=0x3E8 _G.BOOST_DISTANCE=0x64 _G.DOCAO_MOB=0x23 _G.DOCAO_CHEST=0x0 _G.DOCAO_FRUIT=0x1 _G.DOXATP=0x0 _G.BOAT_SPEED=0x1C2 local _lllIlIIlll=false local _IllIIlllll=false local _IIIIlllIll=false local _IIlIIllIIl=false local _llIIlIIIIl=true local _lIlIlllIIl=true _G.BoatESP=true local _IlIIIlIllI=nil local _IllIllIIII=nil local _lllllllIll=nil local function _llIlIIllIl() local _lIlIllIIll=_lIllIlllll.Character return _lIlIllIIll and (_lIlIllIIll:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or _lIlIllIIll:FindFirstChild("\072\101\097\100")) end
+ task.spawn( function () while task.wait(0.2) do if _llIIlIIIIl then local _IIlIIllIIl=nil for _,v in ipairs(_IlIIlIlIll:GetChildren()) do pcall( function () if v.Name:find("\070\114\117\105\116") and v:FindFirstChild("\072\097\110\100\108\101") then _IIlIIllIIl=v.Handle end
+ end
+ ) if _IIlIIllIIl then break end
+ end
+ _IlIIIlIllI=_IIlIIllIIl else _IlIIIlIllI=nil end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.01) do if _llIIlIIIIl and _IlIIIlIllI and _IlIIIlIllI.Parent then pcall( function () local _IlllIlllll=_llIlIIllIl() if not _IlllIlllll then return end
+ local _lIIlIlIIlI=math.floor((_IlllIlllll.Position-_IlIIIlIllI.Position).Magnitude/0xA) local _lllllIIlII=_IlIIIlIllI:FindFirstChild("\078\097\109\101\069\115\112") if not _lllllIIlII then _lllllIIlII=Instance.new("\066\105\108\108\098\111\097\114\100\071\117\105",_IlIIIlIllI) _lllllIIlII.Name="\078\097\109\101\069\115\112" _lllllIIlII.Size=UDim2.new(0x0,0xC8,0x0,0x32) _lllllIIlII.StudsOffset=Vector3.new(0x0,0x4,0x0) _lllllIIlII.AlwaysOnTop=true local _IIlllIIlIl=Instance.new("\084\101\120\116\076\097\098\101\108",_lllllIIlII) _IIlllIIlIl.Name="\084\101\120\116" _IIlllIIlIl.Size=UDim2.new(0x1,0x0,0x1,0x0) _IIlllIIlIl.BackgroundTransparency=0x1 _IIlllIIlIl.TextSize=0x9 _IIlllIIlIl.TextColor3=Color3.fromRGB(0x0,0xFF,0xFF) _IIlllIIlIl.TextStrokeTransparency=0x0 _IIlllIIlIl.TextStrokeColor3=Color3.fromRGB(0x0,0x0,0x0) end
+ local _IlIIIIIlll=_lllllIIlII:FindFirstChild("\084\101\120\116") if _IlIIIIIlll then _IlIIIIIlll.Text=_IlIIIlIllI.Parent.Name.."\092\110"..distMeters.."\032\109" end
+ end
+ ) end
+ end
+ end
+ ) local _lIIIlIlIll=true local _IlllIIlIIl=nil task.spawn( function () while task.wait(0.2) do if _lIIIlIlIll then local _lIllIIlIlI=nil local _lllllIllII=ReplicatedStorage:FindFirstChild("\078\080\067\115") if _lllllIllII then for _,v in ipairs(_lllllIllII:GetChildren()) do if v.Name=="\065\100\118\097\110\099\101\100\032\070\114\117\105\116\032\068\101\097\108\101\114" then _lIllIIlIlI=v break end
+ end
+ end
+ _IlllIIlIIl=_lIllIIlIlI else _IlllIIlIIl=nil local _lllIlIlIII=_IlIIlIlIll:FindFirstChild("\065\100\118") if _lllIlIlIII then _lllIlIlIII:Destroy() end
+ end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.01) do if _lIIIlIlIll and _IlllIIlIIl then pcall( function () local _IlllIlllll=_llIlIIllIl() local _IlIllIIIll=_IlllIIlIIl:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") if not _IlllIlllll or not _IlIllIIIll then return end
+ local _IIlIllIlII=_IlIIlIlIll:FindFirstChild("\065\100\118") if not _IIlIllIlII then _IIlIllIlII=Instance.new("\080\097\114\116") _IIlIllIlII.Name="\065\100\118" _IIlIllIlII.Size=Vector3.new(0x1,0x1,0x1) _IIlIllIlII.Transparency=0x1 _IIlIllIlII.Anchored=true _IIlIllIlII.CanCollide=false _IIlIllIlII.CanTouch=false _IIlIllIlII.CanQuery=false _IIlIllIlII.CFrame=_IlIllIIIll.CFrame _IIlIllIlII.Parent=_IlIIlIlIll else _IIlIllIlII.CFrame=_IlIllIIIll.CFrame end
+ local _lIIlIlIIlI=math.floor((_IlllIlllll.Position-_IlIllIIIll.Position).Magnitude/0xA) local _lllllIIlII=_IIlIllIlII:FindFirstChild("\078\097\109\101\069\115\112") if not _lllllIIlII then _lllllIIlII=Instance.new("\066\105\108\108\098\111\097\114\100\071\117\105",_IIlIllIlII) _lllllIIlII.Name="\078\097\109\101\069\115\112" _lllllIIlII.Size=UDim2.new(0x0,0xC8,0x0,0x32) _lllllIIlII.StudsOffset=Vector3.new(0x0,0x4,0x0) _lllllIIlII.AlwaysOnTop=true local _lIIlIllIII=Instance.new("\084\101\120\116\076\097\098\101\108",_lllllIIlII) _lIIlIllIII.Name="\084\101\120\116" _lIIlIllIII.Size=UDim2.new(0x1,0x0,0x1,0x0) _lIIlIllIII.BackgroundTransparency=0x1 _lIIlIllIII.TextSize=0x9 _lIIlIllIII.TextColor3=Color3.fromRGB(0x50,0xF5,0xF5) _lIIlIllIII.TextStrokeTransparency=0x0 _lIIlIllIII.TextStrokeColor3=Color3.fromRGB(0x0,0x0,0x0) end
+ local _IlIIIIIlll=_lllllIIlII:FindFirstChild("\084\101\120\116") if _IlIIIIIlll then _IlIIIIIlll.Text=_IlllIIlIIl.Name.."\092\110"..distMeters.."\032\109" end
+ end
+ ) end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.2) do if _lIlIlllIIl then local _lIlIllIIII=nil local _lllIllllIl=_IlIIlIlIll:FindFirstChild("\095\087\111\114\108\100\079\114\105\103\105\110") local _IIIIIlIlll=_lllIllllIl and _lllIllllIl:FindFirstChild("\076\111\099\097\116\105\111\110\115") if _IIIIIlIlll then for _,v in ipairs(_IIIIIlIlll:GetChildren()) do pcall( function () if v.Name=="\077\105\114\097\103\101\032\073\115\108\097\110\100" or v.Name=="\080\114\101\104\105\115\116\111\114\105\099\032\073\115\108\097\110\100" or v.Name=="\075\105\116\115\117\110\101\032\073\115\108\097\110\100" or v.Name=="\070\114\111\122\101\110\032\068\105\109\101\110\115\105\111\110" then _lIlIllIIII=v end
+ end
+ ) if _lIlIllIIII then break end
+ end
+ end
+ _IllIllIIII=_lIlIllIIII else _IllIllIIII=nil end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.01) do if _lIlIlllIIl and _IllIllIIII and _IllIllIIII.Parent then pcall( function () local _IlllIlllll=_llIlIIllIl() if not _IlllIlllll then return end
+ local _lIIIllIlIl=_IllIllIIII:IsA("\066\097\115\101\080\097\114\116") and _IllIllIIII.Position or _IllIllIIII:GetPivot().Position local _lIIlIlIIlI=math.floor((_IlllIlllll.Position-_lIIIllIlIl).Magnitude/0xA) local _lllllIIlII=_IllIllIIII:FindFirstChild("\078\097\109\101\069\115\112") if not _lllllIIlII then _lllllIIlII=Instance.new("\066\105\108\108\098\111\097\114\100\071\117\105",_IllIllIIII) _lllllIIlII.Name="\078\097\109\101\069\115\112" _lllllIIlII.StudsOffset=Vector3.new(0x0,0x5,0x0) _lllllIIlII.Size=UDim2.new(0x0,0xC8,0x0,0x32) _lllllIIlII.AlwaysOnTop=true local _IIlllIIlIl=Instance.new("\084\101\120\116\076\097\098\101\108",_lllllIIlII) _IIlllIIlIl.Name="\084\101\120\116" _IIlllIIlIl.Size=UDim2.new(0x1,0x0,0x1,0x0) _IIlllIIlIl.BackgroundTransparency=0x1 _IIlllIIlIl.TextSize=0x9 _IIlllIIlIl.TextColor3=Color3.fromRGB(0x50,0xF5,0xF5) _IIlllIIlIl.TextStrokeTransparency=0x0 _IIlllIIlIl.TextStrokeColor3=Color3.fromRGB(0x0,0x0,0x0) end
+ local _IlIIIIIlll=_lllllIIlII:FindFirstChild("\084\101\120\116") if _IlIIIIIlll then _IlIIIIIlll.Text=_IllIllIIII.Name.."\092\110"..distMeters.."\032\109" end
+ end
+ ) end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.2) do if _G.BoatESP then local _llIlIlIIll=nil pcall( function () local _IllIIllllI=_IlIIlIlIll:FindFirstChild("\066\111\097\116\115") if not _IllIIllllI then return end
+ for _,boat in ipairs(_IllIIllllI:GetChildren()) do local _IIIIllIlIl=boat.Name:find(_lIllIlllll.Name)~=nil if not _IIIIllIlIl then for _,descendant in ipairs(boat:GetDescendants()) do if descendant:IsA("\079\098\106\101\099\116\086\097\108\117\101") and descendant.Value==_lIllIlllll then _IIIIllIlIl=true break elseif descendant:IsA("\083\116\114\105\110\103\086\097\108\117\101") and descendant.Value==_lIllIlllll.Name then _IIIIllIlIl=true break end
+ end
+ end
+ if _IIIIllIlIl then _llIlIlIIll=boat.PrimaryPart or boat:FindFirstChild("\072\117\108\108") or boat:FindFirstChild("\083\101\097\116") or boat:FindFirstChildOfClass("\066\097\115\101\080\097\114\116") if _llIlIlIIll then break end
+ end
+ end
+ end
+ ) _lllllllIll=_llIlIlIIll else _lllllllIll=nil end
+ end
+ end
+ ) task.spawn( function () while task.wait(0.01) do if _G.BoatESP and _lllllllIll and _lllllllIll.Parent then pcall( function () local _IlllIlllll=_llIlIIllIl() if not _IlllIlllll then return end
+ local _lIIlIlIIlI=math.floor((_lllllllIll.Position-_IlllIlllll.Position).Magnitude/0xA) local _lllllIIlII=_lllllllIll:FindFirstChild("\065\120\105\111\109\066\111\097\116\069\083\080") if not _lllllIIlII then _lllllIIlII=Instance.new("\066\105\108\108\098\111\097\114\100\071\117\105") _lllllIIlII.Name="\065\120\105\111\109\066\111\097\116\069\083\080" _lllllIIlII.Size=UDim2.new(0x0,0xC8,0x0,0x32) _lllllIIlII.StudsOffset=Vector3.new(0x0,0x6,0x0) _lllllIIlII.AlwaysOnTop=true local _lIIllIIIlI=Instance.new("\084\101\120\116\076\097\098\101\108",_lllllIIlII) _lIIllIIIlI.Name="\084\101\120\116" _lIIllIIIlI.Size=UDim2.new(0x1,0x0,0x1,0x0) _lIIllIIIlI.BackgroundTransparency=0x1 _lIIllIIIlI.TextSize=0x9 _lIIllIIIlI.TextColor3=Color3.fromRGB(0x0,0xFF,0xFF) _lIIllIIIlI.TextStrokeTransparency=0x0 _lIIllIIIlI.TextStrokeColor3=Color3.fromRGB(0x0,0x0,0x0) _lllllIIlII.Parent=_lllllllIll end
+ local _IlIIIIIlll=_lllllIIlII:FindFirstChild("\084\101\120\116") if _IlIIIIIlll then _IlIIIIIlll.Text="\084\072\085\089\7872\078\092\110"..distMeters.."\032\109" end
+ end
+ ) end
+ end
+ end
+ ) task.spawn( function () while task.wait() do pcall( function () if _llIlIIIlIl then ReplicatedStorage.Remotes.CommE:FireServer("\075\101\110",true) end
+ end
+ ) end
+ end
+ ) task.spawn( function () while task.wait(_lIllIlIlll) do pcall( function () if _IIIlIIIllI and _lIllIlllll.Character then local _IlIlllIlII={"\072\097\115\066\117\115\111","\066\117\115\111"} if not _lIllIlllll.Character:FindFirstChild(_IlIlllIlII[0x1]) then ReplicatedStorage.Remotes.CommF_:InvokeServer(_IlIlllIlII[0x2]) end
+ end
+ end
+ ) end
+ end
+ ) task.spawn( function () while task.wait(0.5) do pcall( function () local _IllIIlllIl=_IlIIlIlIll:FindFirstChild("\077\097\112") and _IlIIlIlIll.Map:FindFirstChild("\087\097\116\101\114\066\097\115\101\045\080\108\097\110\101") if _IllIIlllIl then _IllIIlllIl.Size=Vector3.new(0x3E8,0x70,0x3E8) end
+ end
+ ) end
+ end
+ ) task.spawn( function () while task.wait(0x2) do pcall( function () if Lighting:FindFirstChild("\076\105\103\104\116\105\110\103\076\097\121\101\114\115") then Lighting.LightingLayers:Destroy() end
+ if Lighting:FindFirstChild("\083\101\097\084\101\114\114\111\114\067\067") then Lighting.SeaTerrorCC:Destroy() end
+ if Lighting:FindFirstChild("\070\097\110\116\097\115\121\083\107\121") then Lighting.FantasySky:Destroy() end
+ Lighting.FogEnd=9e9 Lighting.GlobalShadows=false end
+ ) end
+ end
+ ) local _lllIllIlIl={"\083\108\097\115\104\072\105\116","\067\117\114\118\101\100\082\105\110\103","\083\119\111\114\100\083\108\097\115\104","\083\108\097\115\104\084\097\105\108"} task.spawn( function () while task.wait(_lIllIlIlll) do if _IlIIlllllI then pcall( function () local _lllIllllIl=_IlIIlIlIll:FindFirstChild("\095\087\111\114\108\100\079\114\105\103\105\110") if _lllIllllIl then for _,v in pairs(_lllIllllIl:GetChildren()) do if table.find(_lllIllIlIl,v.Name) then v:Destroy() end
+ end
+ end
+ end
+ ) end
+ end
+ end
+ ) local _IIIlIIlIIl=nil local _llIlIlIIll=nil local _IIllIIIIll=nil local _IllIIIllll=nil local _llllIIIlIl=nil local _lIIllIIllI=nil local _lIIIIlIllI=setmetatable({},{__mode="\107"}) local _IIIlIIlllI=0x0 local _llIIllllll=0x1388 local function _llIlIIllIl() local _IllllllIll=_lIlllIlllI.Character return _IllllllIll and _IllllllIll:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") end
+ local function _lIllIIIIlI(root) if not _llllIIIlIl or _llllIIIlIl.Parent~=root then if _llllIIIlIl then _llllIIIlIl:Destroy() end
+ _llllIIIlIl=Instance.new("\066\111\100\121\086\101\108\111\099\105\116\121") _llllIIIlIl.Name="\065\120\105\111\109\072\111\118\101\114" _llllIIIlIl.Velocity=Vector3.new(0x0,0x0,0x0) _llllIIIlIl.MaxForce=Vector3.new(math.huge,math.huge,math.huge) _llllIIIlIl.P=0x30D4 _llllIIIlIl.Parent=root end
+ local _IllllllIll=_lIlllIlllI.Character local _IIllIllIII=_IllllllIll and _IllllllIll:FindFirstChildOfClass("\072\117\109\097\110\111\105\100") if _IIllIllIII then _IIllIllIII:ChangeState(Enum.HumanoidStateType.Freefall) end
+ end
+ local function _IIIIIIIIIl() if _llllIIIlIl then _llllIIIlIl:Destroy(); _llllIIIlIl=nil end
+ end
+ local function _IlIlIIIIll() if not _lIIllIIllI then _lIIllIIllI=RunService.Stepped:Connect( function () if (_lllIlIIlll or _IllIIlllll or _IIIIlllIll) and _lIlllIlllI.Character then for _,part in ipairs(_lIlllIlllI.Character:GetDescendants()) do if part:IsA("\066\097\115\101\080\097\114\116") and part.CanCollide then part.CanCollide=false end
+ end
+ end
+ end
+ ) end
+ end
+ local function _lllIIlllIl() if _lIIllIIllI and not _lllIlIIlll and not _IllIIlllll and not _IIIIlllIll then _lIIllIIllI:Disconnect() _lIIllIIllI=nil end
+ end
+ task.spawn( function () while task.wait(0.01) do if _IIlIIllIIl then pcall( function () local _IllIIllllI=_IlIIlIlIll:FindFirstChild("\066\111\097\116\115") if _IllIIllllI then for _,v in pairs(_IllIIllllI:GetDescendants()) do local _IIlIlIlIll=v:FindFirstChild("\086\101\104\105\099\108\101\083\101\097\116") if _IIlIlIlIll then _IIlIlIlIll.MaxSpeed=_G.BOAT_SPEED _IIlIlIlIll.Torque=0.15 _IIlIlIlIll.TurnSpeed=0x3 _IIlIlIlIll.HeadsUpDisplay=true end
+ end
+ end
+ end
+ ) end
+ end
+ end
+ ) local _lIIlllIIII=nil local _IIIIIIlIlI=nil local _IlIIlIlllI=nil local function _lIlIlIllIl() if _lIIlllIIII then _lIIlllIIII:Destroy(); _lIIlllIIII=nil end
+ if _IIIIIIlIlI then _IIIIIIlIlI:Destroy(); _IIIIIIlIlI=nil end
+ if _IlIIlIlllI then _IlIIlIlllI:Destroy(); _IlIIlIlllI=nil end
+ end
+ local function _llIlIlIlll(Target) _lIlIlIllIl() local _IllllllIll=_lIlllIlllI.Character local _IllIlIIIll=_IllllllIll and _IllllllIll:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") if not _IllIlIIIll or not Target or not Target.Parent then return end
+ local _IIllIlIlIl if Target:IsA("\066\097\115\101\080\097\114\116") then _IIllIlIlIl=Target elseif Target:IsA("\077\111\100\101\108") then _IIllIlIlIl=Target:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or Target.PrimaryPart or Target:FindFirstChildOfClass("\066\097\115\101\080\097\114\116") end
+ if not _IIllIlIlIl then return end
+ _IIIIIIlIlI=Instance.new("\065\116\116\097\099\104\109\101\110\116") _IIIIIIlIlI.Name="\065\120\105\111\109\084\097\114\103\101\116\065\116\116\097\099\104\109\101\110\116" _IIIIIIlIlI.Parent=_IllIlIIIll _IlIIlIlllI=Instance.new("\065\116\116\097\099\104\109\101\110\116") _IlIIlIlllI.Name="\065\120\105\111\109\084\097\114\103\101\116\065\116\116\097\099\104\109\101\110\116" _IlIIlIlllI.Parent=_IIllIlIlIl _lIIlllIIII=Instance.new("\066\101\097\109") _lIIlllIIII.Name="\065\120\105\111\109\084\097\114\103\101\116\066\101\097\109" _lIIlllIIII.Attachment0=_IIIIIIlIlI _lIIlllIIII.Attachment1=_IlIIlIlllI _lIIlllIIII.FaceCamera=true _lIIlllIIII.Width0=0.25 _lIIlllIIII.Width1=0.25 _lIIlllIIII.Color=ColorSequence.new(Color3.fromRGB(0x0,0xAA,0xFF)) _lIIlllIIII.Transparency=NumberSequence.new(0.15) _lIIlllIIII.LightEmission=0x1 _lIIlllIIII.LightInfluence=0x0 _lIIlllIIII.Parent=_IllIlIIIll end
+ local function _lIIlIlIIll(Model) if not Model or not Model:IsA("\077\111\100\101\108") then return false end
+ if Players:GetPlayerFromCharacter(Model) then return false end
+ local _IIllIllIII=Model:FindFirstChildOfClass("\072\117\109\097\110\111\105\100") local _IllIlIIIll=Model:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or Model.PrimaryPart if not _IIllIllIII or not _IllIlIIIll or _IIllIllIII.Health<=0x0 then return false end
+ if Model.Parent and Model.Parent.Name=="\069\110\101\109\105\101\115" then return true end
+ local _IIlllIIlIl=Model.Name:lower() if _IIlllIIlIl:find("\113\117\101\115\116") or _IIlllIIlIl:find("\103\105\118\101\114") or _IIlllIIlIl:find("\109\101\114\099\104\097\110\116") or _IIlllIIlIl:find("\100\101\097\108\101\114") or _IIlllIIlIl:find("\116\105\116\108\101") or _IIlllIIlIl:find("\098\108\111\120\032\102\114\117\105\116") then return false end
+ if Model:FindFirstChild("\068\105\097\108\111\103\117\101") or Model:FindFirstChild("\081\117\101\115\116") or Model:FindFirstChildOfClass("\068\105\097\108\111\103") then return false end
+ return true end
+ local function _IllllIllll() local _llIllIIlIl=_llIlIIllIl() if not _llIllIIlIl then return nil end
+ local _IlllIIllIl=nil local _llIlllllIl=_llIIllllll local _IlllllIlIl=_IlIIlIlIll:FindFirstChild("\069\110\101\109\105\101\115") local _lIllllIIlI=_IlllllIlIl and _IlllllIlIl:GetChildren() or _IlIIlIlIll:GetChildren() for _,Object in ipairs(_lIllllIIlI) do if _lIIlIlIIll(Object) then local _IllIlIIIll=Object:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or Object.PrimaryPart if _IllIlIIIll then local _IIIIIIIIlI=(_IllIlIIIll.Position-_llIllIIlIl.Position).Magnitude if _IIIIIIIIlI<_llIlllllIl then _IlllIIllIl=Object; _llIlllllIl=_IIIIIIIIlI end
+ end
+ end
+ end
+ if not _IlllIIllIl and _IlllllIlIl then for _,Object in ipairs(_IlIIlIlIll:GetChildren()) do if Object~=_IlllllIlIl and _lIIlIlIIll(Object) then local _IllIlIIIll=Object:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or Object.PrimaryPart if _IllIlIIIll then local _IIIIIIIIlI=(_IllIlIIIll.Position-_llIllIIlIl.Position).Magnitude if _IIIIIIIIlI<_llIlllllIl then _IlllIIllIl=Object; _llIlllllIl=_IIIIIIIIlI end
+ end
+ end
+ end
+ end
+ return _IlllIIllIl end
+ local function _IlIlIIlIlI() local _llIllIIlIl=_llIlIIllIl() if not _llIllIIlIl then return nil end
+ local _lIIllllllI=_llIllIIlIl.Position local _IIIIIIIIlI,_IlllIIllIl=math.huge,nil local _lllIIIllII=_lIIlIIIIll:GetTagged("\095\067\104\101\115\116\084\097\103\103\101\100") for i=0x1,#_lllIIIllII do local _IllIllIllI=_lllIIIllII[i] if _IllIllIllI and _IllIllIllI.Parent and not _lIIIIlIllI[_IllIllIllI] and not _IllIllIllI:GetAttribute("\073\115\068\105\115\097\098\108\101\100") then local _IllIIlIIlI=(_IllIllIllI:GetPivot().Position-_lIIllllllI).Magnitude if _IllIIlIIlI<_IIIIIIIIlI then _IIIIIIIIlI=_IllIIlIIlI; _IlllIIllIl=_IllIllIllI end
+ end
             end
-
-            cachedFruitHandle=foundHandle
-        else
-            cachedFruitHandle=nil
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.01) do
-        if DevilFruitESP and cachedFruitHandle and cachedFruitHandle.Parent then
-            pcall(function()
-                local myRoot=GetRoot()
-                if not myRoot then return end
-
-                local distMeters=math.floor((myRoot.Position-cachedFruitHandle.Position).Magnitude/10)
-                local bill=cachedFruitHandle:FindFirstChild("NameEsp")
-
-                if not bill then
-                    bill=Instance.new("BillboardGui",cachedFruitHandle)
-                    bill.Name="NameEsp"
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.StudsOffset=Vector3.new(0,4,0)
-                    bill.AlwaysOnTop=true
-
-                    local name=Instance.new("TextLabel",bill)
-                    name.Name="Text"
-                    name.Size=UDim2.new(1,0,1,0)
-                    name.BackgroundTransparency=1
-                    name.TextSize=9
-                    name.TextColor3=Color3.fromRGB(0,255,255)
-                    name.TextStrokeTransparency=0
-                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
-                end
-
-                local textLabel=bill:FindFirstChild("Text")
-                if textLabel then
-                    textLabel.Text=cachedFruitHandle.Parent.Name.."\n"..distMeters.." m"
-                end
-            end)
-        end
-    end
-end)
-
--- ===================================================
--- 🍎 ADVANCED FRUIT DEALER ESP
--- ===================================================
-local AdvancedFruitDealerESP=true
-local cachedAdvancedFruitDealer=nil
-
-task.spawn(function()
-    while task.wait(0.2) do
-        if AdvancedFruitDealerESP then
-            local foundDealer=nil
-            local npcs=ReplicatedStorage:FindFirstChild("NPCs")
-
-            if npcs then
-                for _,v in ipairs(npcs:GetChildren()) do
-                    if v.Name=="Advanced Fruit Dealer" then
-                        foundDealer=v
-                        break
-                    end
-                end
-            end
-
-            cachedAdvancedFruitDealer=foundDealer
-        else
-            cachedAdvancedFruitDealer=nil
-
-            local oldAdv=Workspace:FindFirstChild("Adv")
-            if oldAdv then
-                oldAdv:Destroy()
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.01) do
-        if AdvancedFruitDealerESP and cachedAdvancedFruitDealer then
-            pcall(function()
-                local myRoot=GetRoot()
-                local dealerRoot=cachedAdvancedFruitDealer:FindFirstChild("HumanoidRootPart")
-
-                if not myRoot or not dealerRoot then return end
-
-                local adv=Workspace:FindFirstChild("Adv")
-
-                if not adv then
-                    adv=Instance.new("Part")
-                    adv.Name="Adv"
-                    adv.Size=Vector3.new(1,1,1)
-                    adv.Transparency=1
-                    adv.Anchored=true
-                    adv.CanCollide=false
-                    adv.CanTouch=false
-                    adv.CanQuery=false
-                    adv.CFrame=dealerRoot.CFrame
-                    adv.Parent=Workspace
-                else
-                    adv.CFrame=dealerRoot.CFrame
-                end
-
-                local distMeters=math.floor((myRoot.Position-dealerRoot.Position).Magnitude/10)
-                local bill=adv:FindFirstChild("NameEsp")
-
-                if not bill then
-                    bill=Instance.new("BillboardGui",adv)
-                    bill.Name="NameEsp"
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.StudsOffset=Vector3.new(0,4,0)
-                    bill.AlwaysOnTop=true
-
-                    local text=Instance.new("TextLabel",bill)
-                    text.Name="Text"
-                    text.Size=UDim2.new(1,0,1,0)
-                    text.BackgroundTransparency=1
-                    text.TextSize=9
-                    text.TextColor3=Color3.fromRGB(80,245,245)
-                    text.TextStrokeTransparency=0
-                    text.TextStrokeColor3=Color3.fromRGB(0,0,0)
-                end
-
-                local textLabel=bill:FindFirstChild("Text")
-
-                if textLabel then
-                    textLabel.Text=cachedAdvancedFruitDealer.Name.."\n"..distMeters.." m"
-                end
-            end)
-        end
-    end
-end)
--- ===================================================
--- 🏝️ ESP ĐẢO SỰ KIỆN
--- ===================================================
-task.spawn(function()
-    while task.wait(0.2) do
-        if EspEventIsland then
-            local foundIsland=nil
-            local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
-            local locationsFolder=worldOrigin and worldOrigin:FindFirstChild("Locations")
-
-            if locationsFolder then
-                for _,v in ipairs(locationsFolder:GetChildren()) do
-                    pcall(function()
-                        if v.Name=="Mirage Island" or v.Name=="Prehistoric Island" or v.Name=="Kitsune Island" or v.Name=="Frozen Dimension" then
-                            foundIsland=v
-                        end
-                    end)
-
-                    if foundIsland then break end
-                end
-            end
-
-            cachedEventIsland=foundIsland
-        else
-            cachedEventIsland=nil
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.01) do
-        if EspEventIsland and cachedEventIsland and cachedEventIsland.Parent then
-            pcall(function()
-                local myRoot=GetRoot()
-                if not myRoot then return end
-
-                local islandPosition=cachedEventIsland:IsA("BasePart") and cachedEventIsland.Position or cachedEventIsland:GetPivot().Position
-                local distMeters=math.floor((myRoot.Position-islandPosition).Magnitude/10)
-                local bill=cachedEventIsland:FindFirstChild("NameEsp")
-
-                if not bill then
-                    bill=Instance.new("BillboardGui",cachedEventIsland)
-                    bill.Name="NameEsp"
-                    bill.StudsOffset=Vector3.new(0,5,0)
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.AlwaysOnTop=true
-
-                    local name=Instance.new("TextLabel",bill)
-                    name.Name="Text"
-                    name.Size=UDim2.new(1,0,1,0)
-                    name.BackgroundTransparency=1
-                    name.TextSize=9
-                    name.TextColor3=Color3.fromRGB(80,245,245)
-                    name.TextStrokeTransparency=0
-                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
-                end
-
-                local textLabel=bill:FindFirstChild("Text")
-                if textLabel then
-                    textLabel.Text=cachedEventIsland.Name.."\n"..distMeters.." m"
-                end
-            end)
-        end
-    end
-end)
-
--- ===================================================
--- 🚤 ESP THUYỀN CỦA MÌNH
--- ===================================================
-task.spawn(function()
-    while task.wait(0.2) do
-        if _G.BoatESP then
-            local foundBoatCore=nil
-
-            pcall(function()
-                local boatsFolder=Workspace:FindFirstChild("Boats")
-                if not boatsFolder then return end
-
-                for _,boat in ipairs(boatsFolder:GetChildren()) do
-                    local isMyBoat=boat.Name:find(Player.Name)~=nil
-
-                    if not isMyBoat then
-                        for _,descendant in ipairs(boat:GetDescendants()) do
-                            if descendant:IsA("ObjectValue") and descendant.Value==Player then
-                                isMyBoat=true
-                                break
-                            elseif descendant:IsA("StringValue") and descendant.Value==Player.Name then
-                                isMyBoat=true
-                                break
-                            end
-                        end
-                    end
-
-                    if isMyBoat then
-                        foundBoatCore=boat.PrimaryPart or boat:FindFirstChild("Hull") or boat:FindFirstChild("Seat") or boat:FindFirstChildOfClass("BasePart")
-                        if foundBoatCore then break end
-                    end
-                end
-            end)
-
-            cachedMyBoatCore=foundBoatCore
-        else
-            cachedMyBoatCore=nil
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.01) do
-        if _G.BoatESP and cachedMyBoatCore and cachedMyBoatCore.Parent then
-            pcall(function()
-                local myRoot=GetRoot()
-                if not myRoot then return end
-
-                local distMeters=math.floor((cachedMyBoatCore.Position-myRoot.Position).Magnitude/10)
-                local bill=cachedMyBoatCore:FindFirstChild("AxiomBoatESP")
-
-                if not bill then
-                    bill=Instance.new("BillboardGui")
-                    bill.Name="AxiomBoatESP"
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.StudsOffset=Vector3.new(0,6,0)
-                    bill.AlwaysOnTop=true
-
-                    local txt=Instance.new("TextLabel",bill)
-                    txt.Name="Text"
-                    txt.Size=UDim2.new(1,0,1,0)
-                    txt.BackgroundTransparency=1
-                    txt.TextSize=9
-                    txt.TextColor3=Color3.fromRGB(0,255,255)
-                    txt.TextStrokeTransparency=0
-                    txt.TextStrokeColor3=Color3.fromRGB(0,0,0)
-
-                    bill.Parent=cachedMyBoatCore
-                end
-
-                local textLabel=bill:FindFirstChild("Text")
-                if textLabel then
-                    textLabel.Text="THUYỀN\n"..distMeters.." m"
-                end
-            end)
-        end
-    end
-end)
-
--- ===================================================
--- 👁️ OBSERVATION / BUSO
--- ===================================================
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            if Observation then
-                ReplicatedStorage.Remotes.CommE:FireServer("Ken",true)
-            end
-        end)
-    end
-end)
-
-task.spawn(function()
-    while task.wait(Sec) do
-        pcall(function()
-            if Boud and Player.Character then
-                local _HasBuso={"HasBuso","Buso"}
-
-                if not Player.Character:FindFirstChild(_HasBuso[1]) then
-                    ReplicatedStorage.Remotes.CommF_:InvokeServer(_HasBuso[2])
-                end
-            end
-        end)
-    end
-end)
-
--- ===================================================
--- 🌊 WATER BASE
--- ===================================================
-task.spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            local waterPlane=Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("WaterBase-Plane")
-
-            if waterPlane then
-                waterPlane.Size=Vector3.new(1000,112,1000)
-            end
-        end)
-    end
-end)
-
--- ===================================================
--- 💡 LIGHTING CLEANUP
--- ===================================================
-task.spawn(function()
-    while task.wait(2) do
-        pcall(function()
-            if Lighting:FindFirstChild("LightingLayers") then Lighting.LightingLayers:Destroy() end
-            if Lighting:FindFirstChild("SeaTerrorCC") then Lighting.SeaTerrorCC:Destroy() end
-            if Lighting:FindFirstChild("FantasySky") then Lighting.FantasySky:Destroy() end
-
-            Lighting.FogEnd=9e9
-            Lighting.GlobalShadows=false
-        end)
-    end
-end)
-
--- ===================================================
--- ⚔️ HIT EFFECT CLEANUP
--- ===================================================
-local HitEffects={"SlashHit","CurvedRing","SwordSlash","SlashTail"}
-
-task.spawn(function()
-    while task.wait(Sec) do
-        if DestroyHit then
-            pcall(function()
-                local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
-
-                if worldOrigin then
-                    for _,v in pairs(worldOrigin:GetChildren()) do
-                        if table.find(HitEffects,v.Name) then
-                            v:Destroy()
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- ===================================================
--- 🎯 TARGET VARIABLES
--- ===================================================
-local TargetMob=nil
-local TargetChest=nil
-local TargetFruit=nil
-local TempleFlyConnection=nil
-local BodyVelocity=nil
-local NoclipConnection=nil
-local IgnoredChests=setmetatable({},{__mode="k"})
-local TouchTimer=0
-local SEARCH_MOB_DISTANCE=5000
-
-local function GetRoot()
-    local Character=LocalPlayer.Character
-    return Character and Character:FindFirstChild("HumanoidRootPart")
-end
-
-local function EnableAntiGravity(root)
-    if not BodyVelocity or BodyVelocity.Parent~=root then
-        if BodyVelocity then BodyVelocity:Destroy() end
-        BodyVelocity=Instance.new("BodyVelocity")
-        BodyVelocity.Name="AxiomHover"
-        BodyVelocity.Velocity=Vector3.new(0,0,0)
-        BodyVelocity.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
-        BodyVelocity.P=12500
-        BodyVelocity.Parent=root
-    end
-
-    local Character=LocalPlayer.Character
-    local Humanoid=Character and Character:FindFirstChildOfClass("Humanoid")
-    if Humanoid then Humanoid:ChangeState(Enum.HumanoidStateType.Freefall) end
-end
-
-local function DisableAntiGravity()
-    if BodyVelocity then BodyVelocity:Destroy(); BodyVelocity=nil end
-end
-
-local function EnableNoclip()
-    if not NoclipConnection then
-        NoclipConnection=RunService.Stepped:Connect(function()
-            if (MobEnabled or ChestEnabled or FruitEnabled) and LocalPlayer.Character then
-                for _,part in ipairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.CanCollide then part.CanCollide=false end
-                end
-            end
-        end)
-    end
-end
-
-local function DisableNoclip()
-    if NoclipConnection and not MobEnabled and not ChestEnabled and not FruitEnabled then
-        NoclipConnection:Disconnect()
-        NoclipConnection=nil
-    end
-end
-
--- ===================================================
--- 🚤 LOOP TỐC ĐỘ THUYỀN
--- ===================================================
-task.spawn(function()
-    while task.wait(0.01) do
-        if BoatEnabled then
-            pcall(function()
-                local boatsFolder=Workspace:FindFirstChild("Boats")
-                if boatsFolder then
-                    for _,v in pairs(boatsFolder:GetDescendants()) do
-                        local VehicleSeat=v:FindFirstChild("VehicleSeat")
-                        if VehicleSeat then
-                            VehicleSeat.MaxSpeed=_G.BOAT_SPEED
-                            VehicleSeat.Torque=0.15
-                            VehicleSeat.TurnSpeed=3
-                            VehicleSeat.HeadsUpDisplay=true
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- ===================================================
--- 4. LOGIC TÌM KIẾM MỤC TIÊU
--- ===================================================
-local TargetBeam=nil
-local TargetBeamAttachment=nil
-local TargetBeamTargetAttachment=nil
-
-local function RemoveTargetBeam()
-    if TargetBeam then TargetBeam:Destroy(); TargetBeam=nil end
-    if TargetBeamAttachment then TargetBeamAttachment:Destroy(); TargetBeamAttachment=nil end
-    if TargetBeamTargetAttachment then TargetBeamTargetAttachment:Destroy(); TargetBeamTargetAttachment=nil end
-end
-
-local function UpdateTargetBeam(Target)
-    RemoveTargetBeam()
-
-    local Character=LocalPlayer.Character
-    local Root=Character and Character:FindFirstChild("HumanoidRootPart")
-    if not Root or not Target or not Target.Parent then return end
-
-    local TargetPart
-    if Target:IsA("BasePart") then
-        TargetPart=Target
-    elseif Target:IsA("Model") then
-        TargetPart=Target:FindFirstChild("HumanoidRootPart") or Target.PrimaryPart or Target:FindFirstChildOfClass("BasePart")
-    end
-    if not TargetPart then return end
-
-    TargetBeamAttachment=Instance.new("Attachment")
-    TargetBeamAttachment.Name="AxiomTargetAttachment"
-    TargetBeamAttachment.Parent=Root
-
-    TargetBeamTargetAttachment=Instance.new("Attachment")
-    TargetBeamTargetAttachment.Name="AxiomTargetAttachment"
-    TargetBeamTargetAttachment.Parent=TargetPart
-
-    TargetBeam=Instance.new("Beam")
-    TargetBeam.Name="AxiomTargetBeam"
-    TargetBeam.Attachment0=TargetBeamAttachment
-    TargetBeam.Attachment1=TargetBeamTargetAttachment
-    TargetBeam.FaceCamera=true
-    TargetBeam.Width0=0.12
-    TargetBeam.Width1=0.12
-    TargetBeam.Color=ColorSequence.new(Color3.fromRGB(0,170,255))
-    TargetBeam.Transparency=NumberSequence.new(0.15)
-    TargetBeam.LightEmission=1
-    TargetBeam.LightInfluence=0
-    TargetBeam.Parent=Root
-end
-
-local function IsBloxFruitsMob(Model)
-    if not Model or not Model:IsA("Model") then return false end
-    if Players:GetPlayerFromCharacter(Model) then return false end
-
-    local Humanoid=Model:FindFirstChildOfClass("Humanoid")
-    local Root=Model:FindFirstChild("HumanoidRootPart") or Model.PrimaryPart
-    if not Humanoid or not Root or Humanoid.Health<=0 then return false end
-    if Model.Parent and Model.Parent.Name=="Enemies" then return true end
-
-    local name=Model.Name:lower()
-    if name:find("quest") or name:find("giver") or name:find("merchant") or name:find("dealer") or name:find("title") or name:find("blox fruit") then return false end
-    if Model:FindFirstChild("Dialogue") or Model:FindFirstChild("Quest") or Model:FindFirstChildOfClass("Dialog") then return false end
-
-    return true
-end
-
--- ===================================================
--- TÌM QUÁI GẦN NHẤT
--- ===================================================
-local function FindNearestMob()
-    local MyRoot=GetRoot()
-    if not MyRoot then return nil end
-
-    local Nearest=nil
-    local NearestDistance=SEARCH_MOB_DISTANCE
-    local EnemiesFolder=Workspace:FindFirstChild("Enemies")
-    local MobList=EnemiesFolder and EnemiesFolder:GetChildren() or Workspace:GetChildren()
-
-    for _,Object in ipairs(MobList) do
-        if IsBloxFruitsMob(Object) then
-            local Root=Object:FindFirstChild("HumanoidRootPart") or Object.PrimaryPart
-            if Root then
-                local Distance=(Root.Position-MyRoot.Position).Magnitude
-                if Distance<NearestDistance then Nearest=Object; NearestDistance=Distance end
-            end
-        end
-    end
-
-    if not Nearest and EnemiesFolder then
-        for _,Object in ipairs(Workspace:GetChildren()) do
-            if Object~=EnemiesFolder and IsBloxFruitsMob(Object) then
-                local Root=Object:FindFirstChild("HumanoidRootPart") or Object.PrimaryPart
-                if Root then
-                    local Distance=(Root.Position-MyRoot.Position).Magnitude
-                    if Distance<NearestDistance then Nearest=Object; NearestDistance=Distance end
-                end
-            end
-        end
-    end
-
-    return Nearest
-end
-
--- ===================================================
--- TÌM RƯƠNG GẦN NHẤT
--- ===================================================
-local function FindNearestTaggedChest()
-    local MyRoot=GetRoot()
-    if not MyRoot then return nil end
-
-    local Position=MyRoot.Position
-    local Distance,Nearest=math.huge,nil
-    local Chests=CollectionService:GetTagged("_ChestTagged")
-
-    for i=1,#Chests do
-        local Chest=Chests[i]
-        if Chest and Chest.Parent and not IgnoredChests[Chest] and not Chest:GetAttribute("IsDisabled") then
-            local Magnitude=(Chest:GetPivot().Position-Position).Magnitude
-            if Magnitude<Distance then Distance=Magnitude; Nearest=Chest end
-        end
-    end
-
-    if not Nearest then
-        for _,object in ipairs(Workspace:GetChildren()) do
-            if object.Name:find("Chest") and not IgnoredChests[object] then
-                local touchPart=object:IsA("BasePart") and object or object.PrimaryPart or object:FindFirstChildOfClass("BasePart")
-                if touchPart then
-                    local Magnitude=(touchPart.Position-Position).Magnitude
-                    if Magnitude<Distance then Distance=Magnitude; Nearest=object end
-                end
-            end
-        end
-    end
-
-    return Nearest
-end
-
--- ===================================================
--- TÌM TRÁI GẦN NHẤT
--- ===================================================
-local function FindNearestFruit()
-    local MyRoot=GetRoot()
-    if not MyRoot then return nil end
-
-    local Nearest,NearestDistance=nil,150000
-
-    for _,v in ipairs(Workspace:GetChildren()) do
-        if v:IsA("Tool") or (v:IsA("Model") and v:FindFirstChild("Handle")) then
-            local name=v.Name:lower()
-            if name:find("fruit") or name:find("trái") or name:find("trai") then
-                local Handle=v:FindFirstChild("Handle") or v.PrimaryPart or v:FindFirstChildOfClass("BasePart")
-                if Handle then
-                    local Distance=(Handle.Position-MyRoot.Position).Magnitude
-                    if Distance<NearestDistance then NearestDistance=Distance; Nearest=Handle end
-                end
-            end
-        end
-    end
-
-    return Nearest
-end
-
--- ===================================================
--- THEO DÕI BELI
--- ===================================================
-local function GetCurrentBeli()
-    local data=LocalPlayer:FindFirstChild("Data")
-    if data and data:FindFirstChild("Beli") then return data.Beli.Value end
-
-    local stats=LocalPlayer:FindFirstChild("leaderstats")
-    if stats and stats:FindFirstChild("Beli") then return stats.Beli.Value end
-    if stats and stats:FindFirstChild("Money") then return stats.Money.Value end
-
-    return 0
-end
-
-local LastBeli=GetCurrentBeli()
-
-task.spawn(function()
-    while task.wait(0.1) do
-        local CurrentMoney=GetCurrentBeli()
-        if CurrentMoney>LastBeli then
-            LastBeli=CurrentMoney
-            if ChestEnabled and TargetChest then
-                IgnoredChests[TargetChest]=true
-                TargetChest=nil
-                RemoveTargetBeam()
-            end
-        else
-            LastBeli=CurrentMoney
-        end
-    end
-end)
-
--- ===================================================
--- 5. LOOP ĐIỀU KHIỂN BAY TỚI MỤC TIÊU
--- ===================================================
-RunService.Heartbeat:Connect(function(DeltaTime)
-    if not MobEnabled and not ChestEnabled and not FruitEnabled then
-        DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
-    end
-
-    local MyRoot=GetRoot()
-    if not MyRoot then
-        DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
-    end
-
-    if FruitEnabled then
-        if not TargetFruit or not TargetFruit.Parent then TargetFruit=FindNearestFruit() end
-        if not TargetFruit then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
-
-        EnableAntiGravity(MyRoot)
-        EnableNoclip()
-        UpdateTargetBeam(TargetFruit)
-
-        local TargetCFrame=TargetFruit.CFrame*CFrame.new(0,_G.DOCAO_FRUIT,0)
-        local Distance=(TargetCFrame.Position-MyRoot.Position).Magnitude
-
-        if Distance<=4 and firetouchinterest then
-            firetouchinterest(MyRoot,TargetFruit,0); firetouchinterest(MyRoot,TargetFruit,1)
-        end
-
-        local ActiveSpeed=Distance<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED
-        local Alpha=math.clamp((ActiveSpeed*DeltaTime)/math.max(Distance,0.001),0,1)
-        MyRoot.CFrame=MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
-
-    elseif MobEnabled then
-        if not TargetMob or not TargetMob.Parent or not IsBloxFruitsMob(TargetMob) then TargetMob=FindNearestMob() end
-        if not TargetMob then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
-
-        local MobRoot=TargetMob:FindFirstChild("HumanoidRootPart") or TargetMob.PrimaryPart
-        if not MobRoot then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
-
-        EnableAntiGravity(MyRoot)
-        EnableNoclip()
-        UpdateTargetBeam(TargetMob)
-
-        local TargetCFrame=MobRoot.CFrame*CFrame.new(_G.DOXATP,_G.DOCAO_MOB,0)
-        local Distance=(TargetCFrame.Position-MyRoot.Position).Magnitude
-
-        if Distance>0.05 then
-            local ActiveSpeed=Distance<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED
-            local Alpha=math.clamp((ActiveSpeed*DeltaTime)/math.max(Distance,0.001),0,1)
-            MyRoot.CFrame=MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
-        end
-
-    elseif ChestEnabled then
-        if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] or TargetChest:GetAttribute("IsDisabled") then
-            TargetChest=FindNearestTaggedChest()
-            TouchTimer=0
-        end
-
-        if not TargetChest then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
-
-        EnableAntiGravity(MyRoot)
-        EnableNoclip()
-        UpdateTargetBeam(TargetChest)
-
-        local TargetCFrame=TargetChest:GetPivot()*CFrame.new(0,_G.DOCAO_CHEST,0)
-        local Distance=(TargetCFrame.Position-MyRoot.Position).Magnitude
-        local ActiveSpeed=Distance<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED
-
-        if Distance<=4 then
-            TouchTimer=TouchTimer+DeltaTime
-
-            if firetouchinterest then
-                local TouchPart=TargetChest:IsA("BasePart") and TargetChest or TargetChest.PrimaryPart or TargetChest:FindFirstChildOfClass("BasePart")
-                if TouchPart then
-                    firetouchinterest(MyRoot,TouchPart,0); firetouchinterest(MyRoot,TouchPart,1)
-                end
-            end
-
-            if TouchTimer>=0.4 then
-                IgnoredChests[TargetChest]=true
-                TargetChest=nil
-                TouchTimer=0
-                RemoveTargetBeam()
-                return
-            end
-        else
-            TouchTimer=0
-        end
-
-        local Alpha=math.clamp((ActiveSpeed*DeltaTime)/math.max(Distance,0.001),0,1)
-        MyRoot.CFrame=MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
-    end
-end)
-
--- ===================================================
--- 6. GIAO DIỆN
--- ===================================================
-local ToggleBtn=Instance.new("ImageButton",SeaGui)
-ToggleBtn.Size=UDim2.new(0,40,0,40)
-ToggleBtn.Position=UDim2.new(0.015,0,0.2,0)
-ToggleBtn.BackgroundColor3=Color3.fromRGB(15,25,35)
-ToggleBtn.BackgroundTransparency=0.2
-ToggleBtn.Draggable=true
-ToggleBtn.ClipsDescendants=true
-ToggleBtn.Image="rbxassetid://76668922802166"
-
-Instance.new("UICorner",ToggleBtn).CornerRadius=UDim.new(1,0)
-
-local toggleStroke=Instance.new("UIStroke",ToggleBtn)
-toggleStroke.Thickness=1.5
-toggleStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
-toggleStroke.LineJoinMode=Enum.LineJoinMode.Round
-toggleStroke.Color=Color3.fromRGB(255,255,255)
-
-local toggleGradient=Instance.new("UIGradient",toggleStroke)
-toggleGradient.Color=ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
-})
-toggleGradient.Parent=toggleStroke
-
-local MainMenu=Instance.new("Frame",SeaGui)
-local MainMenuOpenSize=UDim2.new(0,230,0,290)
-local MainMenuClosedSize=UDim2.new(0,180,0,220)
-
-MainMenu.Size=MainMenuClosedSize
-MainMenu.AnchorPoint=Vector2.new(0.5,0.5)
-MainMenu.Position=UDim2.new(0.5,0,0.5,0)
-MainMenu.BackgroundColor3=Color3.fromRGB(15,20,28)
-MainMenu.BackgroundTransparency=0.15
-MainMenu.Visible=false
-MainMenu.Draggable=true
-MainMenu.ClipsDescendants=true
-
-Instance.new("UICorner",MainMenu).CornerRadius=UDim.new(0,10)
-
-
--- ===================================================
--- 7. HIỆU ỨNG TUYẾT RƠI
--- ===================================================
-local SnowLayer=Instance.new("Frame",MainMenu)
-SnowLayer.Name="SnowLayer"
-SnowLayer.Size=UDim2.fromScale(1,1)
-SnowLayer.BackgroundTransparency=1
-SnowLayer.ClipsDescendants=true
-SnowLayer.ZIndex=0
-
-local Snowflakes={}
-
-for i=1,45 do
-    local Snow=Instance.new("Frame",SnowLayer)
-    local Size=math.random(1,3)
-    Snow.Size=UDim2.new(2,Size,2,Size)
-    Snow.Position=UDim2.new(math.random(),0,math.random(),0)
-    Snow.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Snow.BackgroundTransparency=math.random(20,60)/100
-    Snow.BorderSizePixel=0
-    Snow.ZIndex=0
-    Instance.new("UICorner",Snow).CornerRadius=UDim.new(1,0)
-    table.insert(Snowflakes,{Object=Snow,Speed=math.random(15,35)/100,Drift=math.random(-8,8)/100})
-end
-
-local menuStroke=Instance.new("UIStroke",MainMenu)
-menuStroke.Thickness=1.5
-menuStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
-menuStroke.LineJoinMode=Enum.LineJoinMode.Round
-menuStroke.Color=Color3.fromRGB(255,255,255)
-
-local menuGradient=Instance.new("UIGradient",menuStroke)
-menuGradient.Color=ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0,170,255)),
-    ColorSequenceKeypoint.new(0.25,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0,30,90)),
-    ColorSequenceKeypoint.new(0.75,Color3.fromRGB(255,255,255)),
-    ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0,170,255))
-})
-menuGradient.Parent=menuStroke
-
-local Title=Instance.new("TextLabel",MainMenu)
-Title.Size=UDim2.new(1,-55,0,35)
-Title.Position=UDim2.new(0,0,0,0)
-Title.Text=""
-Title.RichText=true
-Title.Font=Enum.Font.Cartoon
-Title.TextSize=15
-Title.BackgroundTransparency=1
-Title.TextXAlignment=Enum.TextXAlignment.Center
-Title.TextYAlignment=Enum.TextYAlignment.Center
-
-local Scroll=Instance.new("ScrollingFrame",MainMenu)
-Scroll.Size=UDim2.new(1,0,1,-40)
-Scroll.Position=UDim2.new(0,0,0,38)
-Scroll.BackgroundTransparency=1
-Scroll.ScrollBarThickness=3
-Scroll.CanvasSize=UDim2.new(0,0,0,0)
-Scroll.AutomaticCanvasSize=Enum.AutomaticSize.None
-
-local UIList=Instance.new("UIListLayout",Scroll)
-UIList.SortOrder=Enum.SortOrder.LayoutOrder
-UIList.Padding=UDim.new(0,6)
-UIList.HorizontalAlignment=Enum.HorizontalAlignment.Center
-
-UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    Scroll.CanvasSize=UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y+10)
-end)
-
--- ===================================================
--- TIÊU ĐỀ
--- ===================================================
-local titleText="NHAT HIHI"
-local titleHue=0
-
--- ===================================================
--- 🎞️ TWEEN MENU
--- ===================================================
-local MenuTweenInfo=TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
-local MenuClosing=false
-
-local function OpenMainMenu()
-    if MenuClosing then return end
-    MainMenu.Visible=true
-    MainMenu.Size=MainMenuClosedSize
-    TweenService:Create(MainMenu,MenuTweenInfo,{Size=MainMenuOpenSize}):Play()
-end
-
-local function CloseMainMenu()
-    if not MainMenu.Visible or MenuClosing then return end
-    MenuClosing=true
-    local Tween=TweenService:Create(MainMenu,TweenInfo.new(0.22,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=MainMenuClosedSize})
-    Tween:Play()
-    Tween.Completed:Connect(function()
-        MainMenu.Visible=false
-        MenuClosing=false
-    end)
-end
-
-local function ToggleMainMenu()
-    if MainMenu.Visible then CloseMainMenu() else OpenMainMenu() end
-end
-
-RunService.RenderStepped:Connect(function(delta)
-    local ToggleSpeed=MainMenu.Visible and 150 or 100
-    toggleGradient.Rotation=(toggleGradient.Rotation+delta*ToggleSpeed)%360
-    menuGradient.Rotation=(menuGradient.Rotation+delta*90)%360
-
-    for _,flake in ipairs(Snowflakes) do
-        local obj=flake.Object
-        if obj.Parent then
-            local x=obj.Position.X.Scale+flake.Drift*delta
-            local y=obj.Position.Y.Scale+flake.Speed*delta
-            if y>1.05 then y=-0.05; x=math.random() end
-            if x>1.05 then x=-0.05 elseif x<-0.05 then x=1.05 end
-            obj.Position=UDim2.new(x,0,y,0)
-        end
-    end
-
-    titleHue=(titleHue+delta*0.35)%1
-    local Text=""
-
-    for i=1,#titleText do
-        local char=titleText:sub(i,i)
-        if char==" " then
-            Text=Text.." "
-        else
-            local hue=(titleHue-(i-1)/#titleText)%1
-            local color=Color3.fromHSV(hue,1,1)
-            local r=math.floor(color.R*255)
-            local g=math.floor(color.G*255)
-            local b=math.floor(color.B*255)
-            Text=Text..string.format('<font color="rgb(%d,%d,%d)">%s</font>',r,g,b,char)
-        end
-    end
-
-    Title.Text=Text
-end)
-
-ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)
-
--- ===================================================
--- 8. NÚT CÀI ĐẶT
--- ===================================================
-local SettingsBtn=Instance.new("TextButton",MainMenu)
-SettingsBtn.Name="SettingsButton"
-SettingsBtn.Size=UDim2.new(0,30,0,30)
-SettingsBtn.Position=UDim2.new(1,-35,0,2)
-SettingsBtn.BackgroundColor3=Color3.fromRGB(25,35,50)
-SettingsBtn.BackgroundTransparency=1
-SettingsBtn.AutoButtonColor=false
-SettingsBtn.Text="⚙️"
-SettingsBtn.Font=Enum.Font.Cartoon
-SettingsBtn.TextSize=18
-SettingsBtn.TextColor3=Color3.fromRGB(100,200,255)
-Instance.new("UICorner",SettingsBtn).CornerRadius=UDim.new(1,0)
-
-local SettingsStroke=Instance.new("UIStroke",SettingsBtn)
-SettingsStroke.Thickness=1
-SettingsStroke.Color=Color3.fromRGB(0,120,200)
-
-local SettingsGui=Instance.new("Frame",SeaGui)
-local SettingsOpenSize=UDim2.new(0,180,0,195)
-local SettingsClosedSize=UDim2.new(0,140,0,150)
-
-SettingsGui.Name="SettingsGui"
-SettingsGui.Size=SettingsClosedSize
-SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
-SettingsGui.Position=UDim2.new(0.5,155,0.5,0)
-SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
-SettingsGui.BackgroundTransparency=0.08
-SettingsGui.Visible=false
-SettingsGui.Active=true
-SettingsGui.Draggable=true
-SettingsGui.ZIndex=20
-SettingsGui.ClipsDescendants=true
-
-Instance.new("UICorner",SettingsGui).CornerRadius=UDim.new(0,8)
-
-local SettingsGuiStroke=Instance.new("UIStroke",SettingsGui)
-SettingsGuiStroke.Thickness=1.3
-SettingsGuiStroke.Color=Color3.fromRGB(0,170,255)
-
-local SettingsTitle=Instance.new("TextLabel",SettingsGui)
-SettingsTitle.Size=UDim2.new(1,-30,0,25)
-SettingsTitle.Position=UDim2.new(0,5,0,2)
-SettingsTitle.BackgroundTransparency=1
-SettingsTitle.Text="CÀI ĐẶT"
-SettingsTitle.Font=Enum.Font.Cartoon
-SettingsTitle.TextSize=14
-SettingsTitle.TextColor3=Color3.fromRGB(100,200,255)
-SettingsTitle.TextXAlignment=Enum.TextXAlignment.Left
-SettingsTitle.ZIndex=21
-
-local SettingsClose=Instance.new("TextButton",SettingsGui)
-SettingsClose.Size=UDim2.new(0,22,0,22)
-SettingsClose.Position=UDim2.new(1,-25,0,3)
-SettingsClose.BackgroundTransparency=1
-SettingsClose.Text="X"
-SettingsClose.Font=Enum.Font.Gotham
-SettingsClose.TextSize=20
-SettingsClose.TextColor3=Color3.fromRGB(255,100,100)
-SettingsClose.AutoButtonColor=false
-SettingsClose.ZIndex=21
-
--- ===================================================
--- 🖱️ SCROLL GUI CÀI ĐẶT
--- ===================================================
-local SettingsScroll=Instance.new("ScrollingFrame",SettingsGui)
-SettingsScroll.Name="SettingsScroll"
-SettingsScroll.Size=UDim2.new(1,-8,1,-32)
-SettingsScroll.Position=UDim2.new(0,4,0,29)
-SettingsScroll.BackgroundTransparency=1
-SettingsScroll.BorderSizePixel=0
-SettingsScroll.ScrollBarThickness=3
-SettingsScroll.ScrollBarImageColor3=Color3.fromRGB(0,170,255)
-SettingsScroll.CanvasSize=UDim2.new(0,0,0,0)
-SettingsScroll.AutomaticCanvasSize=Enum.AutomaticSize.None
-SettingsScroll.ScrollingDirection=Enum.ScrollingDirection.Y
-SettingsScroll.ZIndex=21
-
-local SettingsList=Instance.new("UIListLayout",SettingsScroll)
-SettingsList.SortOrder=Enum.SortOrder.LayoutOrder
-SettingsList.Padding=UDim.new(0,7)
-SettingsList.HorizontalAlignment=Enum.HorizontalAlignment.Center
-
-SettingsList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    SettingsScroll.CanvasSize=UDim2.new(0,0,0,SettingsList.AbsoluteContentSize.Y+10)
-end)
-
--- ===================================================
--- 9. HÀM TẠO SLIDER
--- ===================================================
-local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Callback)
-    local Holder=Instance.new("Frame",Parent)
-    Holder.Size=UDim2.new(1,-6,0,54)
-    Holder.BackgroundTransparency=1
-    Holder.BorderSizePixel=0
-    Holder.ZIndex=21
-
-    local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-50,0,18)
-    Label.Position=UDim2.new(0,2,0,0)
-    Label.BackgroundTransparency=1
-    Label.Text=Name
-    Label.Font=Enum.Font.Cartoon
-    Label.TextSize=11
-    Label.TextColor3=Color3.fromRGB(100,200,255)
-    Label.TextXAlignment=Enum.TextXAlignment.Left
-    Label.ZIndex=21
-
-    local Input=Instance.new("TextBox",Holder)
-    Input.Size=UDim2.new(0,38,0,19)
-    Input.Position=UDim2.new(1,-40,0,-2)
-    Input.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Input.BackgroundTransparency=0
-    Input.Text=tostring(DefaultValue)
-    Input.Font=Enum.Font.Cartoon
-    Input.TextSize=11
-    Input.TextColor3=Color3.fromRGB(255,255,255)
-    Input.ClearTextOnFocus=false
-    Input.TextXAlignment=Enum.TextXAlignment.Center
-    Input.ZIndex=22
-
-    Instance.new("UICorner",Input).CornerRadius=UDim.new(0,4)
-
-    local InputStroke=Instance.new("UIStroke",Input)
-    InputStroke.Thickness=1
-    InputStroke.Color=Color3.fromRGB(0,120,200)
-
-    local Bar=Instance.new("Frame",Holder)
-    Bar.Size=UDim2.new(1,-45,0,6)
-    Bar.Position=UDim2.new(0,2,0,27)
-    Bar.BackgroundColor3=Color3.fromRGB(45,55,65)
-    Bar.BorderSizePixel=0
-    Bar.ZIndex=21
-
-    Instance.new("UICorner",Bar).CornerRadius=UDim.new(1,0)
-
-    local Fill=Instance.new("Frame",Bar)
-    Fill.Size=UDim2.new(0,0,1,0)
-    Fill.BackgroundColor3=Color3.fromRGB(0,170,255)
-    Fill.BorderSizePixel=0
-    Fill.ZIndex=22
-
-    Instance.new("UICorner",Fill).CornerRadius=UDim.new(1,0)
-
-    local Value=math.clamp(DefaultValue,MinValue,MaxValue)
-    local Dragging=false
-
-    local function SetValue(NewValue)
-        NewValue=tonumber(NewValue)
-        if not NewValue then NewValue=Value end
-        Value=math.clamp(math.round(NewValue),MinValue,MaxValue)
-        local Percent=(Value-MinValue)/(MaxValue-MinValue)
-        Fill.Size=UDim2.new(Percent,0,1,0)
-        Input.Text=tostring(Value)
-        Callback(Value)
-    end
-
-    local function SetFromMouse(X)
-        local Percent=math.clamp((X-Bar.AbsolutePosition.X)/Bar.AbsoluteSize.X,0,1)
-        SetValue(MinValue+(MaxValue-MinValue)*Percent)
-    end
-
-    Bar.InputBegan:Connect(function(InputObject)
-        if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then
-            Dragging=true
-            SetFromMouse(InputObject.Position.X)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(InputObject)
-        if Dragging and (InputObject.UserInputType==Enum.UserInputType.MouseMovement or InputObject.UserInputType==Enum.UserInputType.Touch) then
-            SetFromMouse(InputObject.Position.X)
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(InputObject)
-        if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then Dragging=false end
-    end)
-
-    Input.FocusLost:Connect(function()
-        local NewValue=tonumber(Input.Text)
-        if NewValue then SetValue(NewValue) else Input.Text=tostring(Value) end
-    end)
-
-    SetValue(DefaultValue)
-
-    return {Set=SetValue,Get=function() return Value end}
-end
-
-local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value) _G.SPEED=Value end)
-
-local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value) _G.DOCAO_MOB=Value end)
-
-local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value) _G.BOAT_SPEED=Value end)
--- ===================================================
--- 🎞️ TWEEN GUI CÀI ĐẶT
--- ===================================================
-
-local SettingsOpening=false
-local SettingsClosing=false
-
-local function OpenSettings()
-    if SettingsOpening or SettingsGui.Visible then return end
-    SettingsOpening=true
-    SettingsGui.Visible=true
-    SettingsGui.Size=SettingsClosedSize
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Size=SettingsOpenSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsOpening=false
-    end)
-end
-
-local function CloseSettings()
-    if SettingsClosing or not SettingsGui.Visible then return end
-    SettingsClosing=true
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=SettingsClosedSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsGui.Visible=false
-        SettingsClosing=false
-    end)
-end
-
-local function ToggleSettings()
-    if SettingsGui.Visible then CloseSettings() else OpenSettings() end
-end
-
-SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
-SettingsClose.MouseButton1Click:Connect(CloseSettings)
-
--- ===================================================
--- 9.1 HÀM THỰC THI TELEPORT CỔNG
--- ===================================================
-local function SpawnToIsland(spawnArg)
-    local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-
-    if spawnArg=="TempleOfTime" then
-        if TempleFlyConnection or BodyVelocity then
-            if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-            DisableAntiGravity()
-            DisableNoclip()
-            return
-        end
-
-        task.spawn(function()
-            local hrp=GetRoot()
-            if not hrp then return end
-
-            EnableAntiGravity(hrp)
-            EnableNoclip()
-
-            local entranceCFrame=CFrame.new(3035.22,2280.89,-7321.22)
-            local phase=1
-            local raceCFrame=nil
-
-            TempleFlyConnection=RunService.Heartbeat:Connect(function(deltaTime)
-                local currentHrp=GetRoot()
-
-                if not currentHrp then
-                    if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                    DisableAntiGravity()
-                    DisableNoclip()
-                    return
-                end
-
-                currentHrp.AssemblyLinearVelocity=Vector3.zero
-                currentHrp.AssemblyAngularVelocity=Vector3.zero
-                EnableNoclip()
-
-                if phase==2 then return end
-
-                local targetCFrame
-                if phase==1 then targetCFrame=entranceCFrame elseif phase==3 then targetCFrame=raceCFrame end
-                if not targetCFrame then return end
-
-                local distance=(currentHrp.Position-targetCFrame.Position).Magnitude
-                local boostDistance=tonumber(_G.BOOST_DISTANCE) or 90
-                local boostSpeed=tonumber(_G.BOOST_SPEED) or 1000
-                local normalSpeed=tonumber(_G.SPEED) or 140
-                local activeSpeed=distance<=boostDistance and boostSpeed or normalSpeed
-                local alpha=math.clamp((activeSpeed*deltaTime)/math.max(distance,0.001),0,1)
-
-                if phase==1 then
-                    if distance<=0.5 then
-                        phase=2
-
-                        task.spawn(function()
-                            for i=1,10 do
-                                local mapFolder=Workspace:FindFirstChild("Map") or Workspace
-
-                                if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash=ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                                    local tot=stash:FindFirstChild("Temple of Time")
-                                    if tot then tot.Parent=mapFolder; break end
-                                else
-                                    break
-                                end
-
-                                task.wait(0.3)
-                            end
-
-                            task.wait(0.5)
-
-                            pcall(function()
-                                commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
-                            end)
-
-                            task.wait(0.5)
-
-                            local race=nil
-                            pcall(function() race=LocalPlayer.Data.Race.Value end)
-
-                            if race=="Fishman" then
-                                raceCFrame=CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
-                            elseif race=="Cyborg" then
-                                raceCFrame=CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
-                            elseif race=="Skypiea" then
-                                raceCFrame=CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
-                            elseif race=="Ghoul" then
-                                raceCFrame=CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
-                            elseif race=="Human" then
-                                raceCFrame=CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
-                            else
-                                raceCFrame=CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
-                            end
-
-                            phase=3
-                        end)
-                    else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                elseif phase==3 then
-                    if distance<=3 then
-                        if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                        DisableAntiGravity()
-                        DisableNoclip()
-                        return
-                    else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                end
-            end)
-        end)
-
-        return
-    end
-end
-
--- ===================================================
--- 🚤 NÚT TỐC ĐỘ THUYỀN
--- ===================================================
-local Btn=Instance.new("TextButton",Scroll)
-Btn.Size=UDim2.new(0.9,0,0,32)
-Btn.Text="Đền Thời Gian"
-Btn.Font=Enum.Font.Cartoon
-Btn.TextSize=13
-Btn.TextColor3=Color3.fromRGB(100,200,255)
-Btn.BackgroundColor3=Color3.fromRGB(25,35,50)
-Btn.BackgroundTransparency=0.3
-Btn.AutoButtonColor=false
-Instance.new("UICorner",Btn).CornerRadius=UDim.new(0,6)
-
-local btnS=Instance.new("UIStroke",Btn)
-btnS.Thickness=1
-btnS.Color=Color3.fromRGB(0,120,200)
-
-Btn.MouseButton1Click:Connect(function() SpawnToIsland("TempleOfTime") end)
-
-local BoatHolder=Instance.new("Frame",Scroll)
-BoatHolder.Size=UDim2.new(0.9,0,0,38)
-BoatHolder.BackgroundColor3=Color3.fromRGB(25,35,50)
-BoatHolder.BackgroundTransparency=0.3
-BoatHolder.BorderSizePixel=0
-Instance.new("UICorner",BoatHolder).CornerRadius=UDim.new(0,6)
-
-local BoatHolderStroke=Instance.new("UIStroke",BoatHolder)
-BoatHolderStroke.Thickness=1
-BoatHolderStroke.Color=Color3.fromRGB(0,120,200)
-
-local BoatLabel=Instance.new("TextLabel",BoatHolder)
-BoatLabel.Size=UDim2.new(1,-65,1,0)
-BoatLabel.Position=UDim2.new(0,5,0,0)
-BoatLabel.BackgroundTransparency=1
-BoatLabel.Text="TỐC ĐỘ THUYỀN"
-BoatLabel.Font=Enum.Font.Cartoon
-BoatLabel.TextSize=13
-BoatLabel.TextColor3=Color3.fromRGB(100,200,255)
-BoatLabel.TextXAlignment=Enum.TextXAlignment.Left
-
-local BoatSwitch=Instance.new("TextButton",BoatHolder)
-BoatSwitch.Size=UDim2.new(0,42,0,21)
-BoatSwitch.Position=UDim2.new(1,-47,0.5,-10.5)
-BoatSwitch.BackgroundColor3=Color3.fromRGB(35,40,48)
-BoatSwitch.AutoButtonColor=false
-BoatSwitch.Text=""
-Instance.new("UICorner",BoatSwitch).CornerRadius=UDim.new(1,0)
-
-local BoatStroke=Instance.new("UIStroke",BoatSwitch)
-BoatStroke.Thickness=1
-BoatStroke.Color=Color3.fromRGB(70,80,90)
-
-local BoatKnob=Instance.new("Frame",BoatSwitch)
-BoatKnob.Size=UDim2.new(0,15,0,15)
-BoatKnob.Position=UDim2.new(0,3,0.5,-7.5)
-BoatKnob.BackgroundColor3=Color3.fromRGB(255,255,255)
-Instance.new("UICorner",BoatKnob).CornerRadius=UDim.new(1,0)
-
-local function UpdateBoatToggle()
-    if BoatEnabled then
-        BoatSwitch.BackgroundColor3=Color3.fromRGB(15,70,105)
-        BoatStroke.Color=Color3.fromRGB(0,170,255)
-        TweenService:Create(BoatKnob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-18,0.5,-7.5)}):Play()
-    else
-        BoatSwitch.BackgroundColor3=Color3.fromRGB(35,40,48)
-        BoatStroke.Color=Color3.fromRGB(70,80,90)
-        TweenService:Create(BoatKnob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,3,0.5,-7.5)}):Play()
-    end
-end
-
-BoatSwitch.MouseButton1Click:Connect(function()
-    BoatEnabled=not BoatEnabled
-    UpdateBoatToggle()
-end)
-
--- ===================================================
--- 9.2 TOGGLE BAY TRÁI / QUÁI / FARM RƯƠNG
--- ===================================================
-local BLUE=Color3.fromRGB(0,170,255)
-local OFF_BG=Color3.fromRGB(35,40,48)
-local ON_BG=Color3.fromRGB(15,70,105)
-local TEXT_COLOR=Color3.fromRGB(100,200,255)
-
--- ===================================================
--- 9.3 TẠO TOGGLE
--- ===================================================
-local function CreateToggle(Name,Callback)
-    local Holder=Instance.new("Frame",Scroll)
-    Holder.Size=UDim2.new(0.9,0,0,38)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.3
-    Holder.BorderSizePixel=0
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
-
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
-
-    local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-65,1,0)
-    Label.Position=UDim2.new(0,5,0,0)
-    Label.BackgroundTransparency=1
-    Label.Text=Name
-    Label.Font=Enum.Font.Cartoon
-    Label.TextSize=13
-    Label.TextColor3=TEXT_COLOR
-    Label.TextXAlignment=Enum.TextXAlignment.Left
-
-    local Switch=Instance.new("TextButton",Holder)
-    Switch.Size=UDim2.new(0,42,0,21)
-    Switch.Position=UDim2.new(1,-47,0.5,-10.5)
-    Switch.BackgroundColor3=OFF_BG
-    Switch.AutoButtonColor=false
-    Switch.Text=""
-    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
-
-    local Stroke=Instance.new("UIStroke",Switch)
-    Stroke.Thickness=1
-    Stroke.Color=Color3.fromRGB(70,80,90)
-
-    local Knob=Instance.new("Frame",Switch)
-    Knob.Size=UDim2.new(0,15,0,15)
-    Knob.Position=UDim2.new(0,3,0.5,-7.5)
-    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
-
-    local Enabled=false
-
-    local function Update()
-        if Enabled then
-            Switch.BackgroundColor3=ON_BG
-            Stroke.Color=BLUE
-            Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-            TweenService:Create(Knob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-18,0.5,-7.5)}):Play()
-        else
-            Switch.BackgroundColor3=OFF_BG
-            Stroke.Color=Color3.fromRGB(70,80,90)
-            Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-            TweenService:Create(Knob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,3,0.5,-7.5)}):Play()
-        end
-        Callback(Enabled)
-    end
-
-    Switch.MouseButton1Click:Connect(function()
-        Enabled=not Enabled
-        Update()
-    end)
-
-    return {Set=function(Value) Enabled=Value; Update() end,Get=function() return Enabled end}
-end
-
--- ===================================================
--- BAY TỚI TRÁI
--- ===================================================
-local FruitToggle=CreateToggle("BAY TỚI TRÁI",function(Value)
-    FruitEnabled=Value
-    TargetFruit=nil
-end)
-
--- ===================================================
--- BAY TỚI QUÁI
--- ===================================================
-local MobToggle=CreateToggle("BAY TỚI QUÁI",function(Value)
-    MobEnabled=Value
-    TargetMob=nil
-end)
-
--- ===================================================
--- FARM RƯƠNG
--- ===================================================
-local ChestToggle=CreateToggle("FARM RƯƠNG",function(Value)
-    ChestEnabled=Value
-    if Value then LastBeli=GetCurrentBeli() end
-    TargetChest=nil
-    TouchTimer=0
-end)
+            
+ if not _IlllIIllIl then for _,object in ipairs(_IlIIlIlIll:GetChildren()) do if object.Name:find("\067\104\101\115\116") and not _lIIIIlIllI[object] then local _IIlIlIlllI=object:IsA("\066\097\115\101\080\097\114\116") and object or object.PrimaryPart or object:FindFirstChildOfClass("\066\097\115\101\080\097\114\116") if _IIlIlIlllI then local _IllIIlIIlI=(_IIlIlIlllI.Position-_lIIllllllI).Magnitude if _IllIIlIIlI<_IIIIIIIIlI then _IIIIIIIIlI=_IllIIlIIlI; _IlllIIllIl=object end
+ end
+ end
+ end
+ end
+ return _IlllIIllIl end
+ local function _lIIIllIlll() local _llIllIIlIl=_llIlIIllIl() if not _llIllIIlIl then return nil end
+ local _IlllIIllIl,_llIlllllIl=nil,0x249F0 for _,v in ipairs(_IlIIlIlIll:GetChildren()) do if v:IsA("\084\111\111\108") or (v:IsA("\077\111\100\101\108") and v:FindFirstChild("\072\097\110\100\108\101")) then local _IIlllIIlIl=v.Name:lower() if _IIlllIIlIl:find("\102\114\117\105\116") or _IIlllIIlIl:find("\116\114\225\105") or _IIlllIIlIl:find("\116\114\097\105") then local _lIIIlIlllI=v:FindFirstChild("\072\097\110\100\108\101") or v.PrimaryPart or v:FindFirstChildOfClass("\066\097\115\101\080\097\114\116") if _lIIIlIlllI then local _IIIIIIIIlI=(_lIIIlIlllI.Position-_llIllIIlIl.Position).Magnitude if _IIIIIIIIlI<_llIlllllIl then _llIlllllIl=_IIIIIIIIlI; _IlllIIllIl=_lIIIlIlllI end
+ end
+ end
+ end
+ end
+ return _IlllIIllIl end
+ local function _lIlIIllIII() local _lllIIllIIl=_lIlllIlllI:FindFirstChild("\068\097\116\097") if _lllIIllIIl and _lllIIllIIl:FindFirstChild("\066\101\108\105") then return _lllIIllIIl.Beli.Value end
+ local _IIIIlllIIl=_lIlllIlllI:FindFirstChild("\108\101\097\100\101\114\115\116\097\116\115") if _IIIIlllIIl and _IIIIlllIIl:FindFirstChild("\066\101\108\105") then return _IIIIlllIIl.Beli.Value end
+ if _IIIIlllIIl and _IIIIlllIIl:FindFirstChild("\077\111\110\101\121") then return _IIIIlllIIl.Money.Value end
+ return 0x0 end
+ local _lllIIlllll=_lIlIIllIII() task.spawn( function () while task.wait(0.1) do local _IlIIIlllll=_lIlIIllIII() if _IlIIIlllll>_lllIIlllll then _lllIIlllll=_IlIIIlllll if _IllIIlllll and _llIlIlIIll then _lIIIIlIllI[_llIlIlIIll]=true _llIlIlIIll=nil _lIlIlIllIl() end
+ else _lllIIlllll=_IlIIIlllll end
+ end
+ end
+ ) RunService.Heartbeat:Connect( function (DeltaTime) if not _lllIlIIlll and not _IllIIlllll and not _IIIIlllIll then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ local _llIllIIlIl=_llIlIIllIl() if not _llIllIIlIl then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ if _IIIIlllIll then if not _IIllIIIIll or not _IIllIIIIll.Parent then _IIllIIIIll=_lIIIllIlll() end
+ if not _IIllIIIIll then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ _lIllIIIIlI(_llIllIIlIl) _IlIlIIIIll() _llIlIlIlll(_IIllIIIIll) local _llIIIlIlII=_IIllIIIIll.CFrame*CFrame.new(0x0,_G.DOCAO_FRUIT,0x0) local _IIIIIIIIlI=(_llIIIlIlII.Position-_llIllIIlIl.Position).Magnitude if _IIIIIIIIlI<=0x4 and firetouchinterest then firetouchinterest(_llIllIIlIl,_IIllIIIIll,0x0); firetouchinterest(_llIllIIlIl,_IIllIIIIll,0x1) end
+ local _llIIIIIIII=_IIIIIIIIlI<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED local _lIlllIlllI=math.clamp((_llIIIIIIII*DeltaTime)/math.max(_IIIIIIIIlI,0.001),0x0,0x1) _llIllIIlIl.CFrame=_llIllIIlIl.CFrame:Lerp(_llIIIlIlII,_lIlllIlllI) elseif _lllIlIIlll then if not _IIIlIIlIIl or not _IIIlIIlIIl.Parent or not _lIIlIlIIll(_IIIlIIlIIl) then _IIIlIIlIIl=_IllllIllll() end
+ if not _IIIlIIlIIl then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ local _IlllIIllIl=_IIIlIIlIIl:FindFirstChild("\072\117\109\097\110\111\105\100\082\111\111\116\080\097\114\116") or _IIIlIIlIIl.PrimaryPart if not _IlllIIllIl then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ _lIllIIIIlI(_llIllIIlIl) _IlIlIIIIll() _llIlIlIlll(_IIIlIIlIIl) local _llIIIlIlII=_IlllIIllIl.CFrame*CFrame.new(_G.DOXATP,_G.DOCAO_MOB,0x0) local _IIIIIIIIlI=(_llIIIlIlII.Position-_llIllIIlIl.Position).Magnitude if _IIIIIIIIlI>0.05 then local _llIIIIIIII=_IIIIIIIIlI<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED local _lIlllIlllI=math.clamp((_llIIIIIIII*DeltaTime)/math.max(_IIIIIIIIlI,0.001),0x0,0x1) _llIllIIlIl.CFrame=_llIllIIlIl.CFrame:Lerp(_llIIIlIlII,_lIlllIlllI) end
+ elseif _IllIIlllll then if not _llIlIlIIll or not _llIlIlIIll.Parent or _lIIIIlIllI[_llIlIlIIll] or _llIlIlIIll:GetAttribute("\073\115\068\105\115\097\098\108\101\100") then _llIlIlIIll=_IlIlIIlIlI() _IIIlIIlllI=0x0 end
+ if not _llIlIlIIll then _IIIIIIIIIl(); _lllIIlllIl(); _lIlIlIllIl(); return end
+ _lIllIIIIlI(_llIllIIlIl) _IlIlIIIIll() _llIlIlIlll(_llIlIlIIll) local _llIIIlIlII=_llIlIlIIll:GetPivot()*CFrame.new(0x0,_G.DOCAO_CHEST,0x0) local _IIIIIIIIlI=(_llIIIlIlII.Position-_llIllIIlIl.Position).Magnitude local _llIIIIIIII=_IIIIIIIIlI<=_G.BOOST_DISTANCE and _G.BOOST_SPEED or _G.SPEED if _IIIIIIIIlI<=0x4 then _IIIlIIlllI=_IIIlIIlllI+DeltaTime if firetouchinterest then local _lllllIIIlI=_llIlIlIIll:IsA("\066\097\115\101\080\097\114\116") and _llIlIlIIll or _llIlIlIIll.PrimaryPart or _llIlIlIIll:FindFirstChildOfClass("\066\097\115\101\080\097\114\116") if _lllllIIIlI then firetouchinterest(_llIllIIlIl,_lllllIIIlI,0x0); firetouchinterest(_llIllIIlIl,_lllllIIIlI,0x1) end
+ end
+ if _IIIlIIlllI>=0.4 then _lIIIIlIllI[_llIlIlIIll]=true _llIlIlIIll=nil _IIIlIIlllI=0x0 _lIlIlIllIl() return end
+ else _IIIlIIlllI=0x0 end
+ local _lIlllIlllI=math.clamp((_llIIIIIIII*DeltaTime)/math.max(_IIIIIIIIlI,0.001),0x0,0x1) _llIllIIlIl.CFrame=_llIllIIlIl.CFrame:Lerp(_llIIIlIlII,_lIlllIlllI) end
+ end
+ ) local _lIlllIIIlI=Instance.new("\073\109\097\103\101\066\117\116\116\111\110",_lIIIIIIllI) _lIlllIIIlI.Size=UDim2.new(0x0,0x28,0x0,0x28) _lIlllIIIlI.Position=UDim2.new(0.015,0x0,0.2,0x0) _lIlllIIIlI.BackgroundColor3=Color3.fromRGB(0xF,0x19,0x23) _lIlllIIIlI.BackgroundTransparency=0.2 _lIlllIIIlI.Draggable=true _lIlllIIIlI.ClipsDescendants=true _lIlllIIIlI.Image="\114\098\120\097\115\115\101\116\105\100\058\047\047\055\054\054\054\056\057\050\050\056\048\050\049\054\054" Instance.new("\085\073\067\111\114\110\101\114",_lIlllIIIlI).CornerRadius=UDim.new(0x1,0x0) local _llIlIlIlll=Instance.new("\085\073\083\116\114\111\107\101",_lIlllIIIlI) _llIlIlIlll.Thickness=1.5 _llIlIlIlll.ApplyStrokeMode=Enum.ApplyStrokeMode.Border _llIlIlIlll.LineJoinMode=Enum.LineJoinMode.Round _llIlIlIlll.Color=Color3.fromRGB(0xFF,0xFF,0xFF) local _lIIlIIIlIl=Instance.new("\085\073\071\114\097\100\105\101\110\116",_llIlIlIlll) _lIIlIIIlIl.Color=ColorSequence.new({ ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0x0,0xAA,0xFF)), ColorSequenceKeypoint.new(0.25,Color3.fromRGB(0xFF,0xFF,0xFF)), ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0x0,0x1E,0x5A)), ColorSequenceKeypoint.new(0.75,Color3.fromRGB(0xFF,0xFF,0xFF)), ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0x0,0xAA,0xFF)) }) _lIIlIIIlIl.Parent=_llIlIlIlll local _lIlIllIIIl=Instance.new("\070\114\097\109\101",_lIIIIIIllI) local _IIIIIIllII=UDim2.new(0x0,0xE6,0x0,0x122) local _llIlIllIIl=UDim2.new(0x0,0xB4,0x0,0xDC) _lIlIllIIIl.Size=_llIlIllIIl _lIlIllIIIl.AnchorPoint=Vector2.new(0.5,0.5) _lIlIllIIIl.Position=UDim2.new(0.5,0x0,0.5,0x0) _lIlIllIIIl.BackgroundColor3=Color3.fromRGB(0xF,0x14,0x1C) _lIlIllIIIl.BackgroundTransparency=0.15 _lIlIllIIIl.Visible=false _lIlIllIIIl.Draggable=true _lIlIllIIIl.ClipsDescendants=true Instance.new("\085\073\067\111\114\110\101\114",_lIlIllIIIl).CornerRadius=UDim.new(0x0,0xA) local _IlIIIlllll=Instance.new("\070\114\097\109\101",_lIlIllIIIl) _IlIIIlllll.Name="\083\110\111\119\076\097\121\101\114" _IlIIIlllll.Size=UDim2.fromScale(0x1,0x1) _IlIIIlllll.BackgroundTransparency=0x1 _IlIIIlllll.ClipsDescendants=true _IlIIIlllll.ZIndex=0x0 local _IIIlIIIIIl={} for i=0x1,0x2D do local _IIlllIllIl=Instance.new("\070\114\097\109\101",_IlIIIlllll) local _IllIIlIIlI=math.random(0x1,0x3) _IIlllIllIl.Size=UDim2.new(0x2,_IllIIlIIlI,0x2,_IllIIlIIlI) _IIlllIllIl.Position=UDim2.new(math.random(),0x0,math.random(),0x0) _IIlllIllIl.BackgroundColor3=Color3.fromRGB(0xFF,0xFF,0xFF) _IIlllIllIl.BackgroundTransparency=math.random(0x14,0x3C)/0x64 _IIlllIllIl.BorderSizePixel=0x0 _IIlllIllIl.ZIndex=0x0 Instance.new("\085\073\067\111\114\110\101\114",_IIlllIllIl).CornerRadius=UDim.new(0x1,0x0) table.insert(_IIIlIIIIIl,{Object=_IIlllIllIl,Speed=math.random(0xF,0x23)/0x64,Drift=math.random(-0x8,0x8)/0x64}) end
+ local _IlllIlIlII=Instance.new("\085\073\083\116\114\111\107\101",_lIlIllIIIl) _IlllIlIlII.Thickness=1.5 _IlllIlIlII.ApplyStrokeMode=Enum.ApplyStrokeMode.Border _IlllIlIlII.LineJoinMode=Enum.LineJoinMode.Round _IlllIlIlII.Color=Color3.fromRGB(0xFF,0xFF,0xFF) local _IIllIIIIII=Instance.new("\085\073\071\114\097\100\105\101\110\116",_IlllIlIlII) _IIllIIIIII.Color=ColorSequence.new({ ColorSequenceKeypoint.new(0.00,Color3.fromRGB(0x0,0xAA,0xFF)), ColorSequenceKeypoint.new(0.25,Color3.fromRGB(0xFF,0xFF,0xFF)), ColorSequenceKeypoint.new(0.50,Color3.fromRGB(0x0,0x1E,0x5A)), ColorSequenceKeypoint.new(0.75,Color3.fromRGB(0xFF,0xFF,0xFF)), ColorSequenceKeypoint.new(1.00,Color3.fromRGB(0x0,0xAA,0xFF)) }) _IIllIIIIII.Parent=_IlllIlIlII local _lIlIlllIIl=Instance.new("\084\101\120\116\076\097\098\101\108",_lIlIllIIIl) _lIlIlllIIl.Size=UDim2.new(0x1,-0x37,0x0,0x23) _lIlIlllIIl.Position=UDim2.new(0x0,0x0,0x0,0x0) _lIlIlllIIl.Text="" _lIlIlllIIl.RichText=true _lIlIlllIIl.Font=Enum.Font.Cartoon _lIlIlllIIl.TextSize=0xF _lIlIlllIIl.BackgroundTransparency=0x1 _lIlIlllIIl.TextXAlignment=Enum.TextXAlignment.Center _lIlIlllIIl.TextYAlignment=Enum.TextYAlignment.Center local _llIlIIllIl=Instance.new("\083\099\114\111\108\108\105\110\103\070\114\097\109\101",_lIlIllIIIl) _llIlIIllIl.Size=UDim2.new(0x1,0x0,0x1,-0x28) _llIlIIllIl.Position=UDim2.new(0x0,0x0,0x0,0x26) _llIlIIllIl.BackgroundTransparency=0x1 _llIlIIllIl.ScrollBarThickness=0x3 _llIlIIllIl.CanvasSize=UDim2.new(0x0,0x0,0x0,0x0) _llIlIIllIl.AutomaticCanvasSize=Enum.AutomaticSize.None local _lllllIllII=Instance.new("\085\073\076\105\115\116\076\097\121\111\117\116",_llIlIIllIl) _lllllIllII.SortOrder=Enum.SortOrder.LayoutOrder _lllllIllII.Padding=UDim.new(0x0,0x6) _lllllIllII.HorizontalAlignment=Enum.HorizontalAlignment.Center _lllllIllII:GetPropertyChangedSignal("\065\098\115\111\108\117\116\101\067\111\110\116\101\110\116\083\105\122\101"):Connect( function () _llIlIIllIl.CanvasSize=UDim2.new(0x0,0x0,0x0,_lllllIllII.AbsoluteContentSize.Y+0xA) end
+ ) local _lIlIlIIlII="\078\072\065\084\032\072\073\072\073" local _lIlllIlIlI=0x0 local _IIlIIIlIll local _lllIIlllII local _lIllIIllll _lIllIIllll= function () if not _lIlIllIIIl or not _IIlIIIlIll then return end
+ if not _lIlIllIIIl.Visible or not _IIlIIIlIll.Visible then return end
+ local _llIlIllIlI=_lIlIllIIIl.AbsolutePosition local _IIllIllIll=_lIlIllIIIl.AbsoluteSize local _lIlllIIIll=_IIlIIIlIll.AbsoluteSize local _lIIIIlIIII=0x8 local _lIllllllII=_llIlIllIlI.X+_IIllIllIll.X+_lIIIIlIIII+(_lIlllIIIll.X*_IIlIIIlIll.AnchorPoint.X) local _llIIlllIll=_llIlIllIlI.Y+(_IIllIllIll.Y/0x2) _IIlIIIlIll.Position=UDim2.fromOffset(_lIllllllII,_llIIlllIll) end
+ local _lIlIIIlIII=TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out) local _lIlIIIIlll=false local function _lIIllIlIIl() if _lIlIIIIlll then return end
+ _lIlIllIIIl.Visible=true _lIlIllIIIl.Size=_llIlIllIIl TweenService:Create( _lIlIllIIIl, _lIlIIIlIII, {_IllIIlIIlI=_IIIIIIllII} ):Play() end
+ local function _IIIlIIIlIl() if not _lIlIllIIIl.Visible or _lIlIIIIlll then return end
+ _lIlIIIIlll=true if _IIlIIIlIll and _IIlIIIlIll.Visible then _IIlIIIlIll.Visible=false _IIlIIIlIll.Size=_IIlIIlllIl if _lllIIlllII then _lllIIlllII(true) end
+ end
+ local _llllllIIII=TweenService:Create( _lIlIllIIIl, TweenInfo.new(0.22,Enum.EasingStyle.Quart,Enum.EasingDirection.In), {_IllIIlIIlI=_llIlIllIIl} ) _llllllIIII:Play() _llllllIIII.Completed:Connect( function () _lIlIllIIIl.Visible=false _lIlIIIIlll=false end
+ ) end
+ local function _IIllIlIIIl() if _lIlIllIIIl.Visible then _IIIlIIIlIl() else _lIIllIlIIl() end
+ end
+ RunService.RenderStepped:Connect( function (delta) local _lIIIlIIIII=_lIlIllIIIl.Visible and 0x96 or 0x64 _lIIlIIIlIl.Rotation=(_lIIlIIIlIl.Rotation+delta*_lIIIlIIIII)%0x168 _IIllIIIIII.Rotation=(_IIllIIIIII.Rotation+delta*0x5A)%0x168 if _lIlIllIIIl.Visible and _IIlIIIlIll and _IIlIIIlIll.Visible then _lIllIIllll() end
+ for _,flake in ipairs(_IIIlIIIIIl) do local _lIIlIIIIIl=flake.Object if _lIIlIIIIIl.Parent then local _lIlIlIIIII=_lIIlIIIIIl.Position.X.Scale+flake.Drift*delta local _llIIlIlIII=_lIIlIIIIIl.Position.Y.Scale+flake.Speed*delta if _llIIlIlIII>1.05 then _llIIlIlIII=-0.05 _lIlIlIIIII=math.random() end
+ if _lIlIlIIIII>1.05 then _lIlIlIIIII=-0.05 elseif _lIlIlIIIII<-0.05 then _lIlIlIIIII=1.05 end
+ _lIIlIIIIIl.Position=UDim2.new(_lIlIlIIIII,0x0,_llIIlIlIII,0x0) end
+ end
+ _lIlllIlIlI=(_lIlllIlIlI+delta*0.35)%0x1 local _IIIlIIllII="" for i=0x1,#_lIlIlIIlII do local _lIlIllIIll=_lIlIlIIlII:sub(i,i) if _lIlIllIIll=="\032" then _IIIlIIllII=_IIIlIIllII.."\032" else local _IllllllllI=(_lIlllIlIlI-(i-0x1)/#_lIlIlIIlII)%0x1 local _IIlIllIIII=Color3.fromHSV(_IllllllllI,0x1,0x1) local _IlIIIlIlll=math.floor(_IIlIllIIII.R*0xFF) local _lIIlIllIll=math.floor(_IIlIllIIII.G*0xFF) local _lIllIIllll=math.floor(_IIlIllIIII.B*0xFF) _IIIlIIllII=_IIIlIIllII..string.format( "\060\102\111\110\116\032\099\111\108\111\114\061\034\114\103\098\040\037\100\044\037\100\044\037\100\041\034\062\037\115\060\047\102\111\110\116\062", _IlIIIlIlll,_lIIlIllIll,_lIllIIllll,_lIlIllIIll ) end
+ end
+ _lIlIlllIIl.Text=_IIIlIIllII end
+ ) _lIlllIIIlI.MouseButton1Click:Connect(_IIllIlIIIl) local _IlIlIllIll=Instance.new("\084\101\120\116\066\117\116\116\111\110",_lIlIllIIIl) _IlIlIllIll.Name="\083\101\116\116\105\110\103\115\066\117\116\116\111\110" _IlIlIllIll.Size=UDim2.new(0x0,0x1E,0x0,0x1E) _IlIlIllIll.Position=UDim2.new(0x1,-0x23,0x0,0x2) _IlIlIllIll.BackgroundColor3=Color3.fromRGB(0x19,0x23,0x32) _IlIlIllIll.BackgroundTransparency=0x1 _IlIlIllIll.AutoButtonColor=false _IlIlIllIll.Text="\9881\65039" _IlIlIllIll.Font=Enum.Font.Cartoon _IlIlIllIll.TextSize=0x12 _IlIlIllIll.TextColor3=Color3.fromRGB(0x64,0xC8,0xFF) Instance.new("\085\073\067\111\114\110\101\114",_IlIlIllIll).CornerRadius=UDim.new(0x1,0x0) local _IIIlIllIIl=Instance.new("\085\073\083\116\114\111\107\101",_IlIlIllIll) _IIIlIllIIl.Thickness=0x1 _IIIlIllIIl.Color=Color3.fromRGB(0x0,0x78,0xC8) _IIlIIIlIll=Instance.new("\070\114\097\109\101",_lIIIIIIllI) local _llllllIIlI=UDim2.new(0x0,0xB4,0x0,0xC3) local _IIlIIlllIl=UDim2.new(0x0,0x8C,0x0,0x96) _IIlIIIlIll.Name="\083\101\116\116\105\110\103\115\071\117\105" _IIlIIIlIll.Size=_IIlIIlllIl _IIlIIIlIll.AnchorPoint=Vector2.new(0x0,0.5) _IIlIIIlIll.Position=UDim2.new(0.5,0x0,0.5,0x0) _IIlIIIlIll.BackgroundColor3=Color3.fromRGB(0xF,0x14,0x1C) _IIlIIIlIll.BackgroundTransparency=0.08 _IIlIIIlIll.Visible=false _IIlIIIlIll.Active=true _IIlIIIlIll.Draggable=false _IIlIIIlIll.ZIndex=0x14 _IIlIIIlIll.ClipsDescendants=true Instance.new("\085\073\067\111\114\110\101\114",_IIlIIIlIll).CornerRadius=UDim.new(0x0,0x8) local _IIIIIlllll=Instance.new("\085\073\083\116\114\111\107\101",_IIlIIIlIll) _IIIIIlllll.Thickness=1.3 _IIIIIlllll.Color=Color3.fromRGB(0x0,0xAA,0xFF) local _IlIIllIIIl=Instance.new("\084\101\120\116\076\097\098\101\108",_IIlIIIlIll) _IlIIllIIIl.Size=UDim2.new(0x1,-0x1E,0x0,0x19) _IlIIllIIIl.Position=UDim2.new(0x0,0x5,0x0,0x2) _IlIIllIIIl.BackgroundTransparency=0x1 _IlIIllIIIl.Text="\067\192\073\032\272\7862\084" _IlIIllIIIl.Font=Enum.Font.Cartoon _IlIIllIIIl.TextSize=0xE _IlIIllIIIl.TextColor3=Color3.fromRGB(0x64,0xC8,0xFF) _IlIIllIIIl.TextXAlignment=Enum.TextXAlignment.Left _IlIIllIIIl.ZIndex=0x15 local _IlIlIlIIll=Instance.new("\084\101\120\116\066\117\116\116\111\110",_IIlIIIlIll) _IlIlIlIIll.Size=UDim2.new(0x0,0x16,0x0,0x16) _IlIlIlIIll.Position=UDim2.new(0x1,-0x19,0x0,0x3) _IlIlIlIIll.BackgroundTransparency=0x1 _IlIlIlIIll.Text="\088" _IlIlIlIIll.Font=Enum.Font.Gotham _IlIlIlIIll.TextSize=0x14 _IlIlIlIIll.TextColor3=Color3.fromRGB(0xFF,0x64,0x64) _IlIlIlIIll.AutoButtonColor=false _IlIlIlIIll.ZIndex=0x15 local _lllIlIIllI=Instance.new("\083\099\114\111\108\108\105\110\103\070\114\097\109\101",_IIlIIIlIll) _lllIlIIllI.Name="\083\101\116\116\105\110\103\115\083\099\114\111\108\108" _lllIlIIllI.Size=UDim2.new(0x1,-0x8,0x1,-0x20) _lllIlIIllI.Position=UDim2.new(0x0,0x4,0x0,0x1D) _lllIlIIllI.BackgroundTransparency=0x1 _lllIlIIllI.BorderSizePixel=0x0 _lllIlIIllI.ScrollBarThickness=0x3 _lllIlIIllI.ScrollBarImageColor3=Color3.fromRGB(0x0,0xAA,0xFF) _lllIlIIllI.CanvasSize=UDim2.new(0x0,0x0,0x0,0x0) _lllIlIIllI.AutomaticCanvasSize=Enum.AutomaticSize.None _lllIlIIllI.ScrollingDirection=Enum.ScrollingDirection.Y _lllIlIIllI.ZIndex=0x15 local _IIIIIIllII=Instance.new("\085\073\076\105\115\116\076\097\121\111\117\116",_lllIlIIllI) _IIIIIIllII.SortOrder=Enum.SortOrder.LayoutOrder _IIIIIIllII.Padding=UDim.new(0x0,0x7) _IIIIIIllII.HorizontalAlignment=Enum.HorizontalAlignment.Center _IIIIIIllII:GetPropertyChangedSignal("\065\098\115\111\108\117\116\101\067\111\110\116\101\110\116\083\105\122\101"):Connect( function () _lllIlIIllI.CanvasSize=UDim2.new(0x0,0x0,0x0,_IIIIIIllII.AbsoluteContentSize.Y+0xA) end
+ ) local function _IlIIlIlIll(Parent,Name,MinValue,MaxValue,DefaultValue,Callback) local _lllIllIlll=Instance.new("\070\114\097\109\101",Parent) _lllIllIlll.Size=UDim2.new(0x1,-0x6,0x0,0x36) _lllIllIlll.BackgroundTransparency=0x1 _lllIllIlll.BorderSizePixel=0x0 _lllIllIlll.ZIndex=0x15 local _IIIIIIlIlI=Instance.new("\084\101\120\116\076\097\098\101\108",_lllIllIlll) _IIIIIIlIlI.Size=UDim2.new(0x1,-0x32,0x0,0x12) _IIIIIIlIlI.Position=UDim2.new(0x0,0x2,0x0,0x0) _IIIIIIlIlI.BackgroundTransparency=0x1 _IIIIIIlIlI.Text=Name _IIIIIIlIlI.Font=Enum.Font.Cartoon _IIIIIIlIlI.TextSize=0xB _IIIIIIlIlI.TextColor3=Color3.fromRGB(0x64,0xC8,0xFF) _IIIIIIlIlI.TextXAlignment=Enum.TextXAlignment.Left _IIIIIIlIlI.ZIndex=0x15 local _llllIllIlI=Instance.new("\084\101\120\116\066\111\120",_lllIllIlll) _llllIllIlI.Size=UDim2.new(0x0,0x26,0x0,0x13) _llllIllIlI.Position=UDim2.new(0x1,-0x28,0x0,-0x2) _llllIllIlI.BackgroundColor3=Color3.fromRGB(0x19,0x23,0x32) _llllIllIlI.BackgroundTransparency=0x0 _llllIllIlI.Text=tostring(DefaultValue) _llllIllIlI.Font=Enum.Font.Cartoon _llllIllIlI.TextSize=0xB _llllIllIlI.TextColor3=Color3.fromRGB(0xFF,0xFF,0xFF) _llllIllIlI.ClearTextOnFocus=false _llllIllIlI.TextXAlignment=Enum.TextXAlignment.Center _llllIllIlI.ZIndex=0x16 Instance.new("\085\073\067\111\114\110\101\114",_llllIllIlI).CornerRadius=UDim.new(0x0,0x4) local _IllIIIlllI=Instance.new("\085\073\083\116\114\111\107\101",_llllIllIlI) _IllIIIlllI.Thickness=0x1 _IllIIIlllI.Color=Color3.fromRGB(0x0,0x78,0xC8) local _IlIlIlIIlI=Instance.new("\070\114\097\109\101",_lllIllIlll) _IlIlIlIIlI.Size=UDim2.new(0x1,-0x2D,0x0,0x6) _IlIlIlIIlI.Position=UDim2.new(0x0,0x2,0x0,0x1B) _IlIlIlIIlI.BackgroundColor3=Color3.fromRGB(0x2D,0x37,0x41) _IlIlIlIIlI.BorderSizePixel=0x0 _IlIlIlIIlI.ZIndex=0x15 Instance.new("\085\073\067\111\114\110\101\114",_IlIlIlIIlI).CornerRadius=UDim.new(0x1,0x0) local _IIIIllIlII=Instance.new("\070\114\097\109\101",_IlIlIlIIlI) _IIIIllIlII.Size=UDim2.new(0x0,0x0,0x1,0x0) _IIIIllIlII.BackgroundColor3=Color3.fromRGB(0x0,0xAA,0xFF) _IIIIllIlII.BorderSizePixel=0x0 _IIIIllIlII.ZIndex=0x16 Instance.new("\085\073\067\111\114\110\101\114",_IIIIllIlII).CornerRadius=UDim.new(0x1,0x0) local _IIllIlIlII=math.clamp(DefaultValue,MinValue,MaxValue) local _IIllIllllI=false local function _IIIlIIlIIl(_IllIllIlII) _IllIllIlII=tonumber(_IllIllIlII) if not _IllIllIlII then _IllIllIlII=_IIllIlIlII end
+ _IIllIlIlII=math.clamp( math.round(_IllIllIlII), MinValue, MaxValue ) local _lllllIIIlI=(_IIllIlIlII-MinValue)/(MaxValue-MinValue) _IIIIllIlII.Size=UDim2.new(_lllllIIIlI,0x0,0x1,
+_llllIllIlI.Text=tostring(_IIllIlIlII) Callback(_IIllIlIlII) end
+ local function _IllIllIIll(_lIllllllII) local _lllllIIIlI=math.clamp( (_lIllllllII-_IlIlIlIIlI.AbsolutePosition.X)/_IlIlIlIIlI.AbsoluteSize.X, 0x0, 0x1 ) _IIIlIIlIIl( MinValue+(MaxValue-MinValue)*_lllllIIIlI ) end
+ _IlIlIlIIlI.InputBegan:Connect( function (InputObject) if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then _IIllIllllI=true _IllIllIIll(InputObject.Position.X) end
+ end
+ ) UserInputService.InputChanged:Connect( function (InputObject) if _IIllIllllI and ( InputObject.UserInputType==Enum.UserInputType.MouseMovement or InputObject.UserInputType==Enum.UserInputType.Touch ) then _IllIllIIll(InputObject.Position.X) end
+ end
+ ) UserInputService.InputEnded:Connect( function (InputObject) if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then _IIllIllllI=false end
+ end
+ ) _llllIllIlI.FocusLost:Connect( function () local _IllIllIlII=tonumber(_llllIllIlI.Text) if _IllIllIlII then _IIIlIIlIIl(_IllIllIlII) else _llllIllIlI.Text=tostring(_IIllIlIlII) end
+ end
+ ) _IIIlIIlIIl(DefaultValue) return { Set=_IIIlIIlIIl, Get= function () return _IIllIlIlII end
+ } end
+ local _IIlllIIIlI=_IlIIlIlIll( _lllIlIIllI, "\084\7889\099\032\273\7897\032\098\097\121", 0x96, 0xFA, _G.SPEED, function (_IIllIlIlII) _G.SPEED=_IIllIlIlII end
+ ) local _IIIlIllllI=_IlIIlIlIll( _lllIlIIllI, "\272\7897\032\099\097\111\032\113\117\225\105", 0x0, 0x64, _G.DOCAO_MOB, function (_IIllIlIlII) _G.DOCAO_MOB=_IIllIlIlII end
+ ) local _IIIIlIIIII=_IlIIlIlIll( _lllIlIIllI, "\084\7889\099\032\273\7897\032\116\104\117\121\7873\110", 0x64, 0x1F4, _G.BOAT_SPEED, function (_IIllIlIlII) _G.BOAT_SPEED=_IIllIlIlII end
+ ) local _IlIIlllIIl=false local _lllIlIIlII=false _lllIIlllII= function (Instant) if Instant then _IlIIlllIIl=false _lllIlIIlII=false _IIlIIIlIll.Visible=false _IIlIIIlIll.Size=_IIlIIlllIl return end
+ if _lllIlIIlII or not _IIlIIIlIll.Visible then return end
+ _lllIlIIlII=true _IlIIlllIIl=false local _llllllIIII=TweenService:Create( _IIlIIIlIll, TweenInfo.new( 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In ), {_IllIIlIIlI=_IIlIIlllIl} ) _llllllIIII:Play() _llllllIIII.Completed:Connect( function () _IIlIIIlIll.Visible=false _lllIlIIlII=false end
+ ) end
+ local function _IllIIlllll() if _IlIIlllIIl or _IIlIIIlIll.Visible or not _lIlIllIIIl.Visible then return end
+ _IlIIlllIIl=true _lllIlIIlII=false _IIlIIIlIll.Visible=true _IIlIIIlIll.Size=_IIlIIlllIl _lIllIIllll() local _llllllIIII=TweenService:Create( _IIlIIIlIll, TweenInfo.new( 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out ), {_IllIIlIIlI=_llllllIIlI} ) _llllllIIII:Play() _llllllIIII.Completed:Connect( function () _IlIIlllIIl=false _lIllIIllll() end
+ ) end
+ local function _IIlIlllIIl() if _IIlIIIlIll.Visible then _lllIIlllII() else _IllIIlllll() end
+ end
+ _IlIlIllIll.MouseButton1Click:Connect(_IIlIlllIIl) _IlIlIlIIll.MouseButton1Click:Connect( function () _lllIIlllII() end
+ ) local function _IllIIlIlIl(spawnArg) local _lIIIlIIIII=ReplicatedStorage:WaitForChild("\082\101\109\111\116\101\115"):WaitForChild("\067\111\109\109\070\095") if spawnArg=="\084\101\109\112\108\101\079\102\084\105\109\101" then if _IllIIIllll or _llllIIIlIl then if _IllIIIllll then _IllIIIllll:Disconnect(); _IllIIIllll=nil end
+ _IIIIIIIIIl() _lllIIlllIl() return end
+ task.spawn( function () local _IllIIIIllI=_llIlIIllIl() if not _IllIIIIllI then return end
+ _lIllIIIIlI(_IllIIIIllI) _IlIlIIIIll() local _IIllIlIIll=CFrame.new(3035.22,2280.89,-7321.22) local _IllllIlllI=0x1 local _IllIllIIll=nil _IllIIIllll=RunService.Heartbeat:Connect( function (deltaTime) local _IIlIlllllI=_llIlIIllIl() if not _IIlIlllllI then if _IllIIIllll then _IllIIIllll:Disconnect(); _IllIIIllll=nil end
+ _IIIIIIIIIl() _lllIIlllIl() return end
+ _IIlIlllllI.AssemblyLinearVelocity=Vector3.zero _IIlIlllllI.AssemblyAngularVelocity=Vector3.zero _IlIlIIIIll() if _IllllIlllI==0x2 then return end
+ local _lllllIlIII if _IllllIlllI==0x1 then _lllllIlIII=_IIllIlIIll elseif _IllllIlllI==0x3 then _lllllIlIII=_IllIllIIll end
+ if not _lllllIlIII then return end
+ local _lIIIlIlIII=(_IIlIlllllI.Position-_lllllIlIII.Position).Magnitude local _IlIllIIllI=tonumber(_G.BOOST_DISTANCE) or 0x5A local _IIIIIIllII=tonumber(_G.BOOST_SPEED) or 0x3E8 local _llIlIIllIl=tonumber(_G.SPEED) or 0x8C local _IlIIIlllII=_lIIIlIlIII<=_IlIllIIllI and _IIIIIIllII or _llIlIIllIl local _lIlllIllII=math.clamp((_IlIIIlllII*deltaTime)/math.max(_lIIIlIlIII,0.001),0x0,0x1) if _IllllIlllI==0x1 then if _lIIIlIlIII<=0.5 then _IllllIlllI=0x2 task.spawn( function () for i=0x1,0xA do local _IIIlIlllIl=_IlIIlIlIll:FindFirstChild("\077\097\112") or _IlIIlIlIll if not _IIIlIlllIl:FindFirstChild("\084\101\109\112\108\101\032\111\102\032\084\105\109\101") then local _IlIIllIlIl=ReplicatedStorage:FindFirstChild("\077\097\112\083\116\097\115\104") or ReplicatedStorage local _lllIlIIIIl=_IlIIllIlIl:FindFirstChild("\084\101\109\112\108\101\032\111\102\032\084\105\109\101") if _lllIlIIIIl then _lllIlIIIIl.Parent=_IIIlIlllIl; break end
+ else break end
+ task.wait(0.3) end
+ task.wait(0.5) pcall( function () _lIIIlIIIII:InvokeServer("\114\101\113\117\101\115\116\069\110\116\114\097\110\099\101",Vector3.new(28310.0234,14895.1123,109.456741)) end
+ ) task.wait(0.5) local _IIIIllIlll=nil pcall( function () _IIIIllIlll=_lIlllIlllI.Data.Race.Value end
+ ) if _IIIIllIlll=="\070\105\115\104\109\097\110" then _IllIllIIll=CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922) elseif _IIIIllIlll=="\067\121\098\111\114\103" then _IllIllIIll=CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406) elseif _IIIIllIlll=="\083\107\121\112\105\101\097" then _IllIllIIll=CFrame.new(28967.408203125,14918.0751953125,234.31198120117188) elseif _IIIIllIlll=="\071\104\111\117\108" then _IllIllIIll=CFrame.new(28672.720703125,14889.1279296875,454.5961608886719) elseif _IIIIllIlll=="\072\117\109\097\110" then _IllIllIIll=CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938) else _IllIllIIll=CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969) end
+ _IllllIlllI=0x3 end
+ ) else _IIlIlllllI.CFrame=_IIlIlllllI.CFrame:Lerp(_lllllIlIII,_lIlllIllII) end
+ elseif _IllllIlllI==0x3 then if _lIIIlIlIII<=0x3 then if _IllIIIllll then _IllIIIllll:Disconnect(); _IllIIIllll=nil end
+ _IIIIIIIIIl() _lllIIlllIl() return else _IIlIlllllI.CFrame=_IIlIlllllI.CFrame:Lerp(_lllllIlIII,_lIlllIllII) end
+ end
+ end
+ ) end
+ ) return end
+ end
+ local _llIlIlIlll=Instance.new("\084\101\120\116\066\117\116\116\111\110",_llIlIIllIl) _llIlIlIlll.Size=UDim2.new(0.9,0x0,0x0,0x20) _llIlIlIlll.Text="\272\7873\110\032\084\104\7901\105\032\071\105\097\110" _llIlIlIlll.Font=Enum.Font.Cartoon _llIlIlIlll.TextSize=0xD _llIlIlIlll.TextColor3=Color3.fromRGB(0x64,0xC8,0xFF) _llIlIlIlll.BackgroundColor3=Color3.fromRGB(0x19,0x23,0x32) _llIlIlIlll.BackgroundTransparency=0.3 _llIlIlIlll.AutoButtonColor=false Instance.new("\085\073\067\111\114\110\101\114",_llIlIlIlll).CornerRadius=UDim.new(0x0,0x6) local _IlIIIllIIl=Instance.new("\085\073\083\116\114\111\107\101",_llIlIlIlll) _IlIIIllIIl.Thickness=0x1 _IlIIIllIIl.Color=Color3.fromRGB(0x0,0x78,0xC8) _llIlIlIlll.MouseButton1Click:Connect( function () _IllIIlIlIl("\084\101\109\112\108\101\079\102\084\105\109\101") end
+ ) local _IlIIlIIIll=Instance.new("\070\114\097\109\101",_llIlIIllIl) _IlIIlIIIll.Size=UDim2.new(0.9,0x0,0x0,0x26) _IlIIlIIIll.BackgroundColor3=Color3.fromRGB(0x19,0x23,0x32) _IlIIlIIIll.BackgroundTransparency=0.3 _IlIIlIIIll.BorderSizePixel=0x0 Instance.new("\085\073\067\111\114\110\101\114",_IlIIlIIIll).CornerRadius=UDim.new(0x0,0x6) local _IIlIIIIIIl=Instance.new("\085\073\083\116\114\111\107\101",_IlIIlIIIll) _IIlIIIIIIl.Thickness=0x1 _IIlIIIIIIl.Color=Color3.fromRGB(0x0,0x78,0xC8) local _lIlIlIIlll=Instance.new("\084\101\120\116\076\097\098\101\108",_IlIIlIIIll) _lIlIlIIlll.Size=UDim2.new(0x1,-0x41,0x1,0x0) _lIlIlIIlll.Position=UDim2.new(0x0,0x5,0x0,0x0) _lIlIlIIlll.BackgroundTransparency=0x1 _lIlIlIIlll.Text="\084\7888\067\032\272\7896\032\084\072\085\089\7872\078" _lIlIlIIlll.Font=Enum.Font.Cartoon _lIlIlIIlll.TextSize=0xD _lIlIlIIlll.TextColor3=Color3.fromRGB(0x64,0xC8,0xFF) _lIlIlIIlll.TextXAlignment=Enum.TextXAlignment.Left local _llIIIlIIII=Instance.new("\084\101\120\116\066\117\116\116\111\110",_IlIIlIIIll) _llIIIlIIII.Size=UDim2.new(0x0,0x2A,0x0,0x15) _llIIIlIIII.Position=UDim2.new(0x1,-0x2F,0.5,-10.5) _llIIIlIIII.BackgroundColor3=Color3.fromRGB(0x23,0x28,0x30) _llIIIlIIII.AutoButtonColor=false _llIIIlIIII.Text="" Instance.new("\085\073\067\111\114\110\101\114",_llIIIlIIII).CornerRadius=UDim.new(0x1,0x0) local _lllllllllI=Instance.new("\085\073\083\116\114\111\107\101",_llIIIlIIII) _lllllllllI.Thickness=0x1 _lllllllllI.Color=Color3.fromRGB(0x46,0x50,0x5A) local _IIIIIllllI=Instance.new("\070\114\097\109\101",_llIIIlIIII) _IIIIIllllI.Size=UDim2.new(0x0,0xF,0x0,0xF) _IIIIIllllI.Position=UDim2.new(0x0,0x3,0.5,-7.5) _IIIIIllllI.BackgroundColor3=Color3.fromRGB(0xFF,0xFF,0xFF) Instance.new("\085\073\067\111\114\110\101\114",_IIIIIllllI).CornerRadius=UDim.new(0x1,0x0) local function _llllllllII() if _IIlIIllIIl then _llIIIlIIII.BackgroundColor3=Color3.fromRGB(0xF,0x46,0x69) _lllllllllI.Color=Color3.fromRGB(0x0,0xAA,0xFF) TweenService:Create(_IIIIIllllI,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{_lIIllllllI=UDim2.new(0x1,-0x12,0.5,-7.5)}):Play() else _llIIIlIIII.BackgroundColor3=Color3.fromRGB(0x23,0x28,0x30) _lllllllllI.Color=Color3.fromRGB(0x46,0x50,0x5A) TweenService:Create(_IIIIIllllI,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{_lIIllllllI=UDim2.new(0x0,0x3,0.5,-7.5)}):Play() end
+ end
+ _llIIIlIIII.MouseButton1Click:Connect( function () _IIlIIllIIl= not _IIlIIllIIl _llllllllII() end
+ ) local _llIIlllllI=Color3.fromRGB(0x0,0xAA,0xFF) local _llIllIlIll=Color3.fromRGB(0x23,0x28,0x30) local _IIlIIIIlIl=Color3.fromRGB(0xF,0x46,0x69) local _llIlIllIll=Color3.fromRGB(0x64,0xC8,0xFF) local function _llIlIIlIll(Name,Callback) local _lllIllIlll=Instance.new("\070\114\097\109\101",_llIlIIllIl) _lllIllIlll.Size=UDim2.new(0.9,0x0,0x0,0x26) _lllIllIlll.BackgroundColor3=Color3.fromRGB(0x19,0x23,0x32) _lllIllIlll.BackgroundTransparency=0.3 _lllIllIlll.BorderSizePixel=0x0 Instance.new("\085\073\067\111\114\110\101\114",_lllIllIlll).CornerRadius=UDim.new(0x0,0x6) local _llIIlllIll=Instance.new("\085\073\083\116\114\111\107\101",_lllIllIlll) _llIIlllIll.Thickness=0x1 _llIIlllIll.Color=Color3.fromRGB(0x0,0x78,0xC8) local _IIIIIIlIlI=Instance.new("\084\101\120\116\076\097\098\101\108",_lllIllIlll) _IIIIIIlIlI.Size=UDim2.new(0x1,-0x41,0x1,0x0) _IIIIIIlIlI.Position=UDim2.new(0x0,0x5,0x0,0x0) _IIIIIIlIlI.BackgroundTransparency=0x1 _IIIIIIlIlI.Text=Name _IIIIIIlIlI.Font=Enum.Font.Cartoon _IIIIIIlIlI.TextSize=0xD _IIIIIIlIlI.TextColor3=_llIlIllIll _IIIIIIlIlI.TextXAlignment=Enum.TextXAlignment.Left local _IlIIlIIllI=Instance.new("\084\101\120\116\066\117\116\116\111\110",_lllIllIlll) _IlIIlIIllI.Size=UDim2.new(0x0,0x2A,0x0,0x15) _IlIIlIIllI.Position=UDim2.new(0x1,-0x2F,0.5,-10.5) _IlIIlIIllI.BackgroundColor3=_llIllIlIll _IlIIlIIllI.AutoButtonColor=false _IlIIlIIllI.Text="" Instance.new("\085\073\067\111\114\110\101\114",_IlIIlIIllI).CornerRadius=UDim.new(0x1,0x0) local _IlIIIllllI=Instance.new("\085\073\083\116\114\111\107\101",_IlIIlIIllI) _IlIIIllllI.Thickness=0x1 _IlIIIllllI.Color=Color3.fromRGB(0x46,0x50,0x5A) local _lIIIIIllIl=Instance.new("\070\114\097\109\101",_IlIIlIIllI) _lIIIIIllIl.Size=UDim2.new(0x0,0xF,0x0,0xF) _lIIIIIllIl.Position=UDim2.new(0x0,0x3,0.5,-7.5) _lIIIIIllIl.BackgroundColor3=Color3.fromRGB(0xFF,0xFF,0xFF) Instance.new("\085\073\067\111\114\110\101\114",_lIIIIIllIl).CornerRadius=UDim.new(0x1,0x0) local _llIIIlIlll=false local function _IIlIIIllII() if _llIIIlIlll then _IlIIlIIllI.BackgroundColor3=_IIlIIIIlIl _IlIIIllllI.Color=_llIIlllllI _lIIIIIllIl.BackgroundColor3=Color3.fromRGB(0xFF,0xFF,0xFF) TweenService:Create(_lIIIIIllIl,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{_lIIllllllI=UDim2.new(0x1,-0x12,0.5,-7.5)}):Play() else _IlIIlIIllI.BackgroundColor3=_llIllIlIll _IlIIIllllI.Color=Color3.fromRGB(0x46,0x50,0x5A) _lIIIIIllIl.BackgroundColor3=Color3.fromRGB(0xFF,0xFF,0xFF) TweenService:Create(_lIIIIIllIl,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{_lIIllllllI=UDim2.new(0x0,0x3,0.5,-7.5)}):Play() end
+ Callback(_llIIIlIlll) end
+ _IlIIlIIllI.MouseButton1Click:Connect( function () _llIIIlIlll= not _llIIIlIlll _IIlIIIllII() end
+ ) return {Set= function (_IIllIlIlII) _llIIIlIlll=_IIllIlIlII; _IIlIIIllII() end
+ ,Get= function () return _llIIIlIlll end
+ } end
+ local _IIIIlIIlIl=_llIlIIlIll("\066\065\089\032\084\7898\073\032\084\082\193\073", function (_IIllIlIlII) _IIIIlllIll=_IIllIlIlII _IIllIIIIll=nil end
+ ) local _lllllllIlI=_llIlIIlIll("\066\065\089\032\084\7898\073\032\081\085\193\073", function (_IIllIlIlII) _lllIlIIlll=_IIllIlIlII _IIIlIIlIIl=nil end
+ ) local _IlllllIlll=_llIlIIlIll("\070\065\082\077\032\082\431\416\078\071", function (_IIllIlIlII) _IllIIlllll=_IIllIlIlII if _IIllIlIlII then _lllIIlllll=_lIlIIllIII() end
+ _llIlIlIIll=nil _IIIlIIlllI=0x0 end
+ ) end
+ )(...)
