@@ -48,7 +48,7 @@ SeaGui.Parent=LocalPlayer:WaitForChild("PlayerGui")
 -- 3. CẤU HÌNH & HÀM HỖ TRỢ CHUNG
 -- ===================================================
 _G.SPEED=220
-_G.BOOST_SPEED=1000
+_G.BOOST_SPEED=5000
 _G.BOOST_DISTANCE=100
 _G.DOCAO_MOB=35
 _G.DOCAO_CHEST=0
@@ -60,10 +60,6 @@ local MobEnabled=false
 local ChestEnabled=false
 local FruitEnabled=false
 local BoatEnabled=false
-
--- ===================================================
--- 👁️ ESP TỰ ĐỘNG
--- ===================================================
 local DevilFruitESP=true
 local EspEventIsland=true
 _G.BoatESP=true
@@ -77,9 +73,6 @@ local function GetRoot()
     return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head"))
 end
 
--- ===================================================
--- 🍎 ESP TRÁI
--- ===================================================
 task.spawn(function()
     while task.wait(0.2) do
         if DevilFruitESP then
@@ -138,12 +131,8 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 🍎 ADVANCED FRUIT DEALER ESP
--- ===================================================
 local AdvancedFruitDealerESP=true
 local cachedAdvancedFruitDealer=nil
-
 task.spawn(function()
     while task.wait(0.2) do
         if AdvancedFruitDealerESP then
@@ -226,9 +215,7 @@ task.spawn(function()
         end
     end
 end)
--- ===================================================
--- 🏝️ ESP ĐẢO SỰ KIỆN
--- ===================================================
+
 task.spawn(function()
     while task.wait(0.2) do
         if EspEventIsland then
@@ -292,9 +279,6 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 🚤 ESP THUYỀN CỦA MÌNH
--- ===================================================
 task.spawn(function()
     while task.wait(0.2) do
         if _G.BoatESP then
@@ -371,9 +355,6 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 👁️ OBSERVATION / BUSO
--- ===================================================
 task.spawn(function()
     while task.wait() do
         pcall(function()
@@ -398,9 +379,7 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 🌊 WATER BASE
--- ===================================================
+
 task.spawn(function()
     while task.wait(0.5) do
         pcall(function()
@@ -413,9 +392,7 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 💡 LIGHTING CLEANUP
--- ===================================================
+
 task.spawn(function()
     while task.wait(2) do
         pcall(function()
@@ -429,9 +406,6 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- ⚔️ HIT EFFECT CLEANUP
--- ===================================================
 local HitEffects={"SlashHit","CurvedRing","SwordSlash","SlashTail"}
 
 task.spawn(function()
@@ -452,9 +426,6 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 🎯 TARGET VARIABLES
--- ===================================================
 local TargetMob=nil
 local TargetChest=nil
 local TargetFruit=nil
@@ -463,7 +434,7 @@ local BodyVelocity=nil
 local NoclipConnection=nil
 local IgnoredChests=setmetatable({},{__mode="k"})
 local TouchTimer=0
-local SEARCH_MOB_DISTANCE=5000
+local SEARCH_MOB_DISTANCE=1500
 
 local function GetRoot()
     local Character=LocalPlayer.Character
@@ -509,9 +480,6 @@ local function DisableNoclip()
     end
 end
 
--- ===================================================
--- 🚤 LOOP TỐC ĐỘ THUYỀN
--- ===================================================
 task.spawn(function()
     while task.wait(0.01) do
         if BoatEnabled then
@@ -533,9 +501,6 @@ task.spawn(function()
     end
 end)
 
--- ===================================================
--- 4. LOGIC TÌM KIẾM MỤC TIÊU
--- ===================================================
 local TargetBeam=nil
 local TargetBeamAttachment=nil
 local TargetBeamTargetAttachment=nil
@@ -572,8 +537,8 @@ local function UpdateTargetBeam(Target)
     TargetBeam=Instance.new("Beam")
     TargetBeam.Name="AxiomTargetBeam"
     TargetBeam.Attachment0=TargetBeamAttachment
-    
-TargetBeam.FaceCamera=true
+    TargetBeam.Attachment1=TargetBeamTargetAttachment
+    TargetBeam.FaceCamera=true
     TargetBeam.Width0=0.25
     TargetBeam.Width1=0.25
     TargetBeam.Color=ColorSequence.new(Color3.fromRGB(0,170,255))
@@ -598,9 +563,8 @@ local function IsBloxFruitsMob(Model)
 
     return true
 end
-
 -- ===================================================
--- TÌM QUÁI GẦN NHẤT
+-- TÌM QUÁI GẦN NHẤT 
 -- ===================================================
 local function FindNearestMob()
     local MyRoot=GetRoot()
@@ -694,39 +658,6 @@ local function FindNearestFruit()
 
     return Nearest
 end
-
--- ===================================================
--- THEO DÕI BELI
--- ===================================================
-local function GetCurrentBeli()
-    local data=LocalPlayer:FindFirstChild("Data")
-    if data and data:FindFirstChild("Beli") then return data.Beli.Value end
-
-    local stats=LocalPlayer:FindFirstChild("leaderstats")
-    if stats and stats:FindFirstChild("Beli") then return stats.Beli.Value end
-    if stats and stats:FindFirstChild("Money") then return stats.Money.Value end
-
-    return 0
-end
-
-local LastBeli=GetCurrentBeli()
-
-task.spawn(function()
-    while task.wait(0.1) do
-        local CurrentMoney=GetCurrentBeli()
-        if CurrentMoney>LastBeli then
-            LastBeli=CurrentMoney
-            if ChestEnabled and TargetChest then
-                IgnoredChests[TargetChest]=true
-                TargetChest=nil
-                RemoveTargetBeam()
-            end
-        else
-            LastBeli=CurrentMoney
-        end
-    end
-end)
-
 -- ===================================================
 -- 5. LOOP ĐIỀU KHIỂN BAY TỚI MỤC TIÊU
 -- ===================================================
@@ -820,6 +751,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
         MyRoot.CFrame=MyRoot.CFrame:Lerp(TargetCFrame,Alpha)
     end
 end)
+
 -- ===================================================
 -- 6. GIAO DIỆN
 -- ===================================================
@@ -941,31 +873,6 @@ local titleText="NHAT HIHI"
 local titleHue=0
 
 -- ===================================================
--- 🔗 BIẾN DÙNG CHUNG CHO MENU + SETTINGS
--- ===================================================
-local SettingsGui
-local CloseSettings
-local UpdateSettingsPosition
-
--- ===================================================
--- 📍 VỊ TRÍ SETTINGS BÊN CẠNH MENU
--- ===================================================
-UpdateSettingsPosition=function()
-    if not MainMenu or not SettingsGui then return end
-    if not MainMenu.Visible or not SettingsGui.Visible then return end
-
-    local MenuPos=MainMenu.AbsolutePosition
-    local MenuSize=MainMenu.AbsoluteSize
-    local SettingsSize=SettingsGui.AbsoluteSize
-    local Gap=8
-
-    local X=MenuPos.X+MenuSize.X+Gap+(SettingsSize.X*SettingsGui.AnchorPoint.X)
-    local Y=MenuPos.Y+(MenuSize.Y/2)
-
-    SettingsGui.Position=UDim2.fromOffset(X,Y)
-end
-
--- ===================================================
 -- 🎞️ TWEEN MENU
 -- ===================================================
 local MenuTweenInfo=TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
@@ -973,40 +880,16 @@ local MenuClosing=false
 
 local function OpenMainMenu()
     if MenuClosing then return end
-
     MainMenu.Visible=true
     MainMenu.Size=MainMenuClosedSize
-
-    TweenService:Create(
-        MainMenu,
-        MenuTweenInfo,
-        {Size=MainMenuOpenSize}
-    ):Play()
+    TweenService:Create(MainMenu,MenuTweenInfo,{Size=MainMenuOpenSize}):Play()
 end
 
 local function CloseMainMenu()
     if not MainMenu.Visible or MenuClosing then return end
-
     MenuClosing=true
-
-    -- Đóng Settings ngay khi Menu chính đóng
-    if SettingsGui and SettingsGui.Visible then
-        SettingsGui.Visible=false
-        SettingsGui.Size=SettingsClosedSize
-
-        if CloseSettings then
-            CloseSettings(true)
-        end
-    end
-
-    local Tween=TweenService:Create(
-        MainMenu,
-        TweenInfo.new(0.22,Enum.EasingStyle.Quart,Enum.EasingDirection.In),
-        {Size=MainMenuClosedSize}
-    )
-
+    local Tween=TweenService:Create(MainMenu,TweenInfo.new(0.22,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=MainMenuClosedSize})
     Tween:Play()
-
     Tween.Completed:Connect(function()
         MainMenu.Visible=false
         MenuClosing=false
@@ -1014,11 +897,7 @@ local function CloseMainMenu()
 end
 
 local function ToggleMainMenu()
-    if MainMenu.Visible then
-        CloseMainMenu()
-    else
-        OpenMainMenu()
-    end
+    if MainMenu.Visible then CloseMainMenu() else OpenMainMenu() end
 end
 
 RunService.RenderStepped:Connect(function(delta)
@@ -1026,29 +905,13 @@ RunService.RenderStepped:Connect(function(delta)
     toggleGradient.Rotation=(toggleGradient.Rotation+delta*ToggleSpeed)%360
     menuGradient.Rotation=(menuGradient.Rotation+delta*90)%360
 
-    -- Settings luôn bám theo Menu chính
-    if MainMenu.Visible and SettingsGui and SettingsGui.Visible then
-        UpdateSettingsPosition()
-    end
-
     for _,flake in ipairs(Snowflakes) do
         local obj=flake.Object
-
         if obj.Parent then
             local x=obj.Position.X.Scale+flake.Drift*delta
             local y=obj.Position.Y.Scale+flake.Speed*delta
-
-            if y>1.05 then
-                y=-0.05
-                x=math.random()
-            end
-
-            if x>1.05 then
-                x=-0.05
-            elseif x<-0.05 then
-                x=1.05
-            end
-
+            if y>1.05 then y=-0.05; x=math.random() end
+            if x>1.05 then x=-0.05 elseif x<-0.05 then x=1.05 end
             obj.Position=UDim2.new(x,0,y,0)
         end
     end
@@ -1058,21 +921,15 @@ RunService.RenderStepped:Connect(function(delta)
 
     for i=1,#titleText do
         local char=titleText:sub(i,i)
-
         if char==" " then
             Text=Text.." "
         else
             local hue=(titleHue-(i-1)/#titleText)%1
             local color=Color3.fromHSV(hue,1,1)
-
             local r=math.floor(color.R*255)
             local g=math.floor(color.G*255)
             local b=math.floor(color.B*255)
-
-            Text=Text..string.format(
-                '<font color="rgb(%d,%d,%d)">%s</font>',
-                r,g,b,char
-            )
+            Text=Text..string.format('<font color="rgb(%d,%d,%d)">%s</font>',r,g,b,char)
         end
     end
 
@@ -1095,36 +952,25 @@ SettingsBtn.Text="⚙️"
 SettingsBtn.Font=Enum.Font.Cartoon
 SettingsBtn.TextSize=18
 SettingsBtn.TextColor3=Color3.fromRGB(100,200,255)
-
 Instance.new("UICorner",SettingsBtn).CornerRadius=UDim.new(1,0)
 
 local SettingsStroke=Instance.new("UIStroke",SettingsBtn)
 SettingsStroke.Thickness=1
 SettingsStroke.Color=Color3.fromRGB(0,120,200)
 
--- ===================================================
--- GUI CÀI ĐẶT
--- ===================================================
-SettingsGui=Instance.new("Frame",SeaGui)
-
+local SettingsGui=Instance.new("Frame",SeaGui)
 local SettingsOpenSize=UDim2.new(0,180,0,195)
 local SettingsClosedSize=UDim2.new(0,140,0,150)
 
 SettingsGui.Name="SettingsGui"
 SettingsGui.Size=SettingsClosedSize
-
--- Đổi AnchorPoint để tính vị trí bên phải dễ hơn
-SettingsGui.AnchorPoint=Vector2.new(0,0.5)
-
-SettingsGui.Position=UDim2.new(0.5,0,0.5,0)
+SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
+SettingsGui.Position=UDim2.new(0.5,155,0.5,0)
 SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
 SettingsGui.BackgroundTransparency=0.08
 SettingsGui.Visible=false
 SettingsGui.Active=true
-
--- Không cho kéo riêng Settings
-SettingsGui.Draggable=false
-
+SettingsGui.Draggable=true
 SettingsGui.ZIndex=20
 SettingsGui.ClipsDescendants=true
 
@@ -1144,7 +990,6 @@ SettingsTitle.TextSize=14
 SettingsTitle.TextColor3=Color3.fromRGB(100,200,255)
 SettingsTitle.TextXAlignment=Enum.TextXAlignment.Left
 SettingsTitle.ZIndex=21
-
 
 local SettingsClose=Instance.new("TextButton",SettingsGui)
 SettingsClose.Size=UDim2.new(0,22,0,22)
@@ -1244,203 +1089,91 @@ local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Ca
 
     local function SetValue(NewValue)
         NewValue=tonumber(NewValue)
-
-        if not NewValue then
-            NewValue=Value
-        end
-
-        Value=math.clamp(
-            math.round(NewValue),
-            MinValue,
-            MaxValue
-        )
-
+        if not NewValue then NewValue=Value end
+        Value=math.clamp(math.round(NewValue),MinValue,MaxValue)
         local Percent=(Value-MinValue)/(MaxValue-MinValue)
-
         Fill.Size=UDim2.new(Percent,0,1,0)
         Input.Text=tostring(Value)
-
         Callback(Value)
     end
 
     local function SetFromMouse(X)
-        local Percent=math.clamp(
-            (X-Bar.AbsolutePosition.X)/Bar.AbsoluteSize.X,
-            0,
-            1
-        )
-
-        SetValue(
-            MinValue+(MaxValue-MinValue)*Percent
-        )
+        local Percent=math.clamp((X-Bar.AbsolutePosition.X)/Bar.AbsoluteSize.X,0,1)
+        SetValue(MinValue+(MaxValue-MinValue)*Percent)
     end
 
     Bar.InputBegan:Connect(function(InputObject)
-        if InputObject.UserInputType==Enum.UserInputType.MouseButton1
-        or InputObject.UserInputType==Enum.UserInputType.Touch then
-
+        if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then
             Dragging=true
             SetFromMouse(InputObject.Position.X)
         end
     end)
 
     UserInputService.InputChanged:Connect(function(InputObject)
-        if Dragging
-        and (
-            InputObject.UserInputType==Enum.UserInputType.MouseMovement
-            or InputObject.UserInputType==Enum.UserInputType.Touch
-        ) then
-
+        if Dragging and (InputObject.UserInputType==Enum.UserInputType.MouseMovement or InputObject.UserInputType==Enum.UserInputType.Touch) then
             SetFromMouse(InputObject.Position.X)
         end
     end)
 
     UserInputService.InputEnded:Connect(function(InputObject)
-        if InputObject.UserInputType==Enum.UserInputType.MouseButton1
-        or InputObject.UserInputType==Enum.UserInputType.Touch then
-
-            Dragging=false
-        end
+        if InputObject.UserInputType==Enum.UserInputType.MouseButton1 or InputObject.UserInputType==Enum.UserInputType.Touch then Dragging=false end
     end)
 
     Input.FocusLost:Connect(function()
         local NewValue=tonumber(Input.Text)
-
-        if NewValue then
-            SetValue(NewValue)
-        else
-            Input.Text=tostring(Value)
-        end
+        if NewValue then SetValue(NewValue) else Input.Text=tostring(Value) end
     end)
 
     SetValue(DefaultValue)
 
-    return {
-        Set=SetValue,
-        Get=function()
-            return Value
-        end
-    }
+    return {Set=SetValue,Get=function() return Value end}
 end
 
-local SpeedSetting=CreateSettingSlider(
-    SettingsScroll,
-    "Tốc độ bay",
-    150,
-    250,
-    _G.SPEED,
-    function(Value)
-        _G.SPEED=Value
-    end
-)
+local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value) _G.SPEED=Value end)
 
-local HeightSetting=CreateSettingSlider(
-    SettingsScroll,
-    "Độ cao quái",
-    0,
-    100,
-    _G.DOCAO_MOB,
-    function(Value)
-        _G.DOCAO_MOB=Value
-    end
-)
+local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value) _G.DOCAO_MOB=Value end)
 
-local BoatSpeedSetting=CreateSettingSlider(
-    SettingsScroll,
-    "Tốc độ thuyền",
-    100,
-    500,
-    _G.BOAT_SPEED,
-    function(Value)
-        _G.BOAT_SPEED=Value
-    end
-)
-
+local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value) _G.BOAT_SPEED=Value end)
 -- ===================================================
 -- 🎞️ TWEEN GUI CÀI ĐẶT
 -- ===================================================
 local SettingsOpening=false
 local SettingsClosing=false
 
-CloseSettings=function(Instant)
-    if Instant then
-        SettingsOpening=false
-        SettingsClosing=false
-        SettingsGui.Visible=false
-        SettingsGui.Size=SettingsClosedSize
-        return
-    end
-
-    if SettingsClosing or not SettingsGui.Visible then
-        return
-    end
-
-    SettingsClosing=true
-    SettingsOpening=false
-
-    local Tween=TweenService:Create(
-        SettingsGui,
-        TweenInfo.new(
-            0.2,
-            Enum.EasingStyle.Quart,
-            Enum.EasingDirection.In
-        ),
-        {Size=SettingsClosedSize}
-    )
-
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsGui.Visible=false
-        SettingsClosing=false
-    end)
-end
-
 local function OpenSettings()
-    if SettingsOpening
-    or SettingsGui.Visible
-    or not MainMenu.Visible then
-        return
-    end
-
+    if SettingsOpening or SettingsGui.Visible then return end
     SettingsOpening=true
-    SettingsClosing=false
-
     SettingsGui.Visible=true
     SettingsGui.Size=SettingsClosedSize
 
-    UpdateSettingsPosition()
-
-    local Tween=TweenService:Create(
-        SettingsGui,
-        TweenInfo.new(
-            0.25,
-            Enum.EasingStyle.Quart,
-            Enum.EasingDirection.Out
-        ),
-        {Size=SettingsOpenSize}
-    )
-
+    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Size=SettingsOpenSize})
     Tween:Play()
 
     Tween.Completed:Connect(function()
         SettingsOpening=false
-        UpdateSettingsPosition()
+    end)
+end
+
+local function CloseSettings()
+    if SettingsClosing or not SettingsGui.Visible then return end
+    SettingsClosing=true
+
+    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=SettingsClosedSize})
+    Tween:Play()
+
+    Tween.Completed:Connect(function()
+        SettingsGui.Visible=false
+        SettingsClosing=false
     end)
 end
 
 local function ToggleSettings()
-    if SettingsGui.Visible then
-        CloseSettings()
-    else
-        OpenSettings()
-    end
+    if SettingsGui.Visible then CloseSettings() else OpenSettings() end
 end
 
 SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
-SettingsClose.MouseButton1Click:Connect(function()
-    CloseSettings()
-end)
+SettingsClose.MouseButton1Click:Connect(CloseSettings)
+
 -- ===================================================
 -- 9.1 HÀM THỰC THI TELEPORT CỔNG
 -- ===================================================
@@ -1640,7 +1373,7 @@ end)
 -- ===================================================
 local BLUE=Color3.fromRGB(0,170,255)
 local OFF_BG=Color3.fromRGB(35,40,48)
-local ON_BG=Color3.fromRGB(15,70,105)
+local ON_BG=Color3.fromRGB(0,170,255)
 local TEXT_COLOR=Color3.fromRGB(100,200,255)
 
 -- ===================================================
