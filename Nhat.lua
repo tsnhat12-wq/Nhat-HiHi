@@ -27,7 +27,16 @@ local DefaultConfig={
     ChestEnabled=false,
     BoatEnabled=false,
     FastAttackEnabled=false,
+    FastAttackTool="Melee",
+    FruitAttackEnabled=false,
 }
+
+local function NormalizeFastAttackTool(val)
+    if typeof(val)=="string" and val:lower()=="sword" then
+        return "Sword"
+    end
+    return "Melee"
+end
 
 local function LoadMenuConfig()
     local cfg={
@@ -39,6 +48,8 @@ local function LoadMenuConfig()
         ChestEnabled=DefaultConfig.ChestEnabled,
         BoatEnabled=DefaultConfig.BoatEnabled,
         FastAttackEnabled=DefaultConfig.FastAttackEnabled,
+        FastAttackTool=DefaultConfig.FastAttackTool,
+        FruitAttackEnabled=DefaultConfig.FruitAttackEnabled,
     }
 
     local function applyTable(tbl)
@@ -51,6 +62,8 @@ local function LoadMenuConfig()
         if typeof(tbl.ChestEnabled)=="boolean" then cfg.ChestEnabled=tbl.ChestEnabled end
         if typeof(tbl.BoatEnabled)=="boolean" then cfg.BoatEnabled=tbl.BoatEnabled end
         if typeof(tbl.FastAttackEnabled)=="boolean" then cfg.FastAttackEnabled=tbl.FastAttackEnabled end
+        if tbl.FastAttackTool~=nil then cfg.FastAttackTool=NormalizeFastAttackTool(tbl.FastAttackTool) end
+        if typeof(tbl.FruitAttackEnabled)=="boolean" then cfg.FruitAttackEnabled=tbl.FruitAttackEnabled end
     end
 
     if isfile and readfile and isfile(CONFIG_FILE) then
@@ -119,6 +132,7 @@ _G.BOAT_SPEED=math.clamp(MenuConfig.BoatSpeed,100,500)
 MenuConfig.Speed=_G.SPEED
 MenuConfig.HeightMob=_G.DOCAO_MOB
 MenuConfig.BoatSpeed=_G.BOAT_SPEED
+MenuConfig.FastAttackTool=NormalizeFastAttackTool(MenuConfig.FastAttackTool)
 
 local MobEnabled=MenuConfig.MobEnabled
 local ChestEnabled=MenuConfig.ChestEnabled
@@ -1380,7 +1394,6 @@ local function SpawnToIsland(spawnArg)
         return
     end
 end
-
 -- ===================================================
 -- ĐOẠN 4/4: TOGGLE CÓ LƯU TRẠNG THÁI & FAST ATTACK
 -- ===================================================
@@ -1518,7 +1531,7 @@ local ChestToggle=CreateToggle("FARM RƯƠNG",MenuConfig.ChestEnabled,function(V
 end)
 
 -- FAST ATTACK
-local TOOL=MenuConfig.FastAttackTool or "Melee" -- "Melee", "Sword" hoặc {"Melee", "Sword"}
+local TOOL=(tostring(MenuConfig.FastAttackTool):lower()=="sword") and "Sword" or "Melee"
 local Enemies=Workspace:WaitForChild("Enemies")
 local Characters=Workspace:FindFirstChild("Characters")
 local Modules=ReplicatedStorage:WaitForChild("Modules")
@@ -1601,14 +1614,6 @@ end
 
 local function MatchesToolConfig(tool)
     if not tool or not tool:IsA("Tool") then return false end
-    if type(TOOL)=="table" then
-        for _,tip in ipairs(TOOL) do
-            if string.lower(tool.ToolTip)==string.lower(tip) then
-                return true
-            end
-        end
-        return false
-    end
     return string.lower(tool.ToolTip)==string.lower(tostring(TOOL))
 end
 
@@ -1761,22 +1766,15 @@ local function CreateWeaponSelector(DefaultTool,Callback)
     local RowLayout=Instance.new("UIListLayout",OptionsRow)
     RowLayout.FillDirection=Enum.FillDirection.Horizontal
     RowLayout.SortOrder=Enum.SortOrder.LayoutOrder
-    RowLayout.Padding=UDim.new(0,4)
+    RowLayout.Padding=UDim.new(0,6)
 
     local Choices={
         {Key="Melee",Text="Melee"},
         {Key="Sword",Text="Sword"},
-        {Key="Both",Text="Cả hai"},
     }
 
     local Buttons={}
-    local CurrentKey="Melee"
-
-    if type(DefaultTool)=="table" or DefaultTool=="Both" then
-        CurrentKey="Both"
-    elseif tostring(DefaultTool):lower()=="sword" then
-        CurrentKey="Sword"
-    end
+    local CurrentKey=(tostring(DefaultTool):lower()=="sword") and "Sword" or "Melee"
 
     local function Refresh(silent)
         for key,item in pairs(Buttons) do
@@ -1787,15 +1785,14 @@ local function CreateWeaponSelector(DefaultTool,Callback)
         end
 
         if not silent then
-            local resolvedTool=(CurrentKey=="Both") and {"Melee","Sword"} or CurrentKey
-            Callback(resolvedTool,CurrentKey)
+            Callback(CurrentKey)
         end
     end
 
     for index,choice in ipairs(Choices) do
         local OptionBtn=Instance.new("TextButton",OptionsRow)
         OptionBtn.LayoutOrder=index
-        OptionBtn.Size=UDim2.new(1/3,-3,1,0)
+        OptionBtn.Size=UDim2.new(0.5,-3,1,0)
         OptionBtn.BackgroundColor3=OFF_BG
         OptionBtn.AutoButtonColor=false
         OptionBtn.Text=choice.Text
@@ -1817,13 +1814,13 @@ local function CreateWeaponSelector(DefaultTool,Callback)
     end
 
     Refresh(true)
-    TOOL=(CurrentKey=="Both") and {"Melee","Sword"} or CurrentKey
+    TOOL=CurrentKey
 end
 
-CreateWeaponSelector(MenuConfig.FastAttackTool or TOOL,function(resolvedTool,savedKey)
-    TOOL=resolvedTool
+CreateWeaponSelector(TOOL,function(selectedTool)
+    TOOL=selectedTool
     lastEquipTime=0
-    MenuConfig.FastAttackTool=savedKey
+    MenuConfig.FastAttackTool=selectedTool
     SaveMenuConfig()
 end)
 
@@ -1831,11 +1828,167 @@ local FastAttackToggle=CreateToggle("FAST ATTACK",enabled,function(Value)
     enabled=Value
     MenuConfig.FastAttackEnabled=Value
     SaveMenuConfig()
-end,"Đánh không cần cầm Melee/Sword")
+end,"Đánh không cần cầm võ")
+
+-- ATTACK FRUIT
+local FRUIT_MAX_DISTANCE=30
+local fruitAttackEnabled=MenuConfig.FruitAttackEnabled and true or false
+local lastFruitFalseTick=0
+
+local function GetFruitRemote()
+    local backpack=LocalPlayer:FindFirstChild("Backpack")
+    local character=LocalPlayer.Character
+
+    if character then
+        for _,item in ipairs(character:GetChildren()) do
+            if item:IsA("Tool") and item:FindFirstChild("LeftClickRemote") then
+                return item.LeftClickRemote
+            end
+        end
+    end
+
+    if backpack then
+        for _,item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item:FindFirstChild("LeftClickRemote") then
+                return item.LeftClickRemote
+            end
+        end
+    end
+
+    return nil
+end
+
+local function GetFruitTargetPosition(target)
+    if not target then return nil end
+
+    local part=target:FindFirstChild("HumanoidRootPart")
+        or target:FindFirstChild("Engine")
+        or target:FindFirstChild("Leviathan Segment")
+        or target:FindFirstChild("PrimaryPart")
+        or target:FindFirstChildWhichIsA("BasePart")
+
+    return part and part.Position or nil
+end
+
+local function IsFruitTargetAlive(target)
+    if not target then return false end
+
+    local humanoid=target:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        return humanoid.Health>0
+    end
+
+    local healthVal=target:FindFirstChild("Health")
+    if healthVal then
+        if healthVal:IsA("ValueBase") then
+            return healthVal.Value>0
+        elseif healthVal:IsA("Humanoid") then
+            return healthVal.Health>0
+        end
+    end
+
+    return target.Parent~=nil
+end
+
+local function IsFruitTargetNearby()
+    local character=LocalPlayer.Character
+    local rootPart=character and character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then
+        return false
+    end
+
+    local myPos=rootPart.Position
+
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+            if IsFruitTargetAlive(enemy) then
+                local enemyPos=GetFruitTargetPosition(enemy)
+                if enemyPos and (enemyPos-myPos).Magnitude<=FRUIT_MAX_DISTANCE then
+                    return true
+                end
+            end
+        end
+    end
+
+    local seaBeastsFolder=Workspace:FindFirstChild("SeaBeasts")
+    if seaBeastsFolder then
+        for _,beast in ipairs(seaBeastsFolder:GetChildren()) do
+            if IsFruitTargetAlive(beast) then
+                local beastPos=GetFruitTargetPosition(beast)
+                if beastPos and (beastPos-myPos).Magnitude<=FRUIT_MAX_DISTANCE then
+                    return true
+                end
+            end
+        end
+    end
+
+    for _,obj in ipairs(Workspace:GetChildren()) do
+        if obj.Name:lower():find("pumpkin") then
+            for _,pumpkin in ipairs(obj:GetChildren()) do
+                local pumpkinPos=GetFruitTargetPosition(pumpkin)
+                if pumpkinPos and (pumpkinPos-myPos).Magnitude<=FRUIT_MAX_DISTANCE then
+                    return true
+                end
+            end
+        end
+    end
+
+    for _,otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer~=LocalPlayer and otherPlayer.Character then
+            if IsFruitTargetAlive(otherPlayer.Character) then
+                local otherPos=GetFruitTargetPosition(otherPlayer.Character)
+                if otherPos and (otherPos-myPos).Magnitude<=FRUIT_MAX_DISTANCE then
+                    return true
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+local AttackFruitToggle=CreateToggle("Attack Fruit",fruitAttackEnabled,function(Value)
+    fruitAttackEnabled=Value
+    MenuConfig.FruitAttackEnabled=Value
+    SaveMenuConfig()
+end,"Đánh không cần cầm trái")
 
 task.spawn(function()
     while true do
         SendAttackAndHit()
         task.wait(LOOP_DELAY)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if fruitAttackEnabled then
+            local hasTarget=IsFruitTargetNearby()
+            local remote=GetFruitRemote()
+
+            if hasTarget then
+                if remote then
+                    pcall(function()
+                        remote:FireServer(Vector3.new(0.01,-0.8,0.01),1)
+                        remote:FireServer(false)
+                    end)
+                end
+                task.wait(0.05)
+            else
+                local currentTime=tick()
+                if currentTime-lastFruitFalseTick>=2 then
+                    if remote then
+                        pcall(function()
+                            remote:FireServer(false)
+                        end)
+                    end
+                    lastFruitFalseTick=currentTime
+                end
+                task.wait(0.5)
+            end
+        else
+            task.wait(0.5)
+        end
     end
 end)
