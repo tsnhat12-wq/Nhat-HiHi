@@ -627,7 +627,8 @@ local function PlayTweenToTarget(root,targetCFrame,speed)
 
     local targetPos=targetCFrame.Position
     local distance=(root.Position-targetPos).Magnitude
-    local duration=math.clamp(distance/math.max(speed,1),0.01,0.06)
+    local safeSpeed=math.max(tonumber(speed) or 200,1)
+    local duration=math.max(distance/safeSpeed,0.01)
     local tweenInfo=TweenInfo.new(duration,Enum.EasingStyle.Linear,Enum.EasingDirection.Out)
 
     ActiveFlyTweenGoalPos=targetPos
@@ -720,7 +721,7 @@ local function StepFlyToCFrame(root,targetCFrame,deltaTime,customSpeed)
     local distance=offset.Magnitude
     local boostDist=tonumber(_G.BOOST_DISTANCE) or BOOST_DISTANCE
     local boostSpd=tonumber(_G.BOOST_SPEED) or BOOST_SPEED
-    local normalSpd=customSpeed or (tonumber(_G.SPEED) or 200)
+    local sliderSpeed=customSpeed or (tonumber(_G.SPEED) or 200)
     local shouldBoost=(distance<=boostDist)
 
     if distance<=0.05 then
@@ -730,21 +731,22 @@ local function StepFlyToCFrame(root,targetCFrame,deltaTime,customSpeed)
     end
 
     if FlyMode=="Tween" then
-        local targetMoved=(not ActiveFlyTweenGoalPos) or ((ActiveFlyTweenGoalPos-targetPos).Magnitude>0.5)
+        local activeSpeed=shouldBoost and boostSpd or sliderSpeed
+        local targetMoved=(not ActiveFlyTweenGoalPos) or ((ActiveFlyTweenGoalPos-targetPos).Magnitude>1)
 
         if targetMoved then
             IsBoostingNearTween=shouldBoost
-            PlayTweenToTarget(root,targetCFrame,shouldBoost and boostSpd or normalSpd)
+            PlayTweenToTarget(root,targetCFrame,activeSpeed)
         elseif shouldBoost and not IsBoostingNearTween then
             IsBoostingNearTween=true
             PlayTweenToTarget(root,targetCFrame,boostSpd)
         elseif (not ActiveFlyTween) or (ActiveFlyTween.PlaybackState~=Enum.PlaybackState.Playing) then
             IsBoostingNearTween=shouldBoost
-            PlayTweenToTarget(root,targetCFrame,shouldBoost and boostSpd or normalSpd)
+            PlayTweenToTarget(root,targetCFrame,activeSpeed)
         end
     else
         CancelActiveFlyTween()
-        local speed=shouldBoost and boostSpd or normalSpd
+        local speed=shouldBoost and boostSpd or sliderSpeed
         local step=speed*deltaTime
         if step>=distance then
             root.CFrame=targetCFrame
