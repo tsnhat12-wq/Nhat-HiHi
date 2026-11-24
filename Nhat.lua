@@ -161,6 +161,7 @@ local EspEventIsland=MenuConfig.EspEventIslandEnabled
 local AdvancedFruitDealerESP=MenuConfig.EspNpcEnabled
 local AutoRaceV4Enabled=MenuConfig.AutoRaceV4Enabled and true or false
 _G.BoatESP=true
+
 -- ===================================================
 -- ĐOẠN 1B: ESP NHIỀU TRÁI, ĐẢO SỰ KIỆN & VÒNG LẶP MÔI TRƯỜNG
 -- ===================================================
@@ -519,7 +520,7 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait() do
         pcall(function()
             if Observation then
                 ReplicatedStorage.Remotes.CommE:FireServer("Ken",true)
@@ -586,8 +587,9 @@ task.spawn(function()
         end
     end
 end)
+
 -- ===================================================
--- ĐOẠN 2/4: TÌM MỤC TIÊU & LOOP ĐIỀU KHIỂN BAY
+-- ĐOẠN 2/4: TÌM MỤC TIÊU & LOOP ĐIỀU KHIỂN BAY (TWEEN / LERP)
 -- ===================================================
 local TargetMob=nil
 local TargetChest=nil
@@ -601,89 +603,156 @@ local SEARCH_MOB_DISTANCE=1500
 local BOOST_DISTANCE=100
 local BOOST_SPEED=5000
 
+local ActiveFlyTween=nil
+local ActiveFlyTweenGoalPos=nil
+local IsBoostingNearTween=false
+
+local function CancelActiveFlyTween()
+    IsBoostingNearTween=false
+    if ActiveFlyTween then
+        pcall(function() ActiveFlyTween:Cancel() end)
+        ActiveFlyTween:Destroy()
+        ActiveFlyTween=nil
+    end
+    ActiveFlyTweenGoalPos=nil
+end
+
+local function PlayTweenToTarget(root,targetCFrame,speed)
+    if not root or not root.Parent then return end
+    if ActiveFlyTween then
+        pcall(function() ActiveFlyTween:Cancel() end)
+        ActiveFlyTween:Destroy()
+        ActiveFlyTween=nil
+    end
+
+    local targetPos=targetCFrame.Position
+    local distance=(root.Position-targetPos).Magnitude
+    local duration=math.clamp(distance/math.max(speed,1),0.01,0.06)
+    local tweenInfo=TweenInfo.new(duration,Enum.EasingStyle.Linear,Enum.EasingDirection.Out)
+
+    ActiveFlyTweenGoalPos=targetPos
+    ActiveFlyTween=TweenService:Create(root,tweenInfo,{CFrame=targetCFrame})
+
+    local currentTween=ActiveFlyTween
+    currentTween.Completed:Connect(function()
+        if ActiveFlyTween==currentTween then
+            ActiveFlyTween=nil
+            ActiveFlyTweenGoalPos=nil
+        end
+    end)
+
+    currentTween:Play()
+end
+
 local function GetRoot()
     local Character=LocalPlayer.Character
     return Character and Character:FindFirstChild("HumanoidRootPart")
 end
 
 local function EnableAntiGravity(root)
-	if not BodyVelocity or BodyVelocity.Parent ~= root then
-		if BodyVelocity then
-			BodyVelocity:Destroy()
-		end
-		BodyVelocity = Instance.new("BodyVelocity")
-		BodyVelocity.Name = "AxiomHover"
-		BodyVelocity.Velocity = Vector3.zero
-		BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-		BodyVelocity.P = 12500
-		BodyVelocity.Parent = root
-	end
+    if not BodyVelocity or BodyVelocity.Parent~=root then
+        if BodyVelocity then
+            BodyVelocity:Destroy()
+        end
+        BodyVelocity=Instance.new("BodyVelocity")
+        BodyVelocity.Name="AxiomHover"
+        BodyVelocity.Velocity=Vector3.zero
+        BodyVelocity.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
+        BodyVelocity.P=12500
+        BodyVelocity.Parent=root
+    end
 
-	local Character = LocalPlayer.Character
-	local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-	if Humanoid and Humanoid.Sit then
-		Humanoid.Sit = false
-		if Humanoid.SeatPart then
-			Humanoid.SeatPart = nil
-		end
-		Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-	end
+    local Character=LocalPlayer.Character
+    local Humanoid=Character and Character:FindFirstChildOfClass("Humanoid")
+    if Humanoid and Humanoid.Sit then
+        Humanoid.Sit=false
+        if Humanoid.SeatPart then
+            Humanoid.SeatPart=nil
+        end
+        Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
 end
 
 local function DisableAntiGravity()
-	if BodyVelocity then
-		BodyVelocity:Destroy()
-		BodyVelocity = nil
-	end
+    if BodyVelocity then
+        BodyVelocity:Destroy()
+        BodyVelocity=nil
+    end
 end
 
 local function EnableNoclip()
-	if not NoclipConnection then
-		NoclipConnection = RunService.Stepped:Connect(function()
-			if (MobEnabled or ChestEnabled or FruitEnabled) and LocalPlayer.Character then
-				for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-					if part:IsA("BasePart") and part.CanCollide then
-						part.CanCollide = false
-					end
-				end
-			end
-		end)
-	end
+    if not NoclipConnection then
+        NoclipConnection=RunService.Stepped:Connect(function()
+            if (MobEnabled or ChestEnabled or FruitEnabled or TempleFlyConnection) and LocalPlayer.Character then
+                for _,part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide=false
+                    end
+                end
+            end
+        end)
+    end
 end
 
 local function DisableNoclip()
-	if NoclipConnection and not MobEnabled and not ChestEnabled and not FruitEnabled then
-		NoclipConnection:Disconnect()
-		NoclipConnection = nil
-	end
+    if NoclipConnection and not MobEnabled and not ChestEnabled and not FruitEnabled and not TempleFlyConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection=nil
+    end
 end
 
 local function GetFlySpeedForDistance(distance)
-	local baseSpeed = tonumber(_G.SPEED) or 200
-	if distance <= BOOST_DISTANCE then
-		return BOOST_SPEED
-	end
-	return baseSpeed
+    local baseSpeed=tonumber(_G.SPEED) or 200
+    local boostDist=tonumber(_G.BOOST_DISTANCE) or BOOST_DISTANCE
+    local boostSpd=tonumber(_G.BOOST_SPEED) or BOOST_SPEED
+    if distance<=boostDist then
+        return boostSpd
+    end
+    return baseSpeed
 end
 
-local function MoveCFrameConstantSpeed(currentCFrame, targetCFrame, deltaTime)
-	local currentPos = currentCFrame.Position
-	local targetPos = targetCFrame.Position
-	local offset = targetPos - currentPos
-	local distance = offset.Magnitude
+local function StepFlyToCFrame(root,targetCFrame,deltaTime,customSpeed)
+    if not root or not root.Parent then return end
 
-	if distance <= 0.001 then
-		return targetCFrame
-	end
+    local currentPos=root.Position
+    local targetPos=targetCFrame.Position
+    local offset=targetPos-currentPos
+    local distance=offset.Magnitude
+    local boostDist=tonumber(_G.BOOST_DISTANCE) or BOOST_DISTANCE
+    local boostSpd=tonumber(_G.BOOST_SPEED) or BOOST_SPEED
+    local normalSpd=customSpeed or (tonumber(_G.SPEED) or 200)
+    local shouldBoost=(distance<=boostDist)
 
-	local speed = GetFlySpeedForDistance(distance)
-	local step = speed * deltaTime
-	if step >= distance then
-		return targetCFrame
-	end
+    if distance<=0.05 then
+        CancelActiveFlyTween()
+        root.CFrame=targetCFrame
+        return
+    end
 
-	local nextPos = currentPos + offset.Unit * step
-	return (targetCFrame - targetPos) + nextPos
+    if FlyMode=="Tween" then
+        local targetMoved=(not ActiveFlyTweenGoalPos) or ((ActiveFlyTweenGoalPos-targetPos).Magnitude>0.5)
+
+        if targetMoved then
+            IsBoostingNearTween=shouldBoost
+            PlayTweenToTarget(root,targetCFrame,shouldBoost and boostSpd or normalSpd)
+        elseif shouldBoost and not IsBoostingNearTween then
+            IsBoostingNearTween=true
+            PlayTweenToTarget(root,targetCFrame,boostSpd)
+        elseif (not ActiveFlyTween) or (ActiveFlyTween.PlaybackState~=Enum.PlaybackState.Playing) then
+            IsBoostingNearTween=shouldBoost
+            PlayTweenToTarget(root,targetCFrame,shouldBoost and boostSpd or normalSpd)
+        end
+    else
+        CancelActiveFlyTween()
+        local speed=shouldBoost and boostSpd or normalSpd
+        local step=speed*deltaTime
+        if step>=distance then
+            root.CFrame=targetCFrame
+        else
+            local nextPos=currentPos+offset.Unit*step
+            root.CFrame=(targetCFrame-targetPos)+nextPos
+        end
+    end
 end
 
 task.spawn(function()
@@ -851,13 +920,15 @@ local function FindNearestFruit()
 end
 
 RunService.Heartbeat:Connect(function(DeltaTime)
+    if TempleFlyConnection then return end
+
     if not MobEnabled and not ChestEnabled and not FruitEnabled then
-        DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
+        CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
     end
 
     local MyRoot=GetRoot()
     if not MyRoot then
-        DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
+        CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
     end
 
     MyRoot.AssemblyLinearVelocity=Vector3.zero
@@ -865,7 +936,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
 
     if FruitEnabled then
         if not TargetFruit or not TargetFruit.Parent then TargetFruit=FindNearestFruit() end
-        if not TargetFruit then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
+        if not TargetFruit then CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
 
         EnableAntiGravity(MyRoot)
         EnableNoclip()
@@ -878,21 +949,21 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             firetouchinterest(MyRoot,TargetFruit,0); firetouchinterest(MyRoot,TargetFruit,1)
         end
 
-        MyRoot.CFrame=MoveCFrameConstantSpeed(MyRoot.CFrame,TargetCFrame,DeltaTime)
+        StepFlyToCFrame(MyRoot,TargetCFrame,DeltaTime)
 
     elseif MobEnabled then
         if not TargetMob or not TargetMob.Parent or not IsBloxFruitsMob(TargetMob) then TargetMob=FindNearestMob() end
-        if not TargetMob then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
+        if not TargetMob then CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
 
         local MobRoot=TargetMob:FindFirstChild("HumanoidRootPart") or TargetMob.PrimaryPart
-        if not MobRoot then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
+        if not MobRoot then CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
 
         EnableAntiGravity(MyRoot)
         EnableNoclip()
         UpdateTargetBeam(TargetMob)
 
         local TargetCFrame=MobRoot.CFrame*CFrame.new(_G.DOXATP,_G.DOCAO_MOB,0)
-        MyRoot.CFrame=MoveCFrameConstantSpeed(MyRoot.CFrame,TargetCFrame,DeltaTime)
+        StepFlyToCFrame(MyRoot,TargetCFrame,DeltaTime)
 
     elseif ChestEnabled then
         if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] or TargetChest:GetAttribute("IsDisabled") then
@@ -900,7 +971,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             TouchTimer=0
         end
 
-        if not TargetChest then DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
+        if not TargetChest then CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return end
 
         EnableAntiGravity(MyRoot)
         EnableNoclip()
@@ -923,6 +994,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
                 IgnoredChests[TargetChest]=true
                 TargetChest=nil
                 TouchTimer=0
+                CancelActiveFlyTween()
                 RemoveTargetBeam()
                 return
             end
@@ -930,7 +1002,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
             TouchTimer=0
         end
 
-        MyRoot.CFrame=MoveCFrameConstantSpeed(MyRoot.CFrame,TargetCFrame,DeltaTime)
+        StepFlyToCFrame(MyRoot,TargetCFrame,DeltaTime)
     end
 end)
 
@@ -1109,11 +1181,10 @@ RunService.RenderStepped:Connect(function(delta)
     Title.Text=Text
 end)
 
-ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)    
-
+ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)   
 
 -- ===================================================
--- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (SLIDER + ESP + AUTO V4) & TELEPORT CỔNG
+-- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (TWEEN/LERP + SLIDER + ESP + AUTO V4)
 -- ===================================================
 local SettingsBtn=Instance.new("TextButton",MainMenu)
 SettingsBtn.Name="SettingsButton"
@@ -1140,7 +1211,7 @@ local SettingsClosedSize=UDim2.new(0,140,0,150)
 SettingsGui.Name="SettingsGui"
 SettingsGui.Size=SettingsOpenSize
 SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
-SettingsGui.Position=UDim2.new(0.5,208,0.4,0)
+SettingsGui.Position=UDim2.new(0.5,208,0.5,0)
 SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
 SettingsGui.BackgroundTransparency=0.08
 SettingsGui.Visible=false
@@ -1199,8 +1270,94 @@ SettingsList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     SettingsScroll.CanvasSize=UDim2.new(0,0,0,SettingsList.AbsoluteContentSize.Y+10)
 end)
 
-local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Callback)
+-- Bộ chọn chế độ bay (Tween / Lerp) đặt trên cùng
+local FlyModeHolder=Instance.new("Frame",SettingsScroll)
+FlyModeHolder.Name="FlyModeSelector"
+FlyModeHolder.LayoutOrder=0
+FlyModeHolder.Size=UDim2.new(1,-6,0,50)
+FlyModeHolder.BackgroundColor3=Color3.fromRGB(25,35,50)
+FlyModeHolder.BackgroundTransparency=0.25
+FlyModeHolder.BorderSizePixel=0
+FlyModeHolder.ZIndex=21
+Instance.new("UICorner",FlyModeHolder).CornerRadius=UDim.new(0,5)
+
+local FlyModeStroke=Instance.new("UIStroke",FlyModeHolder)
+FlyModeStroke.Thickness=1
+FlyModeStroke.Color=Color3.fromRGB(0,120,200)
+
+local FlyModeTitle=Instance.new("TextLabel",FlyModeHolder)
+FlyModeTitle.Size=UDim2.new(1,-10,0,17)
+FlyModeTitle.Position=UDim2.new(0,5,0,2)
+FlyModeTitle.BackgroundTransparency=1
+FlyModeTitle.Text="CHẾ ĐỘ BAY"
+FlyModeTitle.Font=Enum.Font.Cartoon
+FlyModeTitle.TextSize=11
+FlyModeTitle.TextColor3=Color3.fromRGB(100,200,255)
+FlyModeTitle.TextXAlignment=Enum.TextXAlignment.Left
+FlyModeTitle.ZIndex=22
+
+local FlyModeRow=Instance.new("Frame",FlyModeHolder)
+FlyModeRow.Size=UDim2.new(1,-10,0,22)
+FlyModeRow.Position=UDim2.new(0,5,0,22)
+FlyModeRow.BackgroundTransparency=1
+FlyModeRow.ZIndex=22
+
+local FlyModeLayout=Instance.new("UIListLayout",FlyModeRow)
+FlyModeLayout.FillDirection=Enum.FillDirection.Horizontal
+FlyModeLayout.SortOrder=Enum.SortOrder.LayoutOrder
+FlyModeLayout.Padding=UDim.new(0,6)
+
+local FlyModeChoices={
+    {Key="Tween",Text="Tween"},
+    {Key="Lerp",Text="Lerp"},
+}
+
+local FlyModeButtons={}
+
+local function RefreshFlyModeUI(silent)
+    for key,item in pairs(FlyModeButtons) do
+        local active=(key==FlyMode)
+        item.Btn.BackgroundColor3=active and Color3.fromRGB(0,170,255) or Color3.fromRGB(35,40,48)
+        item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
+        item.Stroke.Color=active and Color3.fromRGB(0,170,255) or Color3.fromRGB(70,80,90)
+    end
+    if not silent then
+        MenuConfig.FlyMode=FlyMode
+        SaveMenuConfig()
+    end
+end
+
+for idx,choice in ipairs(FlyModeChoices) do
+    local ModeBtn=Instance.new("TextButton",FlyModeRow)
+    ModeBtn.LayoutOrder=idx
+    ModeBtn.Size=UDim2.new(0.5,-3,1,0)
+    ModeBtn.BackgroundColor3=Color3.fromRGB(35,40,48)
+    ModeBtn.AutoButtonColor=false
+    ModeBtn.Text=choice.Text
+    ModeBtn.Font=Enum.Font.Cartoon
+    ModeBtn.TextSize=11
+    ModeBtn.TextColor3=Color3.fromRGB(165,195,220)
+    ModeBtn.ZIndex=23
+    Instance.new("UICorner",ModeBtn).CornerRadius=UDim.new(0,5)
+
+    local ModeStroke=Instance.new("UIStroke",ModeBtn)
+    ModeStroke.Thickness=1
+    ModeStroke.Color=Color3.fromRGB(70,80,90)
+
+    FlyModeButtons[choice.Key]={Btn=ModeBtn,Stroke=ModeStroke}
+
+    ModeBtn.MouseButton1Click:Connect(function()
+        FlyMode=choice.Key
+        CancelActiveFlyTween()
+        RefreshFlyModeUI(false)
+    end)
+end
+
+RefreshFlyModeUI(true)
+
+local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Callback,Order)
     local Holder=Instance.new("Frame",Parent)
+    Holder.LayoutOrder=Order or 10
     Holder.Size=UDim2.new(1,-6,0,54)
     Holder.BackgroundTransparency=1
     Holder.BorderSizePixel=0
@@ -1298,8 +1455,9 @@ local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Ca
     return {Set=SetValue,Get=function() return Value end}
 end
 
-local function CreateSettingToggle(Parent,Name,DefaultState,Callback)
+local function CreateSettingToggle(Parent,Name,DefaultState,Callback,Order)
     local Holder=Instance.new("Frame",Parent)
+    Holder.LayoutOrder=Order or 20
     Holder.Size=UDim2.new(1,-6,0,30)
     Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
     Holder.BackgroundTransparency=0.25
@@ -1373,43 +1531,43 @@ local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,
     _G.SPEED=Value
     MenuConfig.Speed=Value
     SaveMenuConfig()
-end)
+end,1)
 
 local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value)
     _G.DOCAO_MOB=Value
     MenuConfig.HeightMob=Value
     SaveMenuConfig()
-end)
+end,2)
 
 local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
     _G.BOAT_SPEED=Value
     MenuConfig.BoatSpeed=Value
     SaveMenuConfig()
-end)
+end,3)
 
 local EspFruitToggle=CreateSettingToggle(SettingsScroll,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
     SetFruitESPEnabled(Value)
     MenuConfig.EspFruitEnabled=Value
     SaveMenuConfig()
-end)
+end,4)
 
 local EspEventIslandToggle=CreateSettingToggle(SettingsScroll,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
     SetEventIslandESPEnabled(Value)
     MenuConfig.EspEventIslandEnabled=Value
     SaveMenuConfig()
-end)
+end,5)
 
 local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
     SetNpcESPEnabled(Value)
     MenuConfig.EspNpcEnabled=Value
     SaveMenuConfig()
-end)
+end,6)
 
 local AutoRaceV4Toggle=CreateSettingToggle(SettingsScroll,"Auto Race V4",AutoRaceV4Enabled,function(Value)
     AutoRaceV4Enabled=Value
     MenuConfig.AutoRaceV4Enabled=Value
     SaveMenuConfig()
-end)
+end,7)
 
 task.spawn(function()
     while task.wait(0.2) do
@@ -1483,12 +1641,16 @@ end)
 SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
 SettingsClose.MouseButton1Click:Connect(CloseSettings)
 
+-- ===================================================
+-- ĐOẠN 3C: TELEPORT CỔNG & ĐỀN THỜI GIAN
+-- ===================================================
 local function SpawnToIsland(spawnArg)
     local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
 
     if spawnArg=="TempleOfTime" then
         if TempleFlyConnection or BodyVelocity then
             if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+            CancelActiveFlyTween()
             DisableAntiGravity()
             DisableNoclip()
             return
@@ -1510,6 +1672,7 @@ local function SpawnToIsland(spawnArg)
 
                 if not currentHrp then
                     if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+                    CancelActiveFlyTween()
                     DisableAntiGravity()
                     DisableNoclip()
                     return
@@ -1530,10 +1693,10 @@ local function SpawnToIsland(spawnArg)
                 local boostSpeed=tonumber(_G.BOOST_SPEED) or 1000
                 local normalSpeed=tonumber(_G.SPEED) or 140
                 local activeSpeed=distance<=boostDistance and boostSpeed or normalSpeed
-                local alpha=math.clamp((activeSpeed*deltaTime)/math.max(distance,0.001),0,1)
 
                 if phase==1 then
                     if distance<=0.5 then
+                        CancelActiveFlyTween()
                         phase=2
 
                         task.spawn(function()
@@ -1579,16 +1742,17 @@ local function SpawnToIsland(spawnArg)
                             phase=3
                         end)
                     else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
+                        StepFlyToCFrame(currentHrp,targetCFrame,deltaTime,activeSpeed)
                     end
                 elseif phase==3 then
                     if distance<=3 then
                         if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+                        CancelActiveFlyTween()
                         DisableAntiGravity()
                         DisableNoclip()
                         return
                     else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
+                        StepFlyToCFrame(currentHrp,targetCFrame,deltaTime,activeSpeed)
                     end
                 end
             end)
@@ -1597,6 +1761,7 @@ local function SpawnToIsland(spawnArg)
         return
     end
 end
+             
 -- ===================================================
 -- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
 -- ===================================================
