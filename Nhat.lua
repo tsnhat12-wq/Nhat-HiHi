@@ -36,6 +36,7 @@ local DefaultConfig={
     EspFruitEnabled=true,
     EspEventIslandEnabled=true,
     EspNpcEnabled=true,
+    AutoRaceV4Enabled=false,
 }
 
 local function NormalizeFastAttackTool(val)
@@ -61,6 +62,7 @@ local function LoadMenuConfig()
         EspFruitEnabled=DefaultConfig.EspFruitEnabled,
         EspEventIslandEnabled=DefaultConfig.EspEventIslandEnabled,
         EspNpcEnabled=DefaultConfig.EspNpcEnabled,
+        AutoRaceV4Enabled=DefaultConfig.AutoRaceV4Enabled,
     }
 
     local function applyTable(tbl)
@@ -79,6 +81,7 @@ local function LoadMenuConfig()
         if typeof(tbl.EspFruitEnabled)=="boolean" then cfg.EspFruitEnabled=tbl.EspFruitEnabled end
         if typeof(tbl.EspEventIslandEnabled)=="boolean" then cfg.EspEventIslandEnabled=tbl.EspEventIslandEnabled end
         if typeof(tbl.EspNpcEnabled)=="boolean" then cfg.EspNpcEnabled=tbl.EspNpcEnabled end
+        if typeof(tbl.AutoRaceV4Enabled)=="boolean" then cfg.AutoRaceV4Enabled=tbl.AutoRaceV4Enabled end
     end
 
     if isfile and readfile and isfile(CONFIG_FILE) then
@@ -113,7 +116,7 @@ local function SaveMenuConfig()
 end
 
 local function ClearOldGUI()
-    local oldNames={"SeaMenu_Gui","Toggle25x25Gui","AxiomTeleportMobBF","AxiomTeleportChestBF","AxiomTeleportFruitBF"}
+    local oldNames={"SeaMenu_Gui","Toggle25x25Gui","AxiomTeleportMobBF","AxiomTeleportChestBF","AxiomTeleportFruitBF","RaceV4GUI"}
 
     for _,name in ipairs(oldNames) do
         local oldCore=CoreGui:FindFirstChild(name)
@@ -156,6 +159,7 @@ local BoatEnabled=MenuConfig.BoatEnabled
 local DevilFruitESP=MenuConfig.EspFruitEnabled
 local EspEventIsland=MenuConfig.EspEventIslandEnabled
 local AdvancedFruitDealerESP=MenuConfig.EspNpcEnabled
+local AutoRaceV4Enabled=MenuConfig.AutoRaceV4Enabled and true or false
 _G.BoatESP=true
 -- ===================================================
 -- ĐOẠN 1B: ESP NHIỀU TRÁI, ĐẢO SỰ KIỆN & VÒNG LẶP MÔI TRƯỜNG
@@ -515,7 +519,7 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait(0.1) do
         pcall(function()
             if Observation then
                 ReplicatedStorage.Remotes.CommE:FireServer("Ken",true)
@@ -1105,9 +1109,11 @@ RunService.RenderStepped:Connect(function(delta)
     Title.Text=Text
 end)
 
-ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu) 
+ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)    
+
+
 -- ===================================================
--- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (SLIDER + ESP) & TELEPORT CỔNG
+-- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (SLIDER + ESP + AUTO V4) & TELEPORT CỔNG
 -- ===================================================
 local SettingsBtn=Instance.new("TextButton",MainMenu)
 SettingsBtn.Name="SettingsButton"
@@ -1134,7 +1140,7 @@ local SettingsClosedSize=UDim2.new(0,140,0,150)
 SettingsGui.Name="SettingsGui"
 SettingsGui.Size=SettingsOpenSize
 SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
-SettingsGui.Position=UDim2.new(0.5,208,0.5,0)
+SettingsGui.Position=UDim2.new(0.5,208,0.4,0)
 SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
 SettingsGui.BackgroundTransparency=0.08
 SettingsGui.Visible=false
@@ -1397,6 +1403,31 @@ local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNp
     SetNpcESPEnabled(Value)
     MenuConfig.EspNpcEnabled=Value
     SaveMenuConfig()
+end)
+
+local AutoRaceV4Toggle=CreateSettingToggle(SettingsScroll,"Auto Race V4",AutoRaceV4Enabled,function(Value)
+    AutoRaceV4Enabled=Value
+    MenuConfig.AutoRaceV4Enabled=Value
+    SaveMenuConfig()
+end)
+
+task.spawn(function()
+    while task.wait(0.2) do
+        pcall(function()
+            if AutoRaceV4Enabled then
+                local char=LocalPlayer.Character
+                local raceEnergy=char and char:FindFirstChild("RaceEnergy")
+                if raceEnergy and raceEnergy.Value==1 then
+                    local backpack=LocalPlayer:FindFirstChild("Backpack")
+                    local awakening=(backpack and backpack:FindFirstChild("Awakening")) or (char and char:FindFirstChild("Awakening"))
+                    local remote=awakening and awakening:FindFirstChild("RemoteFunction")
+                    if remote then
+                        remote:InvokeServer({true})
+                    end
+                end
+            end
+        end)
+    end
 end)
 
 local function GetSettingsRightOffsetPos()
