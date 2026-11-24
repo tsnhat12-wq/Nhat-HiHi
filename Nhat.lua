@@ -1105,7 +1105,7 @@ RunService.RenderStepped:Connect(function(delta)
     Title.Text=Text
 end)
 
-ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)
+ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu) 
 -- ===================================================
 -- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (SLIDER + ESP) & TELEPORT CỔNG
 -- ===================================================
@@ -1120,6 +1120,7 @@ SettingsBtn.Text="⚙️"
 SettingsBtn.Font=Enum.Font.Cartoon
 SettingsBtn.TextSize=18
 SettingsBtn.TextColor3=Color3.fromRGB(100,200,255)
+SettingsBtn.ZIndex=10
 Instance.new("UICorner",SettingsBtn).CornerRadius=UDim.new(1,0)
 
 local SettingsStroke=Instance.new("UIStroke",SettingsBtn)
@@ -1131,7 +1132,7 @@ local SettingsOpenSize=UDim2.new(0,180,0,195)
 local SettingsClosedSize=UDim2.new(0,140,0,150)
 
 SettingsGui.Name="SettingsGui"
-SettingsGui.Size=SettingsClosedSize
+SettingsGui.Size=SettingsOpenSize
 SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
 SettingsGui.Position=UDim2.new(0.5,208,0.5,0)
 SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
@@ -1400,50 +1401,50 @@ end)
 
 local function GetSettingsRightOffsetPos()
     local gap=3
-    local mainHalfW=MainMenu.AbsoluteSize.X>0 and (MainMenu.AbsoluteSize.X*0.5) or (MainMenuOpenSize.X.Offset*0.5)
+    local mainHalfW=MainMenuOpenSize.X.Offset*0.5
     local setHalfW=SettingsOpenSize.X.Offset*0.5
-    local offsetX=(MainMenu.Position.X.Offset+mainHalfW+gap+setHalfW)
+    local offsetX=MainMenu.Position.X.Offset+mainHalfW+gap+setHalfW
     local offsetY=MainMenu.Position.Y.Offset
     return UDim2.new(0.5,offsetX,0.5,offsetY)
 end
 
-local SettingsOpening=false
-local SettingsClosing=false
+local isDraggingMainMenu=false
+MainMenu.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        isDraggingMainMenu=true
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        isDraggingMainMenu=false
+    end
+end)
+
+local lastSettingsToggleTick=0
 
 local function OpenSettings()
-    if SettingsOpening or SettingsGui.Visible then return end
-    SettingsOpening=true
     SettingsGui.Position=GetSettingsRightOffsetPos()
+    SettingsGui.Size=SettingsOpenSize
     SettingsGui.Visible=true
-    SettingsGui.Size=SettingsClosedSize
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Size=SettingsOpenSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsOpening=false
-    end)
 end
 
 local function CloseSettings()
-    if SettingsClosing or not SettingsGui.Visible then return end
-    SettingsClosing=true
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=SettingsClosedSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsGui.Visible=false
-        SettingsClosing=false
-    end)
+    SettingsGui.Visible=false
 end
 
 local function ToggleSettings()
-    if SettingsGui.Visible then CloseSettings() else OpenSettings() end
+    local now=os.clock()
+    if now-lastSettingsToggleTick<0.15 then return end
+    lastSettingsToggleTick=now
+    if SettingsGui.Visible then
+        CloseSettings()
+    else
+        OpenSettings()
+    end
 end
 
 MainMenu:GetPropertyChangedSignal("Position"):Connect(function()
-    if SettingsGui.Visible and not SettingsClosing then
+    if SettingsGui.Visible and isDraggingMainMenu then
         SettingsGui.Position=GetSettingsRightOffsetPos()
     end
 end)
@@ -1568,315 +1569,11 @@ end
 -- ===================================================
 -- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
 -- ===================================================
+local existingTempleBtn=Scroll:FindFirstChild("TempleOfTimeBtn")
+if existingTempleBtn then existingTempleBtn:Destroy() end
+
 local Btn=Instance.new("TextButton",Scroll)
-Btn.Size=UDim2.new(0.9,0,0,32)
-Btn.Text="Đền Thời Gian"
-Btn.Font=Enum.Font.Cartoon
-Btn.TextSize=13
-Btn.TextColor3=Color3.fromRGB(100,200,255)
-Btn.BackgroundColor3=Color3.fromRGB(25,35,50)
-Btn.BackgroundTransparency=0.3
-Btn.AutoButtonColor=false
-Instance.new("UICorner",Btn).CornerRadius=UDim.new(0,6)
-
-local btnS=Instance.new("UIStroke",Btn)
-btnS.Thickness=1
-btnS.Color=Color3.fromRGB(0,120,200)
-
-Btn.MouseButton1Click:Connect(function() SpawnToIsland("TempleOfTime") end)
-
-local BLUE=Color3.fromRGB(0,170,255)
-local OFF_BG=Color3.fromRGB(35,40,48)
-local ON_BG=Color3.fromRGB(0,170,255)
-local TEXT_COLOR=Color3.fromRGB(100,200,255)
-
-local function CreateToggle(Name,DefaultState,Callback,Subtitle)
-    local hasSubtitle=Subtitle~=nil and Subtitle~=""
-    local Holder=Instance.new("Frame",Scroll)
-    Holder.Size=UDim2.new(0.9,0,0,hasSubtitle and 50 or 38)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.3
-    Holder.BorderSizePixel=0
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
-
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
-
-    local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-65,0,22)
-    Label.Position=UDim2.new(0,6,0,hasSubtitle and 3 or 8)
-    Label.BackgroundTransparency=1
-    Label.Text=Name
-    Label.Font=Enum.Font.Cartoon
-    Label.TextSize=13
-    Label.TextColor3=TEXT_COLOR
-    Label.TextXAlignment=Enum.TextXAlignment.Left
-
-    if hasSubtitle then
-        local SubLabel=Instance.new("TextLabel",Holder)
-        SubLabel.Size=UDim2.new(1,-65,0,16)
-        SubLabel.Position=UDim2.new(0,6,0,26)
-        SubLabel.BackgroundTransparency=1
-        SubLabel.Text=Subtitle
-        SubLabel.Font=Enum.Font.Cartoon
-        SubLabel.TextSize=10
-        SubLabel.TextColor3=Color3.fromRGB(155,185,210)
-        SubLabel.TextXAlignment=Enum.TextXAlignment.Left
-    end
-
-    local Switch=Instance.new("TextButton",Holder)
-    Switch.Size=UDim2.new(0,42,0,21)
-    Switch.Position=UDim2.new(1,-47,0.5,-10.5)
-    Switch.BackgroundColor3=OFF_BG
-    Switch.AutoButtonColor=false
-    Switch.Text=""
-    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
-
-    local Stroke=Instance.new("UIStroke",Switch)
-    Stroke.Thickness=1
-    Stroke.Color=Color3.fromRGB(70,80,90)
-
-    local Knob=Instance.new("Frame",Switch)
-    Knob.Size=UDim2.new(0,15,0,15)
-    Knob.Position=UDim2.new(0,3,0.5,-7.5)
-    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
-
-    local Enabled=DefaultState and true or false
-
-    local function Update(silent)
-        if Enabled then
-            Switch.BackgroundColor3=Color3.fromRGB(0,170,255)
-            Stroke.Color=Color3.fromRGB(0,170,255)
-            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-15,0.5,-6.5)}):Play()
-        else
-            Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
-            Stroke.Color=Color3.fromRGB(70,80,90)
-            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,2,0.5,-6.5)}):Play()
-        end
-        if not silent then
-            Callback(Enabled)
-        end
-    end
-
-    Switch.MouseButton1Click:Connect(function()
-        Enabled=not Enabled
-        Update(false)
-    end)
-
-    Update(true)
-
-    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
-end
-
-local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value)
-    _G.SPEED=Value
-    MenuConfig.Speed=Value
-    SaveMenuConfig()
-end)
-
-local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value)
-    _G.DOCAO_MOB=Value
-    MenuConfig.HeightMob=Value
-    SaveMenuConfig()
-end)
-
-local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
-    _G.BOAT_SPEED=Value
-    MenuConfig.BoatSpeed=Value
-    SaveMenuConfig()
-end)
-
-local EspFruitToggle=CreateSettingToggle(SettingsScroll,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
-    SetFruitESPEnabled(Value)
-    MenuConfig.EspFruitEnabled=Value
-    SaveMenuConfig()
-end)
-
-local EspEventIslandToggle=CreateSettingToggle(SettingsScroll,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
-    SetEventIslandESPEnabled(Value)
-    MenuConfig.EspEventIslandEnabled=Value
-    SaveMenuConfig()
-end)
-
-local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
-    SetNpcESPEnabled(Value)
-    MenuConfig.EspNpcEnabled=Value
-    SaveMenuConfig()
-end)
-
-local function GetSettingsRightOffsetPos()
-    local gap=3
-    local mainHalfW=MainMenu.AbsoluteSize.X>0 and (MainMenu.AbsoluteSize.X*0.5) or (MainMenuOpenSize.X.Offset*0.5)
-    local setHalfW=SettingsOpenSize.X.Offset*0.5
-    local offsetX=(MainMenu.Position.X.Offset+mainHalfW+gap+setHalfW)
-    local offsetY=MainMenu.Position.Y.Offset
-    return UDim2.new(0.5,offsetX,0.5,offsetY)
-end
-
-local SettingsOpening=false
-local SettingsClosing=false
-
-local function OpenSettings()
-    if SettingsOpening or SettingsGui.Visible then return end
-    SettingsOpening=true
-    SettingsGui.Position=GetSettingsRightOffsetPos()
-    SettingsGui.Visible=true
-    SettingsGui.Size=SettingsClosedSize
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Size=SettingsOpenSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsOpening=false
-    end)
-end
-
-local function CloseSettings()
-    if SettingsClosing or not SettingsGui.Visible then return end
-    SettingsClosing=true
-
-    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=SettingsClosedSize})
-    Tween:Play()
-
-    Tween.Completed:Connect(function()
-        SettingsGui.Visible=false
-        SettingsClosing=false
-    end)
-end
-
-local function ToggleSettings()
-    if SettingsGui.Visible then CloseSettings() else OpenSettings() end
-end
-
-MainMenu:GetPropertyChangedSignal("Position"):Connect(function()
-    if SettingsGui.Visible and not SettingsClosing then
-        SettingsGui.Position=GetSettingsRightOffsetPos()
-    end
-end)
-
-SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
-SettingsClose.MouseButton1Click:Connect(CloseSettings)
-
-local function SpawnToIsland(spawnArg)
-    local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-
-    if spawnArg=="TempleOfTime" then
-        if TempleFlyConnection or BodyVelocity then
-            if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-            DisableAntiGravity()
-            DisableNoclip()
-            return
-        end
-
-        task.spawn(function()
-            local hrp=GetRoot()
-            if not hrp then return end
-
-            EnableAntiGravity(hrp)
-            EnableNoclip()
-
-            local entranceCFrame=CFrame.new(3035.22,2280.89,-7321.22)
-            local phase=1
-            local raceCFrame=nil
-
-            TempleFlyConnection=RunService.Heartbeat:Connect(function(deltaTime)
-                local currentHrp=GetRoot()
-
-                if not currentHrp then
-                    if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                    DisableAntiGravity()
-                    DisableNoclip()
-                    return
-                end
-
-                currentHrp.AssemblyLinearVelocity=Vector3.zero
-                currentHrp.AssemblyAngularVelocity=Vector3.zero
-                EnableNoclip()
-
-                if phase==2 then return end
-
-                local targetCFrame
-                if phase==1 then targetCFrame=entranceCFrame elseif phase==3 then targetCFrame=raceCFrame end
-                if not targetCFrame then return end
-
-                local distance=(currentHrp.Position-targetCFrame.Position).Magnitude
-                local boostDistance=tonumber(_G.BOOST_DISTANCE) or 90
-                local boostSpeed=tonumber(_G.BOOST_SPEED) or 1000
-                local normalSpeed=tonumber(_G.SPEED) or 140
-                local activeSpeed=distance<=boostDistance and boostSpeed or normalSpeed
-                local alpha=math.clamp((activeSpeed*deltaTime)/math.max(distance,0.001),0,1)
-
-                if phase==1 then
-                    if distance<=0.5 then
-                        phase=2
-
-                        task.spawn(function()
-                            for i=1,10 do
-                                local mapFolder=Workspace:FindFirstChild("Map") or Workspace
-
-                                if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash=ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                                    local tot=stash:FindFirstChild("Temple of Time")
-                                    if tot then tot.Parent=mapFolder; break end
-                                else
-                                    break
-                                end
-
-                                task.wait(0.3)
-                            end
-
-                            task.wait(0.5)
-
-                            pcall(function()
-                                commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
-                            end)
-
-                            task.wait(0.5)
-
-                            local race=nil
-                            pcall(function() race=LocalPlayer.Data.Race.Value end)
-
-                            if race=="Fishman" then
-                                raceCFrame=CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
-                            elseif race=="Cyborg" then
-                                raceCFrame=CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
-                            elseif race=="Skypiea" then
-                                raceCFrame=CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
-                            elseif race=="Ghoul" then
-                                raceCFrame=CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
-                            elseif race=="Human" then
-                                raceCFrame=CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
-                            else
-                                raceCFrame=CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
-                            end
-
-                            phase=3
-                        end)
-                    else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                elseif phase==3 then
-                    if distance<=3 then
-                        if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                        DisableAntiGravity()
-                        DisableNoclip()
-                        return
-                    else
-                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
-                    end
-                end
-            end)
-        end)
-
-        return
-    end
-end
--- ===================================================
--- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
--- ===================================================
-local Btn=Instance.new("TextButton",Scroll)
+Btn.Name="TempleOfTimeBtn"
 Btn.Size=UDim2.new(0.9,0,0,32)
 Btn.Text="Đền Thời Gian"
 Btn.Font=Enum.Font.Cartoon
@@ -2112,7 +1809,8 @@ local FastAttackV1Toggle=CreateToggle("Fast Attack V1",normalFastAttackEnabled,f
     normalFastAttackEnabled=Value
     MenuConfig.NormalFastAttackEnabled=Value
     SaveMenuConfig()
-end,"Đánh như bình thường") 
+end,"Đánh như bình thường")
+
 -- ===================================================
 -- ĐOẠN 4B-1: REMOTE & HÀM XỬ LÝ FAST ATTACK V2
 -- ===================================================
