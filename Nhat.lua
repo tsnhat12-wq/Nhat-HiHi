@@ -1,3 +1,6 @@
+-- ===================================================
+-- ĐOẠN 1A: SERVICE, CẤU HÌNH, CLEANUP GUI & BIẾN TRẠNG THÁI
+-- ===================================================
 local CoreGui=game:GetService("CoreGui")
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -27,8 +30,12 @@ local DefaultConfig={
     ChestEnabled=false,
     BoatEnabled=false,
     FastAttackEnabled=false,
+    NormalFastAttackEnabled=false,
     FastAttackTool="Melee",
     FruitAttackEnabled=false,
+    EspFruitEnabled=true,
+    EspEventIslandEnabled=true,
+    EspNpcEnabled=true,
 }
 
 local function NormalizeFastAttackTool(val)
@@ -48,8 +55,12 @@ local function LoadMenuConfig()
         ChestEnabled=DefaultConfig.ChestEnabled,
         BoatEnabled=DefaultConfig.BoatEnabled,
         FastAttackEnabled=DefaultConfig.FastAttackEnabled,
+        NormalFastAttackEnabled=DefaultConfig.NormalFastAttackEnabled,
         FastAttackTool=DefaultConfig.FastAttackTool,
         FruitAttackEnabled=DefaultConfig.FruitAttackEnabled,
+        EspFruitEnabled=DefaultConfig.EspFruitEnabled,
+        EspEventIslandEnabled=DefaultConfig.EspEventIslandEnabled,
+        EspNpcEnabled=DefaultConfig.EspNpcEnabled,
     }
 
     local function applyTable(tbl)
@@ -62,8 +73,12 @@ local function LoadMenuConfig()
         if typeof(tbl.ChestEnabled)=="boolean" then cfg.ChestEnabled=tbl.ChestEnabled end
         if typeof(tbl.BoatEnabled)=="boolean" then cfg.BoatEnabled=tbl.BoatEnabled end
         if typeof(tbl.FastAttackEnabled)=="boolean" then cfg.FastAttackEnabled=tbl.FastAttackEnabled end
+        if typeof(tbl.NormalFastAttackEnabled)=="boolean" then cfg.NormalFastAttackEnabled=tbl.NormalFastAttackEnabled end
         if tbl.FastAttackTool~=nil then cfg.FastAttackTool=NormalizeFastAttackTool(tbl.FastAttackTool) end
         if typeof(tbl.FruitAttackEnabled)=="boolean" then cfg.FruitAttackEnabled=tbl.FruitAttackEnabled end
+        if typeof(tbl.EspFruitEnabled)=="boolean" then cfg.EspFruitEnabled=tbl.EspFruitEnabled end
+        if typeof(tbl.EspEventIslandEnabled)=="boolean" then cfg.EspEventIslandEnabled=tbl.EspEventIslandEnabled end
+        if typeof(tbl.EspNpcEnabled)=="boolean" then cfg.EspNpcEnabled=tbl.EspNpcEnabled end
     end
 
     if isfile and readfile and isfile(CONFIG_FILE) then
@@ -138,79 +153,143 @@ local MobEnabled=MenuConfig.MobEnabled
 local ChestEnabled=MenuConfig.ChestEnabled
 local FruitEnabled=MenuConfig.FruitEnabled
 local BoatEnabled=MenuConfig.BoatEnabled
-local DevilFruitESP=true
-local EspEventIsland=true
+local DevilFruitESP=MenuConfig.EspFruitEnabled
+local EspEventIsland=MenuConfig.EspEventIslandEnabled
+local AdvancedFruitDealerESP=MenuConfig.EspNpcEnabled
 _G.BoatESP=true
-
-local cachedFruitHandle=nil
-local cachedEventIsland=nil
+-- ===================================================
+-- ĐOẠN 1B: ESP NHIỀU TRÁI, ĐẢO SỰ KIỆN & VÒNG LẶP MÔI TRƯỜNG
+-- ===================================================
+local cachedFruitHandles={}
+local cachedEventIslands={}
 local cachedMyBoatCore=nil
+local cachedAdvancedFruitDealer=nil
+
+local EventIslandNames={
+    ["Mirage Island"]=true,
+    ["Prehistoric Island"]=true,
+    ["Kitsune Island"]=true,
+    ["Frozen Dimension"]=true,
+}
 
 local function GetRoot()
     local char=Player.Character
     return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head"))
 end
 
-task.spawn(function()
-    while task.wait(0.2) do
-        if DevilFruitESP then
-            local foundHandle=nil
+local function SetFruitESPEnabled(state)
+    DevilFruitESP=state and true or false
+    if not DevilFruitESP then
+        table.clear(cachedFruitHandles)
+        for _,v in ipairs(Workspace:GetChildren()) do
+            pcall(function()
+                local handle=v:FindFirstChild("Handle")
+                local esp=handle and handle:FindFirstChild("NameEsp")
+                if esp then esp:Destroy() end
+            end)
+        end
+    end
+end
 
+local function SetEventIslandESPEnabled(state)
+    EspEventIsland=state and true or false
+    if not EspEventIsland then
+        table.clear(cachedEventIslands)
+        local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
+        local locationsFolder=worldOrigin and worldOrigin:FindFirstChild("Locations")
+        if locationsFolder then
+            for _,v in ipairs(locationsFolder:GetChildren()) do
+                pcall(function()
+                    local esp=v:FindFirstChild("NameEsp")
+                    if esp then esp:Destroy() end
+                end)
+            end
+        end
+    end
+end
+
+local function SetNpcESPEnabled(state)
+    AdvancedFruitDealerESP=state and true or false
+    if not AdvancedFruitDealerESP then
+        cachedAdvancedFruitDealer=nil
+        local oldAdv=Workspace:FindFirstChild("Adv")
+        if oldAdv then oldAdv:Destroy() end
+    end
+end
+
+local function IsWorldFruitModel(obj)
+    if not obj then return false end
+    if Players:GetPlayerFromCharacter(obj) then return false end
+    if obj:IsA("Tool") or obj:IsA("Model") then
+        local handle=obj:FindFirstChild("Handle")
+        if handle and handle:IsA("BasePart") then
+            local n=obj.Name:lower()
+            if n:find("fruit") or n:find("trái") or n:find("trai") then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+task.spawn(function()
+    while task.wait(0.25) do
+        if DevilFruitESP then
+            local list={}
             for _,v in ipairs(Workspace:GetChildren()) do
                 pcall(function()
-                    if v.Name:find("Fruit") and v:FindFirstChild("Handle") then
-                        foundHandle=v.Handle
+                    if IsWorldFruitModel(v) then
+                        table.insert(list,v.Handle)
                     end
                 end)
-
-                if foundHandle then break end
             end
-
-            cachedFruitHandle=foundHandle
+            cachedFruitHandles=list
         else
-            cachedFruitHandle=nil
+            table.clear(cachedFruitHandles)
         end
     end
 end)
 
 task.spawn(function()
-    while task.wait(0.01) do
-        if DevilFruitESP and cachedFruitHandle and cachedFruitHandle.Parent then
+    while task.wait(0.02) do
+        if DevilFruitESP and #cachedFruitHandles>0 then
             pcall(function()
                 local myRoot=GetRoot()
                 if not myRoot then return end
 
-                local distMeters=math.floor((myRoot.Position-cachedFruitHandle.Position).Magnitude/10)
-                local bill=cachedFruitHandle:FindFirstChild("NameEsp")
+                for _,handle in ipairs(cachedFruitHandles) do
+                    if handle and handle.Parent then
+                        local distMeters=math.floor((myRoot.Position-handle.Position).Magnitude/10)
+                        local bill=handle:FindFirstChild("NameEsp")
 
-                if not bill then
-                    bill=Instance.new("BillboardGui",cachedFruitHandle)
-                    bill.Name="NameEsp"
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.StudsOffset=Vector3.new(0,4,0)
-                    bill.AlwaysOnTop=true
+                        if not bill then
+                            bill=Instance.new("BillboardGui",handle)
+                            bill.Name="NameEsp"
+                            bill.Size=UDim2.new(0,200,0,50)
+                            bill.StudsOffset=Vector3.new(0,4,0)
+                            bill.AlwaysOnTop=true
 
-                    local name=Instance.new("TextLabel",bill)
-                    name.Name="Text"
-                    name.Size=UDim2.new(1,0,1,0)
-                    name.BackgroundTransparency=1
-                    name.TextSize=9
-                    name.TextColor3=Color3.fromRGB(0,255,255)
-                    name.TextStrokeTransparency=0
-                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
-                end
+                            local name=Instance.new("TextLabel",bill)
+                            name.Name="Text"
+                            name.Size=UDim2.new(1,0,1,0)
+                            name.BackgroundTransparency=1
+                            name.TextSize=9
+                            name.TextColor3=Color3.fromRGB(0,255,255)
+                            name.TextStrokeTransparency=0
+                            name.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                        end
 
-                local textLabel=bill:FindFirstChild("Text")
-                if textLabel then
-                    textLabel.Text=cachedFruitHandle.Parent.Name.."\n"..distMeters.." m"
+                        local textLabel=bill:FindFirstChild("Text")
+                        if textLabel then
+                            textLabel.Text=handle.Parent.Name.."\n"..distMeters.." m"
+                        end
+                    end
                 end
             end)
         end
     end
 end)
 
-local AdvancedFruitDealerESP=true
-local cachedAdvancedFruitDealer=nil
 task.spawn(function()
     while task.wait(0.2) do
         if AdvancedFruitDealerESP then
@@ -295,62 +374,64 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait(0.2) do
+    while task.wait(0.25) do
         if EspEventIsland then
-            local foundIsland=nil
+            local list={}
             local worldOrigin=Workspace:FindFirstChild("_WorldOrigin")
             local locationsFolder=worldOrigin and worldOrigin:FindFirstChild("Locations")
 
             if locationsFolder then
                 for _,v in ipairs(locationsFolder:GetChildren()) do
                     pcall(function()
-                        if v.Name=="Mirage Island" or v.Name=="Prehistoric Island" or v.Name=="Kitsune Island" or v.Name=="Frozen Dimension" then
-                            foundIsland=v
+                        if EventIslandNames[v.Name] then
+                            table.insert(list,v)
                         end
                     end)
-
-                    if foundIsland then break end
                 end
             end
 
-            cachedEventIsland=foundIsland
+            cachedEventIslands=list
         else
-            cachedEventIsland=nil
+            table.clear(cachedEventIslands)
         end
     end
 end)
 
 task.spawn(function()
-    while task.wait(0.01) do
-        if EspEventIsland and cachedEventIsland and cachedEventIsland.Parent then
+    while task.wait(0.02) do
+        if EspEventIsland and #cachedEventIslands>0 then
             pcall(function()
                 local myRoot=GetRoot()
                 if not myRoot then return end
 
-                local islandPosition=cachedEventIsland:IsA("BasePart") and cachedEventIsland.Position or cachedEventIsland:GetPivot().Position
-                local distMeters=math.floor((myRoot.Position-islandPosition).Magnitude/10)
-                local bill=cachedEventIsland:FindFirstChild("NameEsp")
+                for _,island in ipairs(cachedEventIslands) do
+                    if island and island.Parent then
+                        local islandPosition=island:IsA("BasePart") and island.Position or island:GetPivot().Position
+                        local distMeters=math.floor((myRoot.Position-islandPosition).Magnitude/10)
+                        local bill=island:FindFirstChild("NameEsp")
 
-                if not bill then
-                    bill=Instance.new("BillboardGui",cachedEventIsland)
-                    bill.Name="NameEsp"
-                    bill.StudsOffset=Vector3.new(0,5,0)
-                    bill.Size=UDim2.new(0,200,0,50)
-                    bill.AlwaysOnTop=true
+                        if not bill then
+                            bill=Instance.new("BillboardGui",island)
+                            bill.Name="NameEsp"
+                            bill.StudsOffset=Vector3.new(0,5,0)
+                            bill.Size=UDim2.new(0,200,0,50)
+                            bill.AlwaysOnTop=true
 
-                    local name=Instance.new("TextLabel",bill)
-                    name.Name="Text"
-                    name.Size=UDim2.new(1,0,1,0)
-                    name.BackgroundTransparency=1
-                    name.TextSize=9
-                    name.TextColor3=Color3.fromRGB(80,245,245)
-                    name.TextStrokeTransparency=0
-                    name.TextStrokeColor3=Color3.fromRGB(0,0,0)
-                end
+                            local name=Instance.new("TextLabel",bill)
+                            name.Name="Text"
+                            name.Size=UDim2.new(1,0,1,0)
+                            name.BackgroundTransparency=1
+                            name.TextSize=9
+                            name.TextColor3=Color3.fromRGB(80,245,245)
+                            name.TextStrokeTransparency=0
+                            name.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                        end
 
-                local textLabel=bill:FindFirstChild("Text")
-                if textLabel then
-                    textLabel.Text=cachedEventIsland.Name.."\n"..distMeters.." m"
+                        local textLabel=bill:FindFirstChild("Text")
+                        if textLabel then
+                            textLabel.Text=island.Name.."\n"..distMeters.." m"
+                        end
+                    end
                 end
             end)
         end
@@ -501,7 +582,6 @@ task.spawn(function()
         end
     end
 end)
-
 -- ===================================================
 -- ĐOẠN 2/4: TÌM MỤC TIÊU & LOOP ĐIỀU KHIỂN BAY
 -- ===================================================
@@ -851,7 +931,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
 end)
 
 -- ===================================================
--- ĐOẠN 3/4: GIAO DIỆN, TUYẾT RƠI, SLIDER CÀI ĐẶT & TELEPORT CỔNG
+-- ĐOẠN 3A: NÚT BẬT MENU, MAINMENU & HIỆU ỨNG TUYẾT RƠI
 -- ===================================================
 local ToggleBtn=Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size=UDim2.new(0,40,0,40)
@@ -1026,7 +1106,9 @@ RunService.RenderStepped:Connect(function(delta)
 end)
 
 ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)
-
+-- ===================================================
+-- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (SLIDER + ESP) & TELEPORT CỔNG
+-- ===================================================
 local SettingsBtn=Instance.new("TextButton",MainMenu)
 SettingsBtn.Name="SettingsButton"
 SettingsBtn.Size=UDim2.new(0,30,0,30)
@@ -1209,6 +1291,77 @@ local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Ca
     return {Set=SetValue,Get=function() return Value end}
 end
 
+local function CreateSettingToggle(Parent,Name,DefaultState,Callback)
+    local Holder=Instance.new("Frame",Parent)
+    Holder.Size=UDim2.new(1,-6,0,30)
+    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
+    Holder.BackgroundTransparency=0.25
+    Holder.BorderSizePixel=0
+    Holder.ZIndex=21
+    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,5)
+
+    local HolderStroke=Instance.new("UIStroke",Holder)
+    HolderStroke.Thickness=1
+    HolderStroke.Color=Color3.fromRGB(0,120,200)
+
+    local Label=Instance.new("TextLabel",Holder)
+    Label.Size=UDim2.new(1,-46,1,0)
+    Label.Position=UDim2.new(0,5,0,0)
+    Label.BackgroundTransparency=1
+    Label.Text=Name
+    Label.Font=Enum.Font.Cartoon
+    Label.TextSize=11
+    Label.TextColor3=Color3.fromRGB(100,200,255)
+    Label.TextXAlignment=Enum.TextXAlignment.Left
+    Label.ZIndex=22
+
+    local Switch=Instance.new("TextButton",Holder)
+    Switch.Size=UDim2.new(0,34,0,17)
+    Switch.Position=UDim2.new(1,-39,0.5,-8.5)
+    Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
+    Switch.AutoButtonColor=false
+    Switch.Text=""
+    Switch.ZIndex=22
+    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
+
+    local Stroke=Instance.new("UIStroke",Switch)
+    Stroke.Thickness=1
+    Stroke.Color=Color3.fromRGB(70,80,90)
+
+    local Knob=Instance.new("Frame",Switch)
+    Knob.Size=UDim2.new(0,13,0,13)
+    Knob.Position=UDim2.new(0,2,0.5,-6.5)
+    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
+    Knob.ZIndex=23
+    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
+
+    local Enabled=DefaultState and true or false
+
+    local function Update(silent)
+        if Enabled then
+            Switch.BackgroundColor3=Color3.fromRGB(0,170,255)
+            Stroke.Color=Color3.fromRGB(0,170,255)
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-15,0.5,-6.5)}):Play()
+        else
+            Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
+            Stroke.Color=Color3.fromRGB(70,80,90)
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,2,0.5,-6.5)}):Play()
+        end
+        if not silent then
+            Callback(Enabled)
+        end
+    end
+
+    Switch.MouseButton1Click:Connect(function()
+        Enabled=not Enabled
+        Update(false)
+    end)
+
+    Update(true)
+
+    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
+end
+
 local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value)
     _G.SPEED=Value
     MenuConfig.Speed=Value
@@ -1224,6 +1377,24 @@ end)
 local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
     _G.BOAT_SPEED=Value
     MenuConfig.BoatSpeed=Value
+    SaveMenuConfig()
+end)
+
+local EspFruitToggle=CreateSettingToggle(SettingsScroll,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
+    SetFruitESPEnabled(Value)
+    MenuConfig.EspFruitEnabled=Value
+    SaveMenuConfig()
+end)
+
+local EspEventIslandToggle=CreateSettingToggle(SettingsScroll,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
+    SetEventIslandESPEnabled(Value)
+    MenuConfig.EspEventIslandEnabled=Value
+    SaveMenuConfig()
+end)
+
+local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
+    SetNpcESPEnabled(Value)
+    MenuConfig.EspNpcEnabled=Value
     SaveMenuConfig()
 end)
 
@@ -1395,7 +1566,315 @@ local function SpawnToIsland(spawnArg)
     end
 end
 -- ===================================================
--- ĐOẠN 4/4: TOGGLE CÓ LƯU TRẠNG THÁI & FAST ATTACK
+-- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
+-- ===================================================
+local Btn=Instance.new("TextButton",Scroll)
+Btn.Size=UDim2.new(0.9,0,0,32)
+Btn.Text="Đền Thời Gian"
+Btn.Font=Enum.Font.Cartoon
+Btn.TextSize=13
+Btn.TextColor3=Color3.fromRGB(100,200,255)
+Btn.BackgroundColor3=Color3.fromRGB(25,35,50)
+Btn.BackgroundTransparency=0.3
+Btn.AutoButtonColor=false
+Instance.new("UICorner",Btn).CornerRadius=UDim.new(0,6)
+
+local btnS=Instance.new("UIStroke",Btn)
+btnS.Thickness=1
+btnS.Color=Color3.fromRGB(0,120,200)
+
+Btn.MouseButton1Click:Connect(function() SpawnToIsland("TempleOfTime") end)
+
+local BLUE=Color3.fromRGB(0,170,255)
+local OFF_BG=Color3.fromRGB(35,40,48)
+local ON_BG=Color3.fromRGB(0,170,255)
+local TEXT_COLOR=Color3.fromRGB(100,200,255)
+
+local function CreateToggle(Name,DefaultState,Callback,Subtitle)
+    local hasSubtitle=Subtitle~=nil and Subtitle~=""
+    local Holder=Instance.new("Frame",Scroll)
+    Holder.Size=UDim2.new(0.9,0,0,hasSubtitle and 50 or 38)
+    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
+    Holder.BackgroundTransparency=0.3
+    Holder.BorderSizePixel=0
+    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+
+    local HolderStroke=Instance.new("UIStroke",Holder)
+    HolderStroke.Thickness=1
+    HolderStroke.Color=Color3.fromRGB(0,120,200)
+
+    local Label=Instance.new("TextLabel",Holder)
+    Label.Size=UDim2.new(1,-65,0,22)
+    Label.Position=UDim2.new(0,6,0,hasSubtitle and 3 or 8)
+    Label.BackgroundTransparency=1
+    Label.Text=Name
+    Label.Font=Enum.Font.Cartoon
+    Label.TextSize=13
+    Label.TextColor3=TEXT_COLOR
+    Label.TextXAlignment=Enum.TextXAlignment.Left
+
+    if hasSubtitle then
+        local SubLabel=Instance.new("TextLabel",Holder)
+        SubLabel.Size=UDim2.new(1,-65,0,16)
+        SubLabel.Position=UDim2.new(0,6,0,26)
+        SubLabel.BackgroundTransparency=1
+        SubLabel.Text=Subtitle
+        SubLabel.Font=Enum.Font.Cartoon
+        SubLabel.TextSize=10
+        SubLabel.TextColor3=Color3.fromRGB(155,185,210)
+        SubLabel.TextXAlignment=Enum.TextXAlignment.Left
+    end
+
+    local Switch=Instance.new("TextButton",Holder)
+    Switch.Size=UDim2.new(0,42,0,21)
+    Switch.Position=UDim2.new(1,-47,0.5,-10.5)
+    Switch.BackgroundColor3=OFF_BG
+    Switch.AutoButtonColor=false
+    Switch.Text=""
+    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
+
+    local Stroke=Instance.new("UIStroke",Switch)
+    Stroke.Thickness=1
+    Stroke.Color=Color3.fromRGB(70,80,90)
+
+    local Knob=Instance.new("Frame",Switch)
+    Knob.Size=UDim2.new(0,15,0,15)
+    Knob.Position=UDim2.new(0,3,0.5,-7.5)
+    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
+    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
+
+    local Enabled=DefaultState and true or false
+
+    local function Update(silent)
+        if Enabled then
+            Switch.BackgroundColor3=Color3.fromRGB(0,170,255)
+            Stroke.Color=Color3.fromRGB(0,170,255)
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-15,0.5,-6.5)}):Play()
+        else
+            Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
+            Stroke.Color=Color3.fromRGB(70,80,90)
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,2,0.5,-6.5)}):Play()
+        end
+        if not silent then
+            Callback(Enabled)
+        end
+    end
+
+    Switch.MouseButton1Click:Connect(function()
+        Enabled=not Enabled
+        Update(false)
+    end)
+
+    Update(true)
+
+    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
+end
+
+local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value)
+    _G.SPEED=Value
+    MenuConfig.Speed=Value
+    SaveMenuConfig()
+end)
+
+local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value)
+    _G.DOCAO_MOB=Value
+    MenuConfig.HeightMob=Value
+    SaveMenuConfig()
+end)
+
+local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
+    _G.BOAT_SPEED=Value
+    MenuConfig.BoatSpeed=Value
+    SaveMenuConfig()
+end)
+
+local EspFruitToggle=CreateSettingToggle(SettingsScroll,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
+    SetFruitESPEnabled(Value)
+    MenuConfig.EspFruitEnabled=Value
+    SaveMenuConfig()
+end)
+
+local EspEventIslandToggle=CreateSettingToggle(SettingsScroll,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
+    SetEventIslandESPEnabled(Value)
+    MenuConfig.EspEventIslandEnabled=Value
+    SaveMenuConfig()
+end)
+
+local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
+    SetNpcESPEnabled(Value)
+    MenuConfig.EspNpcEnabled=Value
+    SaveMenuConfig()
+end)
+
+local function GetSettingsRightOffsetPos()
+    local gap=3
+    local mainHalfW=MainMenu.AbsoluteSize.X>0 and (MainMenu.AbsoluteSize.X*0.5) or (MainMenuOpenSize.X.Offset*0.5)
+    local setHalfW=SettingsOpenSize.X.Offset*0.5
+    local offsetX=(MainMenu.Position.X.Offset+mainHalfW+gap+setHalfW)
+    local offsetY=MainMenu.Position.Y.Offset
+    return UDim2.new(0.5,offsetX,0.5,offsetY)
+end
+
+local SettingsOpening=false
+local SettingsClosing=false
+
+local function OpenSettings()
+    if SettingsOpening or SettingsGui.Visible then return end
+    SettingsOpening=true
+    SettingsGui.Position=GetSettingsRightOffsetPos()
+    SettingsGui.Visible=true
+    SettingsGui.Size=SettingsClosedSize
+
+    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.25,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),{Size=SettingsOpenSize})
+    Tween:Play()
+
+    Tween.Completed:Connect(function()
+        SettingsOpening=false
+    end)
+end
+
+local function CloseSettings()
+    if SettingsClosing or not SettingsGui.Visible then return end
+    SettingsClosing=true
+
+    local Tween=TweenService:Create(SettingsGui,TweenInfo.new(0.2,Enum.EasingStyle.Quart,Enum.EasingDirection.In),{Size=SettingsClosedSize})
+    Tween:Play()
+
+    Tween.Completed:Connect(function()
+        SettingsGui.Visible=false
+        SettingsClosing=false
+    end)
+end
+
+local function ToggleSettings()
+    if SettingsGui.Visible then CloseSettings() else OpenSettings() end
+end
+
+MainMenu:GetPropertyChangedSignal("Position"):Connect(function()
+    if SettingsGui.Visible and not SettingsClosing then
+        SettingsGui.Position=GetSettingsRightOffsetPos()
+    end
+end)
+
+SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
+SettingsClose.MouseButton1Click:Connect(CloseSettings)
+
+local function SpawnToIsland(spawnArg)
+    local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+    if spawnArg=="TempleOfTime" then
+        if TempleFlyConnection or BodyVelocity then
+            if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+            DisableAntiGravity()
+            DisableNoclip()
+            return
+        end
+
+        task.spawn(function()
+            local hrp=GetRoot()
+            if not hrp then return end
+
+            EnableAntiGravity(hrp)
+            EnableNoclip()
+
+            local entranceCFrame=CFrame.new(3035.22,2280.89,-7321.22)
+            local phase=1
+            local raceCFrame=nil
+
+            TempleFlyConnection=RunService.Heartbeat:Connect(function(deltaTime)
+                local currentHrp=GetRoot()
+
+                if not currentHrp then
+                    if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+                    DisableAntiGravity()
+                    DisableNoclip()
+                    return
+                end
+
+                currentHrp.AssemblyLinearVelocity=Vector3.zero
+                currentHrp.AssemblyAngularVelocity=Vector3.zero
+                EnableNoclip()
+
+                if phase==2 then return end
+
+                local targetCFrame
+                if phase==1 then targetCFrame=entranceCFrame elseif phase==3 then targetCFrame=raceCFrame end
+                if not targetCFrame then return end
+
+                local distance=(currentHrp.Position-targetCFrame.Position).Magnitude
+                local boostDistance=tonumber(_G.BOOST_DISTANCE) or 90
+                local boostSpeed=tonumber(_G.BOOST_SPEED) or 1000
+                local normalSpeed=tonumber(_G.SPEED) or 140
+                local activeSpeed=distance<=boostDistance and boostSpeed or normalSpeed
+                local alpha=math.clamp((activeSpeed*deltaTime)/math.max(distance,0.001),0,1)
+
+                if phase==1 then
+                    if distance<=0.5 then
+                        phase=2
+
+                        task.spawn(function()
+                            for i=1,10 do
+                                local mapFolder=Workspace:FindFirstChild("Map") or Workspace
+
+                                if not mapFolder:FindFirstChild("Temple of Time") then
+                                    local stash=ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
+                                    local tot=stash:FindFirstChild("Temple of Time")
+                                    if tot then tot.Parent=mapFolder; break end
+                                else
+                                    break
+                                end
+
+                                task.wait(0.3)
+                            end
+
+                            task.wait(0.5)
+
+                            pcall(function()
+                                commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
+                            end)
+
+                            task.wait(0.5)
+
+                            local race=nil
+                            pcall(function() race=LocalPlayer.Data.Race.Value end)
+
+                            if race=="Fishman" then
+                                raceCFrame=CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
+                            elseif race=="Cyborg" then
+                                raceCFrame=CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
+                            elseif race=="Skypiea" then
+                                raceCFrame=CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
+                            elseif race=="Ghoul" then
+                                raceCFrame=CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
+                            elseif race=="Human" then
+                                raceCFrame=CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
+                            else
+                                raceCFrame=CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
+                            end
+
+                            phase=3
+                        end)
+                    else
+                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
+                    end
+                elseif phase==3 then
+                    if distance<=3 then
+                        if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
+                        DisableAntiGravity()
+                        DisableNoclip()
+                        return
+                    else
+                        currentHrp.CFrame=currentHrp.CFrame:Lerp(targetCFrame,alpha)
+                    end
+                end
+            end)
+        end)
+
+        return
+    end
+end
+-- ===================================================
+-- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
 -- ===================================================
 local Btn=Instance.new("TextButton",Scroll)
 Btn.Size=UDim2.new(0.9,0,0,32)
@@ -1530,8 +2009,113 @@ local ChestToggle=CreateToggle("FARM RƯƠNG",MenuConfig.ChestEnabled,function(V
     SaveMenuConfig()
 end)
 
--- FAST ATTACK
 local TOOL=(tostring(MenuConfig.FastAttackTool):lower()=="sword") and "Sword" or "Melee"
+local lastEquipTime=0
+local enabled=MenuConfig.FastAttackEnabled
+local normalFastAttackEnabled=MenuConfig.NormalFastAttackEnabled and true or false
+
+local function CreateWeaponSelector(DefaultTool,Callback)
+    local Holder=Instance.new("Frame",Scroll)
+    Holder.Size=UDim2.new(0.9,0,0,52)
+    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
+    Holder.BackgroundTransparency=0.3
+    Holder.BorderSizePixel=0
+    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+
+    local HolderStroke=Instance.new("UIStroke",Holder)
+    HolderStroke.Thickness=1
+    HolderStroke.Color=Color3.fromRGB(0,120,200)
+
+    local TitleLabel=Instance.new("TextLabel",Holder)
+    TitleLabel.Size=UDim2.new(1,-12,0,18)
+    TitleLabel.Position=UDim2.new(0,6,0,3)
+    TitleLabel.BackgroundTransparency=1
+    TitleLabel.Text="VŨ KHÍ FAST ATTACK"
+    TitleLabel.Font=Enum.Font.Cartoon
+    TitleLabel.TextSize=11
+    TitleLabel.TextColor3=TEXT_COLOR
+    TitleLabel.TextXAlignment=Enum.TextXAlignment.Left
+
+    local OptionsRow=Instance.new("Frame",Holder)
+    OptionsRow.Size=UDim2.new(1,-12,0,23)
+    OptionsRow.Position=UDim2.new(0,6,0,24)
+    OptionsRow.BackgroundTransparency=1
+
+    local RowLayout=Instance.new("UIListLayout",OptionsRow)
+    RowLayout.FillDirection=Enum.FillDirection.Horizontal
+    RowLayout.SortOrder=Enum.SortOrder.LayoutOrder
+    RowLayout.Padding=UDim.new(0,6)
+
+    local Choices={
+        {Key="Melee",Text="Melee"},
+        {Key="Sword",Text="Sword"},
+    }
+
+    local Buttons={}
+    local CurrentKey=(tostring(DefaultTool):lower()=="sword") and "Sword" or "Melee"
+
+    local function Refresh(silent)
+        for key,item in pairs(Buttons) do
+            local active=(key==CurrentKey)
+            item.Btn.BackgroundColor3=active and ON_BG or OFF_BG
+            item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
+            item.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
+        end
+
+        if not silent then
+            Callback(CurrentKey)
+        end
+    end
+
+    for index,choice in ipairs(Choices) do
+        local OptionBtn=Instance.new("TextButton",OptionsRow)
+        OptionBtn.LayoutOrder=index
+        OptionBtn.Size=UDim2.new(0.5,-3,1,0)
+        OptionBtn.BackgroundColor3=OFF_BG
+        OptionBtn.AutoButtonColor=false
+        OptionBtn.Text=choice.Text
+        OptionBtn.Font=Enum.Font.Cartoon
+        OptionBtn.TextSize=11
+        OptionBtn.TextColor3=Color3.fromRGB(165,195,220)
+        Instance.new("UICorner",OptionBtn).CornerRadius=UDim.new(0,5)
+
+        local OptionStroke=Instance.new("UIStroke",OptionBtn)
+        OptionStroke.Thickness=1
+        OptionStroke.Color=Color3.fromRGB(70,80,90)
+
+        Buttons[choice.Key]={Btn=OptionBtn,Stroke=OptionStroke}
+
+        OptionBtn.MouseButton1Click:Connect(function()
+            CurrentKey=choice.Key
+            Refresh(false)
+        end)
+    end
+
+    Refresh(true)
+    TOOL=CurrentKey
+end
+
+CreateWeaponSelector(TOOL,function(selectedTool)
+    TOOL=selectedTool
+    lastEquipTime=0
+    MenuConfig.FastAttackTool=selectedTool
+    SaveMenuConfig()
+end)
+
+local FastAttackV2Toggle=CreateToggle("Fast Attack V2",enabled,function(Value)
+    enabled=Value
+    MenuConfig.FastAttackEnabled=Value
+    SaveMenuConfig()
+end,"Đánh không cần cầm võ")
+
+local FastAttackV1Toggle=CreateToggle("Fast Attack V1",normalFastAttackEnabled,function(Value)
+    normalFastAttackEnabled=Value
+    MenuConfig.NormalFastAttackEnabled=Value
+    SaveMenuConfig()
+end,"Đánh như bình thường") 
+-- ===================================================
+-- ĐOẠN 4B-1: REMOTE & HÀM XỬ LÝ FAST ATTACK V2
+-- ===================================================
 local Enemies=Workspace:WaitForChild("Enemies")
 local Characters=Workspace:FindFirstChild("Characters")
 local Modules=ReplicatedStorage:WaitForChild("Modules")
@@ -1540,8 +2124,6 @@ local Net=Modules:WaitForChild("Net")
 local EQUIP_RANGE=100
 local HIT_RANGE=100
 local LOOP_DELAY=0.005
-local lastEquipTime=0
-local enabled=MenuConfig.FastAttackEnabled
 
 pcall(function()
     local cameraModule=require(ReplicatedStorage.Util.CameraShaker)
@@ -1735,102 +2317,342 @@ local function SendAttackAndHit()
         end)
     end
 end
+-- ===================================================
+-- ĐOẠN 4B-2: MODULE & HÀM XỬ LÝ FAST ATTACK V1
+-- ===================================================
+local NormalFastAttackModule={}
+local NormalHitRegistrationModule={}
 
-local function CreateWeaponSelector(DefaultTool,Callback)
-    local Holder=Instance.new("Frame",Scroll)
-    Holder.Size=UDim2.new(0.9,0,0,52)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.3
-    Holder.BorderSizePixel=0
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+NormalFastAttackModule.Rate=0.005
 
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
+local function IsNormalEntityAlive(entity)
+    if not entity then return false end
+    local humanoid=entity:FindFirstChild("Humanoid") or entity:FindFirstChildOfClass("Humanoid")
+    return humanoid and humanoid.Health>0
+end
 
-    local TitleLabel=Instance.new("TextLabel",Holder)
-    TitleLabel.Size=UDim2.new(1,-12,0,18)
-    TitleLabel.Position=UDim2.new(0,6,0,3)
-    TitleLabel.BackgroundTransparency=1
-    TitleLabel.Text="VŨ KHÍ FAST ATTACK"
-    TitleLabel.Font=Enum.Font.Cartoon
-    TitleLabel.TextSize=11
-    TitleLabel.TextColor3=TEXT_COLOR
-    TitleLabel.TextXAlignment=Enum.TextXAlignment.Left
+local function GetNormalEnemiesInRange(character,range)
+    local targets={}
+    local rootPivot=character:GetPivot()
+    if not rootPivot then return targets end
+    local playerPos=rootPivot.Position
 
-    local OptionsRow=Instance.new("Frame",Holder)
-    OptionsRow.Size=UDim2.new(1,-12,0,23)
-    OptionsRow.Position=UDim2.new(0,6,0,24)
-    OptionsRow.BackgroundTransparency=1
-
-    local RowLayout=Instance.new("UIListLayout",OptionsRow)
-    RowLayout.FillDirection=Enum.FillDirection.Horizontal
-    RowLayout.SortOrder=Enum.SortOrder.LayoutOrder
-    RowLayout.Padding=UDim.new(0,6)
-
-    local Choices={
-        {Key="Melee",Text="Melee"},
-        {Key="Sword",Text="Sword"},
-    }
-
-    local Buttons={}
-    local CurrentKey=(tostring(DefaultTool):lower()=="sword") and "Sword" or "Melee"
-
-    local function Refresh(silent)
-        for key,item in pairs(Buttons) do
-            local active=(key==CurrentKey)
-            item.Btn.BackgroundColor3=active and ON_BG or OFF_BG
-            item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
-            item.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
-        end
-
-        if not silent then
-            Callback(CurrentKey)
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+            local rootPart=enemy:FindFirstChild("HumanoidRootPart")
+            if rootPart and IsNormalEntityAlive(enemy) then
+                if (rootPart.Position-playerPos).Magnitude<=range then
+                    table.insert(targets,enemy)
+                end
+            end
         end
     end
 
-    for index,choice in ipairs(Choices) do
-        local OptionBtn=Instance.new("TextButton",OptionsRow)
-        OptionBtn.LayoutOrder=index
-        OptionBtn.Size=UDim2.new(0.5,-3,1,0)
-        OptionBtn.BackgroundColor3=OFF_BG
-        OptionBtn.AutoButtonColor=false
-        OptionBtn.Text=choice.Text
-        OptionBtn.Font=Enum.Font.Cartoon
-        OptionBtn.TextSize=11
-        OptionBtn.TextColor3=Color3.fromRGB(165,195,220)
-        Instance.new("UICorner",OptionBtn).CornerRadius=UDim.new(0,5)
+    for _,otherPlayer in ipairs(Players:GetPlayers()) do
+        if otherPlayer~=LocalPlayer and otherPlayer.Character then
+            local rootPart=otherPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if rootPart and IsNormalEntityAlive(otherPlayer.Character) then
+                if (rootPart.Position-playerPos).Magnitude<=range then
+                    table.insert(targets,otherPlayer.Character)
+                end
+            end
+        end
+    end
 
-        local OptionStroke=Instance.new("UIStroke",OptionBtn)
-        OptionStroke.Thickness=1
-        OptionStroke.Color=Color3.fromRGB(70,80,90)
+    return targets
+end
 
-        Buttons[choice.Key]={Btn=OptionBtn,Stroke=OptionStroke}
+local function AttackNoCoolDown()
+    local character=LocalPlayer.Character
+    if not character then return end
 
-        OptionBtn.MouseButton1Click:Connect(function()
-            CurrentKey=choice.Key
-            Refresh(false)
+    local equippedWeapon=nil
+    for _,item in ipairs(character:GetChildren()) do
+        if item:IsA("Tool") then
+            equippedWeapon=item
+            break
+        end
+    end
+    if not equippedWeapon then return end
+
+    local enemiesInRange=GetNormalEnemiesInRange(character,60)
+    if #enemiesInRange==0 then return end
+
+    local modules=ReplicatedStorage:FindFirstChild("Modules")
+    if not modules then return end
+
+    local netFolder=modules:FindFirstChild("Net")
+    local attackEvent=netFolder and netFolder:FindFirstChild("RE/RegisterAttack")
+    local hitEvent=netFolder and netFolder:FindFirstChild("RE/RegisterHit")
+    if not attackEvent or not hitEvent then return end
+
+    local targets,mainTarget={},nil
+    local HitboxLimbs={"RightLowerArm","RightUpperArm","LeftLowerArm","LeftUpperArm","RightHand","LeftHand"}
+
+    for _,enemy in ipairs(enemiesInRange) do
+        if not enemy:GetAttribute("IsBoat") then
+            local limb=enemy:FindFirstChild(HitboxLimbs[math.random(#HitboxLimbs)]) or enemy.PrimaryPart
+            if limb then
+                table.insert(targets,{enemy,limb})
+                mainTarget=limb
+            end
+        end
+    end
+
+    if not mainTarget then return end
+
+    pcall(function()
+        attackEvent:FireServer(0)
+    end)
+
+    local playerScripts=LocalPlayer:FindFirstChild("PlayerScripts")
+    local localScript=playerScripts and playerScripts:FindFirstChildOfClass("LocalScript")
+    local hitFunction
+
+    if getsenv and localScript then
+        pcall(function()
+            local scriptEnv=getsenv(localScript)
+            if scriptEnv and scriptEnv._G then
+                hitFunction=scriptEnv._G.SendHitsToServer
+            end
         end)
     end
 
-    Refresh(true)
-    TOOL=CurrentKey
+    local flagsModule=modules:FindFirstChild("Flags")
+    local successFlags,combatRemoteThread=pcall(function()
+        return flagsModule and require(flagsModule).COMBAT_REMOTE_THREAD or false
+    end)
+
+    if successFlags and combatRemoteThread and hitFunction then
+        pcall(function()
+            hitFunction(mainTarget,targets)
+        end)
+    else
+        pcall(function()
+            hitEvent:FireServer(mainTarget,targets)
+        end)
+    end
 end
 
-CreateWeaponSelector(TOOL,function(selectedTool)
-    TOOL=selectedTool
-    lastEquipTime=0
-    MenuConfig.FastAttackTool=selectedTool
-    SaveMenuConfig()
-end)
+local function GetNormalMonsterAura()
+    local char=LocalPlayer.Character
+    local hrp=char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false,nil end
 
-local FastAttackToggle=CreateToggle("FAST ATTACK",enabled,function(Value)
-    enabled=Value
-    MenuConfig.FastAttackEnabled=Value
-    SaveMenuConfig()
-end,"Đánh không cần cầm võ")
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        for _,b in pairs(enemiesFolder:GetChildren()) do
+            local c=b:FindFirstChild("UpperTorso") or b:FindFirstChild("Head")
+            if b:FindFirstChild("HumanoidRootPart",true) and c then
+                if (c.Position-hrp.Position).Magnitude<=50 then
+                    return true,c.Position
+                end
+            end
+        end
+        for _,d in pairs(enemiesFolder:GetChildren()) do
+            local health=d:FindFirstChild("Health")
+            local engine=d:FindFirstChild("Engine")
+            if health and health.Value>0 and d:FindFirstChild("VehicleSeat") and engine then
+                return true,engine.Position
+            end
+        end
+    end
 
--- ATTACK FRUIT
+    local seaBeastsFolder=Workspace:FindFirstChild("SeaBeasts")
+    if seaBeastsFolder then
+        for _,d in pairs(seaBeastsFolder:GetChildren()) do
+            local beastHrp=d:FindFirstChild("HumanoidRootPart")
+            local health=d:FindFirstChild("Health")
+            if beastHrp and health and health.Value>0 then
+                return true,beastHrp.Position
+            end
+        end
+    end
+
+    return false,nil
+end
+
+local function ActivateEquippedToolUpvalues()
+    local character=LocalPlayer.Character
+    local tool=character and character:FindFirstChildOfClass("Tool")
+    if not tool or not getconnections or not getupvalues then return end
+
+    pcall(function()
+        for _,conn in next,getconnections(tool.Activated) do
+            if typeof(conn.Function)=="function" then
+                getupvalues(conn.Function)
+            end
+        end
+    end)
+end
+
+function NormalFastAttackModule.GetNearbyTargets(character,folder)
+    local characterPosition=character:GetPivot().Position
+    local nearbyTargets={}
+    if not folder then return nearbyTargets end
+    local children=folder:GetChildren()
+
+    for i=1,#children do
+        local target=children[i]
+        local humanoid=target:FindFirstChild("Humanoid")
+        local rootPart=target:FindFirstChild("HumanoidRootPart")
+
+        if humanoid and rootPart and humanoid.Health>0 then
+            local distance=(rootPart.Position-characterPosition).Magnitude
+            if distance<=60 then
+                table.insert(nearbyTargets,target)
+            end
+        end
+    end
+    return nearbyTargets
+end
+
+function NormalFastAttackModule.GetTargetParts(targetList)
+    local result={}
+    for i=1,#targetList do
+        local target=targetList[i]
+        local head=target:FindFirstChild("Head") or target.PrimaryPart
+        if head then
+            table.insert(result,{target,head})
+        end
+    end
+    return result
+end
+
+function NormalFastAttackModule.GetAllTargets(character)
+    local allTargets={}
+    local enemiesList=NormalFastAttackModule.GetNearbyTargets(character,Enemies)
+    local charsList=NormalFastAttackModule.GetNearbyTargets(character,Characters)
+
+    for i=1,#enemiesList do
+        table.insert(allTargets,enemiesList[i])
+    end
+    for i=1,#charsList do
+        table.insert(allTargets,charsList[i])
+    end
+    return allTargets
+end
+
+function NormalFastAttackModule.ExecuteFastAttack()
+    local character=LocalPlayer.Character
+    if not character then return end
+
+    local tool=character:FindFirstChildOfClass("Tool")
+    if not tool then return end
+
+    local targets=NormalFastAttackModule.GetAllTargets(character)
+    if #targets<1 then return end
+
+    local targetParts=NormalFastAttackModule.GetTargetParts(targets)
+    if #targetParts<1 then return end
+
+    local attackRemote=Net:FindFirstChild("RE/RegisterAttack")
+    local hitRemote=Net:FindFirstChild("RE/RegisterHit")
+    if not attackRemote or not hitRemote then return end
+
+    pcall(function()
+        attackRemote:FireServer(0.000000002)
+        hitRemote:FireServer(targetParts[1][2],targetParts)
+    end)
+end
+
+function NormalHitRegistrationModule.Execute()
+    local character=LocalPlayer.Character
+    if not character then return end
+
+    local humanoidRootPart=character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    local hitTargets={}
+
+    local function ScanFolder(folder)
+        if not folder then return end
+        local children=folder:GetChildren()
+        for i=1,#children do
+            local target=children[i]
+            local humanoid=target:FindFirstChild("Humanoid")
+            local rootPart=target:FindFirstChild("HumanoidRootPart")
+
+            if humanoid and rootPart and humanoid.Health>0 and target~=character then
+                local distance=(rootPart.Position-humanoidRootPart.Position).Magnitude
+                if distance<=60 then
+                    for _,child in ipairs(target:GetChildren()) do
+                        if child:IsA("BasePart") then
+                            table.insert(hitTargets,{target,child})
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    ScanFolder(Enemies)
+    ScanFolder(Characters)
+
+    local tool=character:FindFirstChildOfClass("Tool")
+    if #hitTargets>0 and tool and (tool:GetAttribute("WeaponType")=="Melee" or tool:GetAttribute("WeaponType")=="Sword") then
+        local targetHead=hitTargets[1][1]:FindFirstChild("Head")
+        if not targetHead then return end
+
+        pcall(function()
+            local seedRemote=Net:FindFirstChild("seed")
+            local seed=seedRemote and seedRemote:InvokeServer() or 1
+
+            local attackRemote=Net:FindFirstChild("RE/RegisterAttack")
+            local hitRemote=Net:FindFirstChild("RE/RegisterHit")
+
+            if attackRemote then attackRemote:FireServer() end
+            if hitRemote then hitRemote:FireServer(targetHead,hitTargets,{}) end
+
+            if AttackRemoteTarget and AttackRemoteId then
+                local remoteCode="RE/RegisterHit"
+                local encryptionKey=math.floor(Workspace:GetServerTimeNow()/10%10)+1
+
+                local encodedString=string.gsub(remoteCode,".",function(char)
+                    return string.char(bit32.bxor(string.byte(char),encryptionKey))
+                end)
+
+                local finalId=bit32.bxor(AttackRemoteId+909090,seed*2)
+                local targetRemote=cloneref and cloneref(AttackRemoteTarget) or AttackRemoteTarget
+
+                targetRemote:FireServer(
+                    encodedString,
+                    finalId,
+                    targetHead,
+                    hitTargets
+                )
+            end
+        end)
+    end
+end
+
+local function RunNormalFastAttackStep()
+    if not normalFastAttackEnabled then return end
+
+    pcall(function()
+        AttackNoCoolDown()
+        NormalFastAttackModule.ExecuteFastAttack()
+        NormalHitRegistrationModule.Execute()
+
+        local char=LocalPlayer.Character
+        local preTool=char and char:FindFirstChildOfClass("Tool")
+        if preTool and preTool.ToolTip=="Blox Fruit" then
+            local mobAura=GetNormalMonsterAura()
+            if mobAura then
+                local leftClickRemote=preTool:FindFirstChild("LeftClickRemote")
+                if leftClickRemote then
+                    ActivateEquippedToolUpvalues()
+                    leftClickRemote:FireServer(Vector3.new(0.01,-500,0.01),1,true)
+                    leftClickRemote:FireServer(false)
+                end
+            end
+        end
+    end)
+end
+-- ===================================================
+-- ĐOẠN 4B-3: ATTACK FRUIT & CÁC VÒNG LẶP CHẠY NỀN
+-- ===================================================
 local FRUIT_MAX_DISTANCE=30
 local fruitAttackEnabled=MenuConfig.FruitAttackEnabled and true or false
 local lastFruitFalseTick=0
@@ -1958,6 +2780,13 @@ task.spawn(function()
     while true do
         SendAttackAndHit()
         task.wait(LOOP_DELAY)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        RunNormalFastAttackStep()
+        task.wait(0.005)
     end
 end)
 
