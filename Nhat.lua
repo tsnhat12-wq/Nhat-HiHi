@@ -32,6 +32,8 @@ local DefaultConfig={
     FastAttackEnabled=false,
     NormalFastAttackEnabled=false,
     FastAttackTool="Melee",
+    BoneFarmEnabled=false,
+    BoneAutoQuestEnabled=true,
     FruitAttackEnabled=false,
     EspFruitEnabled=true,
     EspEventIslandEnabled=true,
@@ -160,6 +162,9 @@ local DevilFruitESP=MenuConfig.EspFruitEnabled
 local EspEventIsland=MenuConfig.EspEventIslandEnabled
 local AdvancedFruitDealerESP=MenuConfig.EspNpcEnabled
 local AutoRaceV4Enabled=MenuConfig.AutoRaceV4Enabled and true or false
+local BoneFarmEnabled=MenuConfig.BoneFarmEnabled and true or false
+local BoneAutoQuestEnabled=(MenuConfig.BoneAutoQuestEnabled~=false)
+
 _G.BoatESP=true
 
 -- ===================================================
@@ -589,7 +594,7 @@ task.spawn(function()
 end)
 
 -- ===================================================
--- ĐOẠN 2/4: TÌM MỤC TIÊU & LOOP ĐIỀU KHIỂN BAY (TWEEN / LERP)
+-- ĐOẠN 2A: ĐIỀU KHIỂN BAY (TWEEN / LERP), BEAM & TÌM MỤC TIÊU CƠ BẢN
 -- ===================================================
 local TargetMob=nil
 local TargetChest=nil
@@ -602,6 +607,13 @@ local TouchTimer=0
 local SEARCH_MOB_DISTANCE=1500
 local BOOST_DISTANCE=100
 local BOOST_SPEED=5000
+
+-- Biến trạng thái dùng chung với Đoạn 2B (Farm Bone)
+local BoneBatBring=false
+local BoneCurrentMons={}
+local BoneLockedMobName=nil
+local BoneLastQuestTime=0
+local BoneActiveTargetCF=nil
 
 local ActiveFlyTween=nil
 local ActiveFlyTweenGoalPos=nil
@@ -681,10 +693,14 @@ local function DisableAntiGravity()
     end
 end
 
+local function HasActiveFlyTask()
+    return MobEnabled or ChestEnabled or FruitEnabled or BoneFarmEnabled or TempleFlyConnection~=nil
+end
+
 local function EnableNoclip()
     if not NoclipConnection then
         NoclipConnection=RunService.Stepped:Connect(function()
-            if (MobEnabled or ChestEnabled or FruitEnabled or TempleFlyConnection) and LocalPlayer.Character then
+            if HasActiveFlyTask() and LocalPlayer.Character then
                 for _,part in ipairs(LocalPlayer.Character:GetDescendants()) do
                     if part:IsA("BasePart") and part.CanCollide then
                         part.CanCollide=false
@@ -696,7 +712,7 @@ local function EnableNoclip()
 end
 
 local function DisableNoclip()
-    if NoclipConnection and not MobEnabled and not ChestEnabled and not FruitEnabled and not TempleFlyConnection then
+    if NoclipConnection and not HasActiveFlyTask() then
         NoclipConnection:Disconnect()
         NoclipConnection=nil
     end
@@ -922,10 +938,434 @@ local function FindNearestFruit()
     return Nearest
 end
 
+-- ===================================================
+-- ĐOẠN 2B: FARM BONE, BRING QUÁI & LOOP HEARTBEAT ĐIỀU KHIỂN BAY
+-- ===================================================
+local BONE_QUEST_NPC_CF=CFrame.new(-9516.99316,172.01718,6078.46533)
+local BONE_FALLBACK_CF=CFrame.new(-9495.6806640625,453.58624267578125,5977.3486328125)
+local BONE_ABOVE_MOB_HEIGHT=20
+local BONE_PHAM_VI_BRING=1000
+local BONE_TOC_DO_BRING=700
+local BONE_SO_LUONG_MON=1
+local BONE_TU_DONG_DOI_MON=true
+local BONE_GOM_TAT_CA_QUAI=true
+
+local BoneTargetMobs={
+    "Reborn Skeleton",
+    "Living Zombie",
+    "Demonic Soul",
+    "Possessed Mummy",
+}
+
+local BoneQuestData={
+    {"StartQuest","HauntedQuest2",2},
+    {"StartQuest","HauntedQuest2",1},
+    {"StartQuest","HauntedQuest1",1},
+    {"StartQuest","HauntedQuest1",2},
+}
+
+local function IsAncestorsVisible(guiObj)
+    local playerGui=LocalPlayer:FindFirstChild("PlayerGui")
+    local current=guiObj
+    while current and current~=playerGui do
+        if current:IsA("GuiObject") and current.Visible==false then
+            return false
+        end
+        current=current.Parent
+    end
+    return true
+end
+
+local function HasBoneQuestUI()
+    local playerGui=LocalPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return false end
+    local trackedFrame=playerGui:FindFirstChild("TrackedQuestFrame",true)
+    if not trackedFrame then return false end
+
+    local abandonQuestButton=trackedFrame:FindFirstChild("abandonQuestButton",true)
+    local amount=trackedFrame:FindFirstChild("amount",true)
+    local bar=trackedFrame:FindFirstChild("bar",true)
+    local description=trackedFrame:FindFirstChild("description",true)
+
+    if not (abandonQuestButton and amount and bar and description) then
+        return false
+    end
+
+    if trackedFrame:IsA("GuiObject") and not IsAncestorsVisible(trackedFrame) then
+        return false
+    end
+
+    return true
+end
+
+local function GetAliveBoneMobsByName(mobName)
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if not enemiesFolder then return {} end
+    local list={}
+    for _,mob in ipairs(enemiesFolder:GetChildren()) do
+        if mob.Name==mobName and IsBloxFruitsMob(mob) then
+            table.insert(list,mob)
+        end
+    end
+    return list
+end
+
+local function FindNearestBoneMobFromList()
+    local myRoot=GetRoot()
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if not myRoot or not enemiesFolder then return nil,nil end
+
+    local allowed={}
+    for _,name in ipairs(BoneTargetMobs) do
+        allowed[name]=true
+    end
+
+    local bestMob=nil
+    local bestDist=math.huge
+    for _,mob in ipairs(enemiesFolder:GetChildren()) do
+        if allowed[mob.Name] and IsBloxFruitsMob(mob) then
+            local hrp=mob:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local dist=(hrp.Position-myRoot.Position).Magnitude
+                if dist<bestDist then
+                    bestDist=dist
+                    bestMob=mob
+                end
+            end
+        end
+    end
+
+    if bestMob then
+        return bestMob,bestMob.Name
+    end
+    return nil,nil
+end
+
+local function IsBoneNameUsed(name,ignoreIndex)
+    for idx,mon in ipairs(BoneCurrentMons) do
+        if idx~=ignoreIndex and IsBloxFruitsMob(mon) and mon.Name==name then
+            return true
+        end
+    end
+    return false
+end
+
+local function GetNearestNewBoneMon(ignoreIndex)
+    local myRoot=GetRoot()
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if not myRoot or not enemiesFolder then return nil end
+
+    local closest=nil
+    local closestDist=math.huge
+    for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+        if BoneLockedMobName and enemy.Name~=BoneLockedMobName then
+            continue
+        end
+        local root=enemy:FindFirstChild("HumanoidRootPart")
+        if root and IsBloxFruitsMob(enemy) and not IsBoneNameUsed(enemy.Name,ignoreIndex) then
+            local dist=(root.Position-myRoot.Position).Magnitude
+            if dist<closestDist then
+                closestDist=dist
+                closest=enemy
+            end
+        end
+    end
+    return closest
+end
+
+local function GetCloserBoneMon(currentMon,ignoreIndex)
+    local myRoot=GetRoot()
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if not myRoot or not enemiesFolder then return nil end
+    if not IsBloxFruitsMob(currentMon) then
+        return GetNearestNewBoneMon(ignoreIndex)
+    end
+    local currentRoot=currentMon:FindFirstChild("HumanoidRootPart")
+    if not currentRoot then return nil end
+
+    local currentDist=(currentRoot.Position-myRoot.Position).Magnitude
+    local closest=nil
+    local closestDist=currentDist
+    for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+        if enemy~=currentMon then
+            if BoneLockedMobName and enemy.Name~=BoneLockedMobName then
+                continue
+            end
+            local root=enemy:FindFirstChild("HumanoidRootPart")
+            if root and IsBloxFruitsMob(enemy) and not IsBoneNameUsed(enemy.Name,ignoreIndex) then
+                local dist=(root.Position-myRoot.Position).Magnitude
+                if dist<closestDist then
+                    closestDist=dist
+                    closest=enemy
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local function UpdateBoneMons()
+    for idx=1,BONE_SO_LUONG_MON do
+        local mon=BoneCurrentMons[idx]
+        if not IsBloxFruitsMob(mon) then
+            BoneCurrentMons[idx]=GetNearestNewBoneMon(idx)
+        elseif BONE_TU_DONG_DOI_MON then
+            local closer=GetCloserBoneMon(mon,idx)
+            if closer then
+                BoneCurrentMons[idx]=closer
+            end
+        end
+    end
+    for idx=#BoneCurrentMons,BONE_SO_LUONG_MON+1,-1 do
+        BoneCurrentMons[idx]=nil
+    end
+    for idx=1,BONE_SO_LUONG_MON do
+        if not BoneCurrentMons[idx] then
+            BoneCurrentMons[idx]=GetNearestNewBoneMon(idx)
+        end
+    end
+    return BoneCurrentMons
+end
+
+local function HasNetworkOwnership(part)
+    if isnetworkowner then
+        local ok,res=pcall(function() return isnetworkowner(part) end)
+        if ok then return res end
+    end
+    return part.ReceiveAge==0 and not part.Anchored and part.AssemblyLinearVelocity.Magnitude>0
+end
+
+local function GetAliveEnemiesList(enemiesFolder)
+    local list={}
+    for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+        if IsBloxFruitsMob(enemy) and enemy:FindFirstChild("HumanoidRootPart") then
+            table.insert(list,enemy)
+        end
+    end
+    return list
+end
+
+local function DisableMobCollision(mob)
+    for _,part in ipairs(mob:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide=false
+        end
+    end
+end
+
+local function BringBoneEnemies()
+    if not BoneFarmEnabled or not BoneBatBring then return end
+    local enemiesFolder=Workspace:FindFirstChild("Enemies")
+    if not enemiesFolder then return end
+
+    local myRoot=GetRoot()
+    if not myRoot then return end
+
+    local aliveMobs=GetAliveEnemiesList(enemiesFolder)
+    local onlyOneMob=(#aliveMobs==1)
+    local mons=UpdateBoneMons()
+    if #mons==0 and not onlyOneMob then return end
+
+    pcall(function()
+        if sethiddenproperty then
+            sethiddenproperty(LocalPlayer,"SimulationRadius",math.huge)
+        end
+
+        local targets={}
+        for idx,mon in ipairs(mons) do
+            if IsBloxFruitsMob(mon) then
+                local root=mon:FindFirstChild("HumanoidRootPart")
+                local hum=mon:FindFirstChildOfClass("Humanoid")
+                if root and hum then
+                    table.insert(targets,{
+                        Index=idx,
+                        Enemy=mon,
+                        Root=root,
+                        Humanoid=hum,
+                        Position=root.Position,
+                    })
+                end
+            end
+        end
+
+        if onlyOneMob then
+            local lastMob=aliveMobs[1]
+            local lastHum=lastMob:FindFirstChildOfClass("Humanoid")
+            local lastRoot=lastMob:FindFirstChild("HumanoidRootPart")
+            if lastHum and lastRoot and lastHum.Health>0 then
+                local lastPos=myRoot.Position-Vector3.new(0,BONE_ABOVE_MOB_HEIGHT,0)
+                local dist=(lastRoot.Position-lastPos).Magnitude
+                DisableMobCollision(lastMob)
+                lastHum.WalkSpeed=0
+                lastHum.JumpPower=0
+                if HasNetworkOwnership(lastRoot) then
+                    local alpha=math.min((BONE_TOC_DO_BRING*(1/20))/math.max(dist,0.001),1)
+                    lastRoot.CFrame=lastRoot.CFrame:Lerp(CFrame.new(lastPos),alpha)
+                end
+            end
+            return
+        end
+
+        if #targets==0 then return end
+
+        local groups={}
+        for idx=1,#targets do
+            groups[idx]={}
+        end
+
+        for _,enemy in ipairs(enemiesFolder:GetChildren()) do
+            local isTarget=false
+            for _,t in ipairs(targets) do
+                if enemy==t.Enemy then isTarget=true; break end
+            end
+            if not isTarget and IsBloxFruitsMob(enemy) then
+                local root=enemy:FindFirstChild("HumanoidRootPart")
+                local hum=enemy:FindFirstChildOfClass("Humanoid")
+                if root and hum then
+                    local closestTarget=nil
+                    local closestDist=math.huge
+                    for _,t in ipairs(targets) do
+                        local d=(root.Position-t.Position).Magnitude
+                        if d<closestDist then
+                            closestDist=d
+                            closestTarget=t
+                        end
+                    end
+                    if closestTarget and closestDist<=BONE_PHAM_VI_BRING then
+                        if BONE_GOM_TAT_CA_QUAI or enemy.Name==closestTarget.Enemy.Name then
+                            table.insert(groups[closestTarget.Index],{Enemy=enemy,Humanoid=hum,Root=root})
+                        end
+                    end
+                end
+            end
+        end
+
+        for idx,group in ipairs(groups) do
+            local target=targets[idx]
+            if target and target.Root and target.Humanoid and target.Humanoid.Health>0 then
+                for _,data in ipairs(group) do
+                    local enemy,hum,root=data.Enemy,data.Humanoid,data.Root
+                    if enemy and hum and root and hum.Health>0 then
+                        local dist=(root.Position-target.Position).Magnitude
+                        DisableMobCollision(enemy)
+                        hum.WalkSpeed=0
+                        hum.JumpPower=0
+                        if HasNetworkOwnership(root) then
+                            local alpha=math.min((BONE_TOC_DO_BRING*(1/20))/math.max(dist,0.001),1)
+                            root.CFrame=root.CFrame:Lerp(CFrame.new(target.Position),alpha)
+                        end
+                    end
+                end
+                DisableMobCollision(target.Enemy)
+                target.Humanoid.WalkSpeed=0
+                target.Humanoid.JumpPower=0
+            end
+        end
+    end)
+end
+
+-- Loop quản lý mục tiêu Farm Bone (bay bằng StepFlyToCFrame trong Heartbeat)
+task.spawn(function()
+    local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+    while task.wait(0.15) do
+        if not BoneFarmEnabled or TempleFlyConnection then
+            BoneBatBring=false
+            BoneActiveTargetCF=nil
+            continue
+        end
+
+        local root=GetRoot()
+        local hum=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not root or not hum or hum.Health<=0 then
+            BoneBatBring=false
+            BoneActiveTargetCF=nil
+            continue
+        end
+
+        if BoneAutoQuestEnabled and not HasBoneQuestUI() then
+            BoneLockedMobName=nil
+            BoneCurrentMons={}
+            BoneBatBring=false
+            BoneActiveTargetCF=BONE_QUEST_NPC_CF
+
+            if (root.Position-BONE_QUEST_NPC_CF.Position).Magnitude<=4 and (tick()-BoneLastQuestTime>=1.5) then
+                BoneLastQuestTime=tick()
+                local chosen=BoneQuestData[math.random(1,#BoneQuestData)]
+                pcall(function()
+                    commF:InvokeServer(unpack(chosen))
+                end)
+                task.wait(0.35)
+            end
+            continue
+        end
+
+        if BoneLockedMobName then
+            local sameNameMobs=GetAliveBoneMobsByName(BoneLockedMobName)
+            if #sameNameMobs==0 then
+                BoneLockedMobName=nil
+                BoneCurrentMons={}
+                BoneBatBring=false
+                BoneActiveTargetCF=nil
+            else
+                local nearestSame=nil
+                local minDist=math.huge
+                for _,mob in ipairs(sameNameMobs) do
+                    local hrp=mob:FindFirstChild("HumanoidRootPart")
+                    if hrp then
+                        local d=(hrp.Position-root.Position).Magnitude
+                        if d<minDist then
+                            minDist=d
+                            nearestSame=mob
+                        end
+                    end
+                end
+
+                if nearestSame and nearestSame:FindFirstChild("HumanoidRootPart") then
+                    local mobCF=nearestSame.HumanoidRootPart.CFrame*CFrame.new(0,BONE_ABOVE_MOB_HEIGHT,0)
+                    BoneActiveTargetCF=mobCF
+                    if (root.Position-mobCF.Position).Magnitude<=6 and (not BoneAutoQuestEnabled or HasBoneQuestUI()) then
+                        BoneBatBring=true
+                    end
+                end
+                continue
+            end
+        end
+
+        local mob,mobName=FindNearestBoneMobFromList()
+        if mob and mobName and mob:FindFirstChild("HumanoidRootPart") then
+            BoneLockedMobName=mobName
+            BoneCurrentMons={mob}
+            local mobCF=mob.HumanoidRootPart.CFrame*CFrame.new(0,BONE_ABOVE_MOB_HEIGHT,0)
+            BoneActiveTargetCF=mobCF
+            if (root.Position-mobCF.Position).Magnitude<=6 and (not BoneAutoQuestEnabled or HasBoneQuestUI()) then
+                BoneBatBring=true
+            end
+        else
+            BoneBatBring=false
+            BoneActiveTargetCF=BONE_FALLBACK_CF
+        end
+    end
+end)
+
+-- Loop Bring quái Bone
+task.spawn(function()
+    while task.wait(1/20) do
+        if BoneFarmEnabled and BoneBatBring and not TempleFlyConnection then
+            BringBoneEnemies()
+        elseif not BoneFarmEnabled then
+            BoneBatBring=false
+            BoneLockedMobName=nil
+            BoneCurrentMons={}
+            BoneActiveTargetCF=nil
+        end
+    end
+end)
+
+-- Loop Heartbeat điều khiển bay tổng hợp
 RunService.Heartbeat:Connect(function(DeltaTime)
     if TempleFlyConnection then return end
 
-    if not MobEnabled and not ChestEnabled and not FruitEnabled then
+    if not HasActiveFlyTask() then
         CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
     end
 
@@ -967,6 +1407,17 @@ RunService.Heartbeat:Connect(function(DeltaTime)
 
         local TargetCFrame=MobRoot.CFrame*CFrame.new(_G.DOXATP,_G.DOCAO_MOB,0)
         StepFlyToCFrame(MyRoot,TargetCFrame,DeltaTime)
+
+    elseif BoneFarmEnabled then
+        if not BoneActiveTargetCF then
+            CancelActiveFlyTween(); DisableAntiGravity(); DisableNoclip(); RemoveTargetBeam(); return
+        end
+
+        EnableAntiGravity(MyRoot)
+        EnableNoclip()
+        RemoveTargetBeam()
+
+        StepFlyToCFrame(MyRoot,BoneActiveTargetCF,DeltaTime)
 
     elseif ChestEnabled then
         if not TargetChest or not TargetChest.Parent or IgnoredChests[TargetChest] or TargetChest:GetAttribute("IsDisabled") then
