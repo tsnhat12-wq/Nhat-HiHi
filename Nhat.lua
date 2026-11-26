@@ -903,16 +903,17 @@ local function FindNearestFruit()
     local MyRoot=GetRoot()
     if not MyRoot then return nil end
 
-    local Nearest,NearestDistance=nil,150000
+    local Nearest=nil
+    local NearestDistance=math.huge
 
-    for _,v in ipairs(Workspace:GetChildren()) do
-        if v:IsA("Tool") or (v:IsA("Model") and v:FindFirstChild("Handle")) then
-            local name=v.Name:lower()
-            if name:find("fruit") or name:find("trái") or name:find("trai") then
-                local Handle=v:FindFirstChild("Handle") or v.PrimaryPart or v:FindFirstChildOfClass("BasePart")
-                if Handle then
-                    local Distance=(Handle.Position-MyRoot.Position).Magnitude
-                    if Distance<NearestDistance then NearestDistance=Distance; Nearest=Handle end
+    for _,x1 in pairs(Workspace:GetChildren()) do
+        if string.find(x1.Name,"Fruit") then
+            local Handle=x1:FindFirstChild("Handle")
+            if Handle and Handle:IsA("BasePart") then
+                local Distance=(Handle.Position-MyRoot.Position).Magnitude
+                if Distance<NearestDistance then
+                    NearestDistance=Distance
+                    Nearest=Handle
                 end
             end
         end
