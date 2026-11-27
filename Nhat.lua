@@ -2347,6 +2347,22 @@ local MobToggle=CreateToggle("BAY TỚI QUÁI",MenuConfig.MobEnabled,function(Va
     SaveMenuConfig()
 end)
 
+local BoneFarmToggle=CreateToggle("FARM BONE",BoneFarmEnabled,function(Value)
+    BoneFarmEnabled=Value
+    BoneBatBring=false
+    BoneLockedMobName=nil
+    BoneCurrentMons={}
+    BoneActiveTargetCF=nil
+    MenuConfig.BoneFarmEnabled=Value
+    SaveMenuConfig()
+end,"Auto farm xương")
+
+local BoneQuestToggle=CreateToggle("NHẬN QUEST BONE",BoneAutoQuestEnabled,function(Value)
+    BoneAutoQuestEnabled=Value
+    MenuConfig.BoneAutoQuestEnabled=Value
+    SaveMenuConfig()
+end,"Tự nhận nhiệm vụ Bone")
+
 local ChestToggle=CreateToggle("FARM RƯƠNG",MenuConfig.ChestEnabled,function(Value)
     ChestEnabled=Value
     if Value and GetCurrentBeli then LastBeli=GetCurrentBeli() end
