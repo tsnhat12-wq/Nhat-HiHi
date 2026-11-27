@@ -25,6 +25,7 @@ local DefaultConfig={
     Speed=220,
     HeightMob=35,
     BoatSpeed=450,
+    FlyMode="Tween",
     FruitEnabled=false,
     MobEnabled=false,
     ChestEnabled=false,
@@ -38,6 +39,7 @@ local DefaultConfig={
     EspFruitEnabled=true,
     EspEventIslandEnabled=true,
     EspNpcEnabled=true,
+    EspBoatEnabled=true,
     AutoRaceV4Enabled=false,
 }
 
@@ -48,11 +50,19 @@ local function NormalizeFastAttackTool(val)
     return "Melee"
 end
 
+local function NormalizeFlyMode(val)
+    if typeof(val)=="string" and val:lower()=="lerp" then
+        return "Lerp"
+    end
+    return "Tween"
+end
+
 local function LoadMenuConfig()
     local cfg={
         Speed=DefaultConfig.Speed,
         HeightMob=DefaultConfig.HeightMob,
         BoatSpeed=DefaultConfig.BoatSpeed,
+        FlyMode=DefaultConfig.FlyMode,
         FruitEnabled=DefaultConfig.FruitEnabled,
         MobEnabled=DefaultConfig.MobEnabled,
         ChestEnabled=DefaultConfig.ChestEnabled,
@@ -60,10 +70,13 @@ local function LoadMenuConfig()
         FastAttackEnabled=DefaultConfig.FastAttackEnabled,
         NormalFastAttackEnabled=DefaultConfig.NormalFastAttackEnabled,
         FastAttackTool=DefaultConfig.FastAttackTool,
+        BoneFarmEnabled=DefaultConfig.BoneFarmEnabled,
+        BoneAutoQuestEnabled=DefaultConfig.BoneAutoQuestEnabled,
         FruitAttackEnabled=DefaultConfig.FruitAttackEnabled,
         EspFruitEnabled=DefaultConfig.EspFruitEnabled,
         EspEventIslandEnabled=DefaultConfig.EspEventIslandEnabled,
         EspNpcEnabled=DefaultConfig.EspNpcEnabled,
+        EspBoatEnabled=DefaultConfig.EspBoatEnabled,
         AutoRaceV4Enabled=DefaultConfig.AutoRaceV4Enabled,
     }
 
@@ -72,6 +85,7 @@ local function LoadMenuConfig()
         if tonumber(tbl.Speed) then cfg.Speed=tonumber(tbl.Speed) end
         if tonumber(tbl.HeightMob) then cfg.HeightMob=tonumber(tbl.HeightMob) end
         if tonumber(tbl.BoatSpeed) then cfg.BoatSpeed=tonumber(tbl.BoatSpeed) end
+        if tbl.FlyMode~=nil then cfg.FlyMode=NormalizeFlyMode(tbl.FlyMode) end
         if typeof(tbl.FruitEnabled)=="boolean" then cfg.FruitEnabled=tbl.FruitEnabled end
         if typeof(tbl.MobEnabled)=="boolean" then cfg.MobEnabled=tbl.MobEnabled end
         if typeof(tbl.ChestEnabled)=="boolean" then cfg.ChestEnabled=tbl.ChestEnabled end
@@ -79,10 +93,13 @@ local function LoadMenuConfig()
         if typeof(tbl.FastAttackEnabled)=="boolean" then cfg.FastAttackEnabled=tbl.FastAttackEnabled end
         if typeof(tbl.NormalFastAttackEnabled)=="boolean" then cfg.NormalFastAttackEnabled=tbl.NormalFastAttackEnabled end
         if tbl.FastAttackTool~=nil then cfg.FastAttackTool=NormalizeFastAttackTool(tbl.FastAttackTool) end
+        if typeof(tbl.BoneFarmEnabled)=="boolean" then cfg.BoneFarmEnabled=tbl.BoneFarmEnabled end
+        if typeof(tbl.BoneAutoQuestEnabled)=="boolean" then cfg.BoneAutoQuestEnabled=tbl.BoneAutoQuestEnabled end
         if typeof(tbl.FruitAttackEnabled)=="boolean" then cfg.FruitAttackEnabled=tbl.FruitAttackEnabled end
         if typeof(tbl.EspFruitEnabled)=="boolean" then cfg.EspFruitEnabled=tbl.EspFruitEnabled end
         if typeof(tbl.EspEventIslandEnabled)=="boolean" then cfg.EspEventIslandEnabled=tbl.EspEventIslandEnabled end
         if typeof(tbl.EspNpcEnabled)=="boolean" then cfg.EspNpcEnabled=tbl.EspNpcEnabled end
+        if typeof(tbl.EspBoatEnabled)=="boolean" then cfg.EspBoatEnabled=tbl.EspBoatEnabled end
         if typeof(tbl.AutoRaceV4Enabled)=="boolean" then cfg.AutoRaceV4Enabled=tbl.AutoRaceV4Enabled end
     end
 
@@ -153,7 +170,9 @@ MenuConfig.Speed=_G.SPEED
 MenuConfig.HeightMob=_G.DOCAO_MOB
 MenuConfig.BoatSpeed=_G.BOAT_SPEED
 MenuConfig.FastAttackTool=NormalizeFastAttackTool(MenuConfig.FastAttackTool)
+MenuConfig.FlyMode=NormalizeFlyMode(MenuConfig.FlyMode)
 
+local FlyMode=MenuConfig.FlyMode
 local MobEnabled=MenuConfig.MobEnabled
 local ChestEnabled=MenuConfig.ChestEnabled
 local FruitEnabled=MenuConfig.FruitEnabled
@@ -161,11 +180,12 @@ local BoatEnabled=MenuConfig.BoatEnabled
 local DevilFruitESP=MenuConfig.EspFruitEnabled
 local EspEventIsland=MenuConfig.EspEventIslandEnabled
 local AdvancedFruitDealerESP=MenuConfig.EspNpcEnabled
+local EspBoatEnabled=(MenuConfig.EspBoatEnabled~=false)
 local AutoRaceV4Enabled=MenuConfig.AutoRaceV4Enabled and true or false
 local BoneFarmEnabled=MenuConfig.BoneFarmEnabled and true or false
 local BoneAutoQuestEnabled=(MenuConfig.BoneAutoQuestEnabled~=false)
 
-_G.BoatESP=true
+_G.BoatESP=EspBoatEnabled
 
 -- ===================================================
 -- ĐOẠN 1B: ESP NHIỀU TRÁI, ĐẢO SỰ KIỆN & VÒNG LẶP MÔI TRƯỜNG
@@ -1461,7 +1481,7 @@ RunService.Heartbeat:Connect(function(DeltaTime)
 end)
 
 -- ===================================================
--- ĐOẠN 3A: NÚT BẬT MENU, MAINMENU & HIỆU ỨNG TUYẾT RƠI
+-- ĐOẠN 3A: NÚT BẬT MENU & MAINMENU
 -- ===================================================
 local ToggleBtn=Instance.new("ImageButton",SeaGui)
 ToggleBtn.Size=UDim2.new(0,40,0,40)
@@ -1491,8 +1511,8 @@ toggleGradient.Color=ColorSequence.new({
 toggleGradient.Parent=toggleStroke
 
 local MainMenu=Instance.new("Frame",SeaGui)
-local MainMenuOpenSize=UDim2.new(0,230,0,290)
-local MainMenuClosedSize=UDim2.new(0,180,0,220)
+local MainMenuOpenSize=UDim2.new(0,255,0,290)
+local MainMenuClosedSize=UDim2.new(0,205,0,220)
 
 MainMenu.Size=MainMenuClosedSize
 MainMenu.AnchorPoint=Vector2.new(0.5,0.5)
@@ -1504,28 +1524,6 @@ MainMenu.Draggable=true
 MainMenu.ClipsDescendants=true
 
 Instance.new("UICorner",MainMenu).CornerRadius=UDim.new(0,10)
-
-local SnowLayer=Instance.new("Frame",MainMenu)
-SnowLayer.Name="SnowLayer"
-SnowLayer.Size=UDim2.fromScale(1,1)
-SnowLayer.BackgroundTransparency=1
-SnowLayer.ClipsDescendants=true
-SnowLayer.ZIndex=0
-
-local Snowflakes={}
-
-for i=1,45 do
-    local Snow=Instance.new("Frame",SnowLayer)
-    local Size=math.random(1,3)
-    Snow.Size=UDim2.new(2,Size,2,Size)
-    Snow.Position=UDim2.new(math.random(),0,math.random(),0)
-    Snow.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Snow.BackgroundTransparency=math.random(20,60)/100
-    Snow.BorderSizePixel=0
-    Snow.ZIndex=0
-    Instance.new("UICorner",Snow).CornerRadius=UDim.new(1,0)
-    table.insert(Snowflakes,{Object=Snow,Speed=math.random(15,35)/100,Drift=math.random(-8,8)/100})
-end
 
 local menuStroke=Instance.new("UIStroke",MainMenu)
 menuStroke.Thickness=1.5
@@ -1544,10 +1542,10 @@ menuGradient.Color=ColorSequence.new({
 menuGradient.Parent=menuStroke
 
 local Title=Instance.new("TextLabel",MainMenu)
-Title.Size=UDim2.new(1,-55,0,35)
-Title.Position=UDim2.new(0,0,0,0)
-Title.Text=""
-Title.RichText=true
+Title.Size=UDim2.new(1,-20,0,34)
+Title.Position=UDim2.new(0,10,0,0)
+Title.Text="NHAT HIHI"
+Title.TextColor3=Color3.fromRGB(0,170,255)
 Title.Font=Enum.Font.Cartoon
 Title.TextSize=15
 Title.BackgroundTransparency=1
@@ -1570,9 +1568,6 @@ UIList.HorizontalAlignment=Enum.HorizontalAlignment.Center
 UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     Scroll.CanvasSize=UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y+10)
 end)
-
-local titleText="NHAT HIHI"
-local titleHue=0
 
 local MenuTweenInfo=TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
 local MenuClosing=false
@@ -1603,265 +1598,278 @@ RunService.RenderStepped:Connect(function(delta)
     local ToggleSpeed=MainMenu.Visible and 150 or 100
     toggleGradient.Rotation=(toggleGradient.Rotation+delta*ToggleSpeed)%360
     menuGradient.Rotation=(menuGradient.Rotation+delta*90)%360
-
-    for _,flake in ipairs(Snowflakes) do
-        local obj=flake.Object
-        if obj.Parent then
-            local x=obj.Position.X.Scale+flake.Drift*delta
-            local y=obj.Position.Y.Scale+flake.Speed*delta
-            if y>1.05 then y=-0.05; x=math.random() end
-            if x>1.05 then x=-0.05 elseif x<-0.05 then x=1.05 end
-            obj.Position=UDim2.new(x,0,y,0)
-        end
-    end
-
-    titleHue=(titleHue+delta*0.35)%1
-    local Text=""
-
-    for i=1,#titleText do
-        local char=titleText:sub(i,i)
-        if char==" " then
-            Text=Text.." "
-        else
-            local hue=(titleHue-(i-1)/#titleText)%1
-            local color=Color3.fromHSV(hue,1,1)
-            local r=math.floor(color.R*255)
-            local g=math.floor(color.G*255)
-            local b=math.floor(color.B*255)
-            Text=Text..string.format('<font color="rgb(%d,%d,%d)">%s</font>',r,g,b,char)
-        end
-    end
-
-    Title.Text=Text
 end)
 
-ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)   
+ToggleBtn.MouseButton1Click:Connect(ToggleMainMenu)
 
 -- ===================================================
--- ĐOẠN 3B: CỬA SỔ CÀI ĐẶT (TWEEN/LERP + SLIDER + ESP + AUTO V4)
+-- ĐOẠN 3B & 4A: HỆ THỐNG 5 TAB TRÊN MAINMENU
 -- ===================================================
-local SettingsBtn=Instance.new("TextButton",MainMenu)
-SettingsBtn.Name="SettingsButton"
-SettingsBtn.Size=UDim2.new(0,30,0,30)
-SettingsBtn.Position=UDim2.new(1,-35,0,2)
-SettingsBtn.BackgroundColor3=Color3.fromRGB(25,35,50)
-SettingsBtn.BackgroundTransparency=1
-SettingsBtn.AutoButtonColor=false
-SettingsBtn.Text="⚙️"
-SettingsBtn.Font=Enum.Font.Cartoon
-SettingsBtn.TextSize=18
-SettingsBtn.TextColor3=Color3.fromRGB(100,200,255)
-SettingsBtn.ZIndex=10
-Instance.new("UICorner",SettingsBtn).CornerRadius=UDim.new(1,0)
+local BLUE=Color3.fromRGB(0,170,255)
+local OFF_BG=Color3.fromRGB(35,40,48)
+local ON_BG=Color3.fromRGB(0,170,255)
+local CARD_BG=Color3.fromRGB(25,35,50)
+local CARD_STROKE=Color3.fromRGB(0,120,200)
+local TEXT_COLOR=Color3.fromRGB(100,200,255)
 
-local SettingsStroke=Instance.new("UIStroke",SettingsBtn)
-SettingsStroke.Thickness=1
-SettingsStroke.Color=Color3.fromRGB(0,120,200)
+-- Ẩn nút ⚙️ cũ nếu có để tránh rối khi đã có Tab Cài đặt
+local oldSettingsBtn=MainMenu:FindFirstChild("SettingsButton")
+if oldSettingsBtn then oldSettingsBtn.Visible=false end
 
 local SettingsGui=Instance.new("Frame",SeaGui)
 local SettingsOpenSize=UDim2.new(0,180,0,195)
-local SettingsClosedSize=UDim2.new(0,140,0,150)
-
 SettingsGui.Name="SettingsGui"
 SettingsGui.Size=SettingsOpenSize
-SettingsGui.AnchorPoint=Vector2.new(0.5,0.5)
-SettingsGui.Position=UDim2.new(0.5,208,0.5,0)
-SettingsGui.BackgroundColor3=Color3.fromRGB(15,20,28)
-SettingsGui.BackgroundTransparency=0.08
 SettingsGui.Visible=false
-SettingsGui.Active=true
-SettingsGui.Draggable=true
-SettingsGui.ZIndex=20
-SettingsGui.ClipsDescendants=true
 
-Instance.new("UICorner",SettingsGui).CornerRadius=UDim.new(0,8)
+-- Thanh chọn Tab nằm ngang phía dưới Title của MainMenu
+local TabBar=Instance.new("ScrollingFrame",MainMenu)
+TabBar.Name="TabBar"
+TabBar.Size=UDim2.new(1,-10,0,28)
+TabBar.Position=UDim2.new(0,5,0,34)
+TabBar.BackgroundTransparency=1
+TabBar.BorderSizePixel=0
+TabBar.ScrollBarThickness=2
+TabBar.ScrollingDirection=Enum.ScrollingDirection.X
+TabBar.CanvasSize=UDim2.new(0,0,0,0)
+TabBar.AutomaticCanvasSize=Enum.AutomaticSize.X
+TabBar.ZIndex=5
 
-local SettingsGuiStroke=Instance.new("UIStroke",SettingsGui)
-SettingsGuiStroke.Thickness=1.3
-SettingsGuiStroke.Color=Color3.fromRGB(0,170,255)
+local TabBarLayout=Instance.new("UIListLayout",TabBar)
+TabBarLayout.FillDirection=Enum.FillDirection.Horizontal
+TabBarLayout.SortOrder=Enum.SortOrder.LayoutOrder
+TabBarLayout.Padding=UDim.new(0,5)
+TabBarLayout.VerticalAlignment=Enum.VerticalAlignment.Center
 
-local SettingsTitle=Instance.new("TextLabel",SettingsGui)
-SettingsTitle.Size=UDim2.new(1,-30,0,25)
-SettingsTitle.Position=UDim2.new(0,5,0,2)
-SettingsTitle.BackgroundTransparency=1
-SettingsTitle.Text="CÀI ĐẶT"
-SettingsTitle.Font=Enum.Font.Cartoon
-SettingsTitle.TextSize=14
-SettingsTitle.TextColor3=Color3.fromRGB(100,200,255)
-SettingsTitle.TextXAlignment=Enum.TextXAlignment.Left
-SettingsTitle.ZIndex=21
+-- Điều chỉnh lại Scroll chính nằm gọn dưới TabBar
+Scroll.Size=UDim2.new(1,-8,1,-68)
+Scroll.Position=UDim2.new(0,4,0,65)
+Scroll.ZIndex=5
 
-local SettingsClose=Instance.new("TextButton",SettingsGui)
-SettingsClose.Size=UDim2.new(0,22,0,22)
-SettingsClose.Position=UDim2.new(1,-25,0,3)
-SettingsClose.BackgroundTransparency=1
-SettingsClose.Text="X"
-SettingsClose.Font=Enum.Font.Gotham
-SettingsClose.TextSize=20
-SettingsClose.TextColor3=Color3.fromRGB(255,100,100)
-SettingsClose.AutoButtonColor=false
-SettingsClose.ZIndex=21
-
-local SettingsScroll=Instance.new("ScrollingFrame",SettingsGui)
-SettingsScroll.Name="SettingsScroll"
-SettingsScroll.Size=UDim2.new(1,-8,1,-32)
-SettingsScroll.Position=UDim2.new(0,4,0,29)
-SettingsScroll.BackgroundTransparency=1
-SettingsScroll.BorderSizePixel=0
-SettingsScroll.ScrollBarThickness=3
-SettingsScroll.ScrollBarImageColor3=Color3.fromRGB(0,170,255)
-SettingsScroll.CanvasSize=UDim2.new(0,0,0,0)
-SettingsScroll.AutomaticCanvasSize=Enum.AutomaticSize.None
-SettingsScroll.ScrollingDirection=Enum.ScrollingDirection.Y
-SettingsScroll.ZIndex=21
-
-local SettingsList=Instance.new("UIListLayout",SettingsScroll)
-SettingsList.SortOrder=Enum.SortOrder.LayoutOrder
-SettingsList.Padding=UDim.new(0,7)
-SettingsList.HorizontalAlignment=Enum.HorizontalAlignment.Center
-
-SettingsList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    SettingsScroll.CanvasSize=UDim2.new(0,0,0,SettingsList.AbsoluteContentSize.Y+10)
-end)
-
--- Bộ chọn chế độ bay (Tween / Lerp) đặt trên cùng
-local FlyModeHolder=Instance.new("Frame",SettingsScroll)
-FlyModeHolder.Name="FlyModeSelector"
-FlyModeHolder.LayoutOrder=0
-FlyModeHolder.Size=UDim2.new(1,-6,0,50)
-FlyModeHolder.BackgroundColor3=Color3.fromRGB(25,35,50)
-FlyModeHolder.BackgroundTransparency=0.25
-FlyModeHolder.BorderSizePixel=0
-FlyModeHolder.ZIndex=21
-Instance.new("UICorner",FlyModeHolder).CornerRadius=UDim.new(0,5)
-
-local FlyModeStroke=Instance.new("UIStroke",FlyModeHolder)
-FlyModeStroke.Thickness=1
-FlyModeStroke.Color=Color3.fromRGB(0,120,200)
-
-local FlyModeTitle=Instance.new("TextLabel",FlyModeHolder)
-FlyModeTitle.Size=UDim2.new(1,-10,0,17)
-FlyModeTitle.Position=UDim2.new(0,5,0,2)
-FlyModeTitle.BackgroundTransparency=1
-FlyModeTitle.Text="CHẾ ĐỘ BAY"
-FlyModeTitle.Font=Enum.Font.Cartoon
-FlyModeTitle.TextSize=11
-FlyModeTitle.TextColor3=Color3.fromRGB(100,200,255)
-FlyModeTitle.TextXAlignment=Enum.TextXAlignment.Left
-FlyModeTitle.ZIndex=22
-
-local FlyModeRow=Instance.new("Frame",FlyModeHolder)
-FlyModeRow.Size=UDim2.new(1,-10,0,22)
-FlyModeRow.Position=UDim2.new(0,5,0,22)
-FlyModeRow.BackgroundTransparency=1
-FlyModeRow.ZIndex=22
-
-local FlyModeLayout=Instance.new("UIListLayout",FlyModeRow)
-FlyModeLayout.FillDirection=Enum.FillDirection.Horizontal
-FlyModeLayout.SortOrder=Enum.SortOrder.LayoutOrder
-FlyModeLayout.Padding=UDim.new(0,6)
-
-local FlyModeChoices={
-    {Key="Tween",Text="Tween"},
-    {Key="Lerp",Text="Lerp"},
+local TabDefinitions={
+    {Key="Farming",Text="Farming"},
+    {Key="Fruit",Text="Fruit"},
+    {Key="RaceV4",Text="Race And V4"},
+    {Key="ESP",Text="ESP"},
+    {Key="Settings",Text="Cài đặt"},
 }
 
-local FlyModeButtons={}
+local TabPages={}
+local TabButtons={}
+local ActiveTabKey="Farming"
 
-local function RefreshFlyModeUI(silent)
-    for key,item in pairs(FlyModeButtons) do
-        local active=(key==FlyMode)
-        item.Btn.BackgroundColor3=active and Color3.fromRGB(0,170,255) or Color3.fromRGB(35,40,48)
-        item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
-        item.Stroke.Color=active and Color3.fromRGB(0,170,255) or Color3.fromRGB(70,80,90)
+for idx,def in ipairs(TabDefinitions) do
+    local page=Instance.new("Frame",Scroll)
+    page.Name="Page_"..def.Key
+    page.Size=UDim2.new(1,0,0,0)
+    page.BackgroundTransparency=1
+    page.Visible=(def.Key==ActiveTabKey)
+    page.ZIndex=6
+
+    local layout=Instance.new("UIListLayout",page)
+    layout.SortOrder=Enum.SortOrder.LayoutOrder
+    layout.Padding=UDim.new(0,6)
+    layout.HorizontalAlignment=Enum.HorizontalAlignment.Center
+
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        page.Size=UDim2.new(1,0,0,layout.AbsoluteContentSize.Y+6)
+        if page.Visible then
+            Scroll.CanvasSize=UDim2.new(0,0,0,layout.AbsoluteContentSize.Y+14)
+        end
+    end)
+
+    TabPages[def.Key]={Frame=page,Layout=layout}
+
+    local tabBtn=Instance.new("TextButton",TabBar)
+    tabBtn.Name="TabBtn_"..def.Key
+    tabBtn.LayoutOrder=idx
+    tabBtn.Size=UDim2.new(0,74,0,22)
+    tabBtn.BackgroundColor3=OFF_BG
+    tabBtn.AutoButtonColor=false
+    tabBtn.Text=def.Text
+    tabBtn.Font=Enum.Font.Cartoon
+    tabBtn.TextSize=11
+    tabBtn.TextColor3=Color3.fromRGB(165,195,220)
+    tabBtn.ZIndex=6
+    Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,5)
+
+    local tabStroke=Instance.new("UIStroke",tabBtn)
+    tabStroke.Thickness=1
+    tabStroke.Color=Color3.fromRGB(70,80,90)
+
+    TabButtons[def.Key]={Btn=tabBtn,Stroke=tabStroke}
+end
+
+local function SwitchTab(key)
+    if not TabPages[key] then return end
+    ActiveTabKey=key
+
+    for k,pageData in pairs(TabPages) do
+        local isCurrent=(k==key)
+        pageData.Frame.Visible=isCurrent
+        if isCurrent then
+            Scroll.CanvasPosition=Vector2.zero
+            Scroll.CanvasSize=UDim2.new(0,0,0,pageData.Layout.AbsoluteContentSize.Y+14)
+        end
     end
-    if not silent then
-        MenuConfig.FlyMode=FlyMode
-        SaveMenuConfig()
+
+    for k,btnData in pairs(TabButtons) do
+        local active=(k==key)
+        btnData.Btn.BackgroundColor3=active and ON_BG or OFF_BG
+        btnData.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
+        btnData.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
     end
 end
 
-for idx,choice in ipairs(FlyModeChoices) do
-    local ModeBtn=Instance.new("TextButton",FlyModeRow)
-    ModeBtn.LayoutOrder=idx
-    ModeBtn.Size=UDim2.new(0.5,-3,1,0)
-    ModeBtn.BackgroundColor3=Color3.fromRGB(35,40,48)
-    ModeBtn.AutoButtonColor=false
-    ModeBtn.Text=choice.Text
-    ModeBtn.Font=Enum.Font.Cartoon
-    ModeBtn.TextSize=11
-    ModeBtn.TextColor3=Color3.fromRGB(165,195,220)
-    ModeBtn.ZIndex=23
-    Instance.new("UICorner",ModeBtn).CornerRadius=UDim.new(0,5)
-
-    local ModeStroke=Instance.new("UIStroke",ModeBtn)
-    ModeStroke.Thickness=1
-    ModeStroke.Color=Color3.fromRGB(70,80,90)
-
-    FlyModeButtons[choice.Key]={Btn=ModeBtn,Stroke=ModeStroke}
-
-    ModeBtn.MouseButton1Click:Connect(function()
-        FlyMode=choice.Key
-        CancelActiveFlyTween()
-        RefreshFlyModeUI(false)
+for key,btnData in pairs(TabButtons) do
+    btnData.Btn.MouseButton1Click:Connect(function()
+        SwitchTab(key)
     end)
 end
 
-RefreshFlyModeUI(true)
-
-local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Callback,Order)
+-- Helper tạo Toggle gắn vào từng Tab
+local function CreateTabToggle(Parent,Name,DefaultState,Callback,Subtitle,Order)
+    local hasSubtitle=Subtitle~=nil and Subtitle~=""
     local Holder=Instance.new("Frame",Parent)
     Holder.LayoutOrder=Order or 10
-    Holder.Size=UDim2.new(1,-6,0,54)
-    Holder.BackgroundTransparency=1
+    Holder.Size=UDim2.new(0.95,0,0,hasSubtitle and 48 or 36)
+    Holder.BackgroundColor3=CARD_BG
+    Holder.BackgroundTransparency=0.25
     Holder.BorderSizePixel=0
-    Holder.ZIndex=21
+    Holder.ZIndex=7
+    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+
+    local HolderStroke=Instance.new("UIStroke",Holder)
+    HolderStroke.Thickness=1
+    HolderStroke.Color=CARD_STROKE
 
     local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-50,0,18)
-    Label.Position=UDim2.new(0,2,0,0)
+    Label.Size=UDim2.new(1,-58,0,20)
+    Label.Position=UDim2.new(0,7,0,hasSubtitle and 4 or 8)
+    Label.BackgroundTransparency=1
+    Label.Text=Name
+    Label.Font=Enum.Font.Cartoon
+    Label.TextSize=12
+    Label.TextColor3=TEXT_COLOR
+    Label.TextXAlignment=Enum.TextXAlignment.Left
+    Label.ZIndex=8
+
+    if hasSubtitle then
+        local SubLabel=Instance.new("TextLabel",Holder)
+        SubLabel.Size=UDim2.new(1,-58,0,15)
+        SubLabel.Position=UDim2.new(0,7,0,25)
+        SubLabel.BackgroundTransparency=1
+        SubLabel.Text=Subtitle
+        SubLabel.Font=Enum.Font.Cartoon
+        SubLabel.TextSize=10
+        SubLabel.TextColor3=Color3.fromRGB(155,185,210)
+        SubLabel.TextXAlignment=Enum.TextXAlignment.Left
+        SubLabel.ZIndex=8
+    end
+
+    local Switch=Instance.new("TextButton",Holder)
+    Switch.Size=UDim2.new(0,38,0,19)
+    Switch.Position=UDim2.new(1,-44,0.5,-9.5)
+    Switch.BackgroundColor3=OFF_BG
+    Switch.AutoButtonColor=false
+    Switch.Text=""
+    Switch.ZIndex=8
+    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
+
+    local Stroke=Instance.new("UIStroke",Switch)
+    Stroke.Thickness=1
+    Stroke.Color=Color3.fromRGB(70,80,90)
+
+    local Knob=Instance.new("Frame",Switch)
+    Knob.Size=UDim2.new(0,13,0,13)
+    Knob.Position=UDim2.new(0,3,0.5,-6.5)
+    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
+    Knob.ZIndex=9
+    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
+
+    local Enabled=DefaultState and true or false
+
+    local function Update(silent)
+        if Enabled then
+            Switch.BackgroundColor3=ON_BG
+            Stroke.Color=BLUE
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-16,0.5,-6.5)}):Play()
+        else
+            Switch.BackgroundColor3=OFF_BG
+            Stroke.Color=Color3.fromRGB(70,80,90)
+            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,3,0.5,-6.5)}):Play()
+        end
+        if not silent then
+            Callback(Enabled)
+        end
+    end
+
+    Switch.MouseButton1Click:Connect(function()
+        Enabled=not Enabled
+        Update(false)
+    end)
+
+    Update(true)
+
+    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
+end
+
+-- Helper tạo Slider gắn vào từng Tab
+local function CreateTabSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Callback,Order)
+    local Holder=Instance.new("Frame",Parent)
+    Holder.LayoutOrder=Order or 1
+    Holder.Size=UDim2.new(0.95,0,0,50)
+    Holder.BackgroundColor3=CARD_BG
+    Holder.BackgroundTransparency=0.25
+    Holder.BorderSizePixel=0
+    Holder.ZIndex=7
+    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+
+    local HolderStroke=Instance.new("UIStroke",Holder)
+    HolderStroke.Thickness=1
+    HolderStroke.Color=CARD_STROKE
+
+    local Label=Instance.new("TextLabel",Holder)
+    Label.Size=UDim2.new(1,-54,0,18)
+    Label.Position=UDim2.new(0,7,0,3)
     Label.BackgroundTransparency=1
     Label.Text=Name
     Label.Font=Enum.Font.Cartoon
     Label.TextSize=11
-    Label.TextColor3=Color3.fromRGB(100,200,255)
+    Label.TextColor3=TEXT_COLOR
     Label.TextXAlignment=Enum.TextXAlignment.Left
-    Label.ZIndex=21
+    Label.ZIndex=8
 
     local Input=Instance.new("TextBox",Holder)
-    Input.Size=UDim2.new(0,38,0,19)
-    Input.Position=UDim2.new(1,-40,0,-2)
-    Input.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Input.BackgroundTransparency=0
+    Input.Size=UDim2.new(0,38,0,18)
+    Input.Position=UDim2.new(1,-44,0,3)
+    Input.BackgroundColor3=Color3.fromRGB(20,28,40)
     Input.Text=tostring(DefaultValue)
     Input.Font=Enum.Font.Cartoon
     Input.TextSize=11
     Input.TextColor3=Color3.fromRGB(255,255,255)
     Input.ClearTextOnFocus=false
     Input.TextXAlignment=Enum.TextXAlignment.Center
-    Input.ZIndex=22
-
+    Input.ZIndex=8
     Instance.new("UICorner",Input).CornerRadius=UDim.new(0,4)
 
     local InputStroke=Instance.new("UIStroke",Input)
     InputStroke.Thickness=1
-    InputStroke.Color=Color3.fromRGB(0,120,200)
+    InputStroke.Color=CARD_STROKE
 
     local Bar=Instance.new("Frame",Holder)
-    Bar.Size=UDim2.new(1,-45,0,6)
-    Bar.Position=UDim2.new(0,2,0,27)
+    Bar.Size=UDim2.new(1,-16,0,6)
+    Bar.Position=UDim2.new(0,8,0,31)
     Bar.BackgroundColor3=Color3.fromRGB(45,55,65)
     Bar.BorderSizePixel=0
-    Bar.ZIndex=21
-
+    Bar.ZIndex=8
     Instance.new("UICorner",Bar).CornerRadius=UDim.new(1,0)
 
     local Fill=Instance.new("Frame",Bar)
     Fill.Size=UDim2.new(0,0,1,0)
-    Fill.BackgroundColor3=Color3.fromRGB(0,170,255)
+    Fill.BackgroundColor3=BLUE
     Fill.BorderSizePixel=0
-    Fill.ZIndex=22
-
+    Fill.ZIndex=9
     Instance.new("UICorner",Fill).CornerRadius=UDim.new(1,0)
 
     local Value=math.clamp(DefaultValue,MinValue,MaxValue)
@@ -1909,119 +1917,93 @@ local function CreateSettingSlider(Parent,Name,MinValue,MaxValue,DefaultValue,Ca
     return {Set=SetValue,Get=function() return Value end}
 end
 
-local function CreateSettingToggle(Parent,Name,DefaultState,Callback,Order)
-    local Holder=Instance.new("Frame",Parent)
-    Holder.LayoutOrder=Order or 20
-    Holder.Size=UDim2.new(1,-6,0,30)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.25
-    Holder.BorderSizePixel=0
-    Holder.ZIndex=21
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,5)
+-- ===================================================
+-- 1. TAB FARMING: Độ cao farm quái (trên cùng), Bay tới quái, Farm bone, Nhận quest Bone, Farm Rương
+-- ===================================================
+local FarmingPage=TabPages.Farming.Frame
 
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
-
-    local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-46,1,0)
-    Label.Position=UDim2.new(0,5,0,0)
-    Label.BackgroundTransparency=1
-    Label.Text=Name
-    Label.Font=Enum.Font.Cartoon
-    Label.TextSize=11
-    Label.TextColor3=Color3.fromRGB(100,200,255)
-    Label.TextXAlignment=Enum.TextXAlignment.Left
-    Label.ZIndex=22
-
-    local Switch=Instance.new("TextButton",Holder)
-    Switch.Size=UDim2.new(0,34,0,17)
-    Switch.Position=UDim2.new(1,-39,0.5,-8.5)
-    Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
-    Switch.AutoButtonColor=false
-    Switch.Text=""
-    Switch.ZIndex=22
-    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
-
-    local Stroke=Instance.new("UIStroke",Switch)
-    Stroke.Thickness=1
-    Stroke.Color=Color3.fromRGB(70,80,90)
-
-    local Knob=Instance.new("Frame",Switch)
-    Knob.Size=UDim2.new(0,13,0,13)
-    Knob.Position=UDim2.new(0,2,0.5,-6.5)
-    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Knob.ZIndex=23
-    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
-
-    local Enabled=DefaultState and true or false
-
-    local function Update(silent)
-        if Enabled then
-            Switch.BackgroundColor3=Color3.fromRGB(0,170,255)
-            Stroke.Color=Color3.fromRGB(0,170,255)
-            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-15,0.5,-6.5)}):Play()
-        else
-            Switch.BackgroundColor3=Color3.fromRGB(35,40,48)
-            Stroke.Color=Color3.fromRGB(70,80,90)
-            TweenService:Create(Knob,TweenInfo.new(0.16,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,2,0.5,-6.5)}):Play()
-        end
-        if not silent then
-            Callback(Enabled)
-        end
-    end
-
-    Switch.MouseButton1Click:Connect(function()
-        Enabled=not Enabled
-        Update(false)
-    end)
-
-    Update(true)
-
-    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
-end
-
-local SpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ bay",150,250,_G.SPEED,function(Value)
-    _G.SPEED=Value
-    MenuConfig.Speed=Value
-    SaveMenuConfig()
-end,1)
-
-local HeightSetting=CreateSettingSlider(SettingsScroll,"Độ cao quái",0,100,_G.DOCAO_MOB,function(Value)
+CreateTabSlider(FarmingPage,"Độ cao farm quái",0,100,_G.DOCAO_MOB,function(Value)
     _G.DOCAO_MOB=Value
     MenuConfig.HeightMob=Value
     SaveMenuConfig()
-end,2)
+end,1)
 
-local BoatSpeedSetting=CreateSettingSlider(SettingsScroll,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
-    _G.BOAT_SPEED=Value
-    MenuConfig.BoatSpeed=Value
+CreateTabToggle(FarmingPage,"Bay tới quái",MenuConfig.MobEnabled,function(Value)
+    MobEnabled=Value
+    TargetMob=nil
+    MenuConfig.MobEnabled=Value
     SaveMenuConfig()
-end,3)
+end,nil,2)
 
-local EspFruitToggle=CreateSettingToggle(SettingsScroll,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
-    SetFruitESPEnabled(Value)
-    MenuConfig.EspFruitEnabled=Value
+CreateTabToggle(FarmingPage,"Farm bone",BoneFarmEnabled,function(Value)
+    BoneFarmEnabled=Value
+    BoneBatBring=false
+    BoneLockedMobName=nil
+    BoneCurrentMons={}
+    BoneActiveTargetCF=nil
+    MenuConfig.BoneFarmEnabled=Value
     SaveMenuConfig()
-end,4)
+end,"Auto farm xương & gom quái",3)
 
-local EspEventIslandToggle=CreateSettingToggle(SettingsScroll,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
-    SetEventIslandESPEnabled(Value)
-    MenuConfig.EspEventIslandEnabled=Value
+CreateTabToggle(FarmingPage,"Nhận quest Bone",BoneAutoQuestEnabled,function(Value)
+    BoneAutoQuestEnabled=Value
+    MenuConfig.BoneAutoQuestEnabled=Value
     SaveMenuConfig()
-end,5)
+end,"Tự nhận nhiệm vụ Haunted Quest",4)
 
-local EspNpcToggle=CreateSettingToggle(SettingsScroll,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
-    SetNpcESPEnabled(Value)
-    MenuConfig.EspNpcEnabled=Value
+CreateTabToggle(FarmingPage,"Farm Rương",MenuConfig.ChestEnabled,function(Value)
+    ChestEnabled=Value
+    if Value and GetCurrentBeli then LastBeli=GetCurrentBeli() end
+    TargetChest=nil
+    TouchTimer=0
+    MenuConfig.ChestEnabled=Value
     SaveMenuConfig()
-end,6)
+end,nil,5)
 
-local AutoRaceV4Toggle=CreateSettingToggle(SettingsScroll,"Auto Race V4",AutoRaceV4Enabled,function(Value)
+-- ===================================================
+-- 2. TAB FRUIT: Bay tới trái
+-- ===================================================
+local FruitPage=TabPages.Fruit.Frame
+
+CreateTabToggle(FruitPage,"Bay tới trái",MenuConfig.FruitEnabled,function(Value)
+    FruitEnabled=Value
+    TargetFruit=nil
+    MenuConfig.FruitEnabled=Value
+    SaveMenuConfig()
+end,nil,1)
+
+-- ===================================================
+-- 3. TAB RACE AND V4: Đền Thời Gian + Auto Race V4
+-- ===================================================
+local RaceV4Page=TabPages.RaceV4.Frame
+
+local TempleBtn=Instance.new("TextButton",RaceV4Page)
+TempleBtn.Name="TempleOfTimeBtn"
+TempleBtn.LayoutOrder=1
+TempleBtn.Size=UDim2.new(0.95,0,0,34)
+TempleBtn.Text="Đền Thời Gian"
+TempleBtn.Font=Enum.Font.Cartoon
+TempleBtn.TextSize=12
+TempleBtn.TextColor3=TEXT_COLOR
+TempleBtn.BackgroundColor3=CARD_BG
+TempleBtn.BackgroundTransparency=0.25
+TempleBtn.AutoButtonColor=false
+TempleBtn.ZIndex=7
+Instance.new("UICorner",TempleBtn).CornerRadius=UDim.new(0,6)
+
+local templeStroke=Instance.new("UIStroke",TempleBtn)
+templeStroke.Thickness=1
+templeStroke.Color=CARD_STROKE
+
+TempleBtn.MouseButton1Click:Connect(function()
+    SpawnToIsland("TempleOfTime")
+end)
+
+CreateTabToggle(RaceV4Page,"Auto Race V4",AutoRaceV4Enabled,function(Value)
     AutoRaceV4Enabled=Value
     MenuConfig.AutoRaceV4Enabled=Value
     SaveMenuConfig()
-end,7)
+end,nil,2)
 
 task.spawn(function()
     while task.wait(0.2) do
@@ -2042,440 +2024,252 @@ task.spawn(function()
     end
 end)
 
-local function GetSettingsRightOffsetPos()
-    local gap=3
-    local mainHalfW=MainMenuOpenSize.X.Offset*0.5
-    local setHalfW=SettingsOpenSize.X.Offset*0.5
-    local offsetX=MainMenu.Position.X.Offset+mainHalfW+gap+setHalfW
-    local offsetY=MainMenu.Position.Y.Offset
-    return UDim2.new(0.5,offsetX,0.5,offsetY)
-end
-
-local isDraggingMainMenu=false
-MainMenu.InputBegan:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-        isDraggingMainMenu=true
-    end
-end)
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-        isDraggingMainMenu=false
-    end
-end)
-
-local lastSettingsToggleTick=0
-
-local function OpenSettings()
-    SettingsGui.Position=GetSettingsRightOffsetPos()
-    SettingsGui.Size=SettingsOpenSize
-    SettingsGui.Visible=true
-end
-
-local function CloseSettings()
-    SettingsGui.Visible=false
-end
-
-local function ToggleSettings()
-    local now=os.clock()
-    if now-lastSettingsToggleTick<0.15 then return end
-    lastSettingsToggleTick=now
-    if SettingsGui.Visible then
-        CloseSettings()
-    else
-        OpenSettings()
-    end
-end
-
-MainMenu:GetPropertyChangedSignal("Position"):Connect(function()
-    if SettingsGui.Visible and isDraggingMainMenu then
-        SettingsGui.Position=GetSettingsRightOffsetPos()
-    end
-end)
-
-SettingsBtn.MouseButton1Click:Connect(ToggleSettings)
-SettingsClose.MouseButton1Click:Connect(CloseSettings)
-
 -- ===================================================
--- ĐOẠN 3C: TELEPORT CỔNG & ĐỀN THỜI GIAN
+-- 4. TAB ESP: ESP Trái, ESP NPC, ESP Thuyền (kèm ESP Đảo Sự Kiện)
 -- ===================================================
-local function SpawnToIsland(spawnArg)
-    local commF=ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+local EspPage=TabPages.ESP.Frame
 
-    if spawnArg=="TempleOfTime" then
-        if TempleFlyConnection or BodyVelocity then
-            if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-            CancelActiveFlyTween()
-            DisableAntiGravity()
-            DisableNoclip()
-            return
-        end
+CreateTabToggle(EspPage,"ESP Trái",MenuConfig.EspFruitEnabled,function(Value)
+    SetFruitESPEnabled(Value)
+    MenuConfig.EspFruitEnabled=Value
+    SaveMenuConfig()
+end,nil,1)
 
-        task.spawn(function()
-            local hrp=GetRoot()
-            if not hrp then return end
+CreateTabToggle(EspPage,"ESP NPC",MenuConfig.EspNpcEnabled,function(Value)
+    SetNpcESPEnabled(Value)
+    MenuConfig.EspNpcEnabled=Value
+    SaveMenuConfig()
+end,"Advanced Fruit Dealer",2)
 
-            EnableAntiGravity(hrp)
-            EnableNoclip()
-
-            local entranceCFrame=CFrame.new(3035.22,2280.89,-7321.22)
-            local phase=1
-            local raceCFrame=nil
-
-            TempleFlyConnection=RunService.Heartbeat:Connect(function(deltaTime)
-                local currentHrp=GetRoot()
-
-                if not currentHrp then
-                    if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                    CancelActiveFlyTween()
-                    DisableAntiGravity()
-                    DisableNoclip()
-                    return
-                end
-
-                currentHrp.AssemblyLinearVelocity=Vector3.zero
-                currentHrp.AssemblyAngularVelocity=Vector3.zero
-                EnableNoclip()
-
-                if phase==2 then return end
-
-                local targetCFrame
-                if phase==1 then targetCFrame=entranceCFrame elseif phase==3 then targetCFrame=raceCFrame end
-                if not targetCFrame then return end
-
-                local distance=(currentHrp.Position-targetCFrame.Position).Magnitude
-                local boostDistance=tonumber(_G.BOOST_DISTANCE) or 90
-                local boostSpeed=tonumber(_G.BOOST_SPEED) or 1000
-                local normalSpeed=tonumber(_G.SPEED) or 140
-                local activeSpeed=distance<=boostDistance and boostSpeed or normalSpeed
-
-                if phase==1 then
-                    if distance<=0.5 then
-                        CancelActiveFlyTween()
-                        phase=2
-
-                        task.spawn(function()
-                            for i=1,10 do
-                                local mapFolder=Workspace:FindFirstChild("Map") or Workspace
-
-                                if not mapFolder:FindFirstChild("Temple of Time") then
-                                    local stash=ReplicatedStorage:FindFirstChild("MapStash") or ReplicatedStorage
-                                    local tot=stash:FindFirstChild("Temple of Time")
-                                    if tot then tot.Parent=mapFolder; break end
-                                else
-                                    break
-                                end
-
-                                task.wait(0.3)
-                            end
-
-                            task.wait(0.5)
-
-                            pcall(function()
-                                commF:InvokeServer("requestEntrance",Vector3.new(28310.0234,14895.1123,109.456741))
-                            end)
-
-                            task.wait(0.5)
-
-                            local race=nil
-                            pcall(function() race=LocalPlayer.Data.Race.Value end)
-
-                            if race=="Fishman" then
-                                raceCFrame=CFrame.new(28224.056640625,14889.4267578125,-210.5872039794922)
-                            elseif race=="Cyborg" then
-                                raceCFrame=CFrame.new(28492.4140625,14894.4267578125,-422.1100158691406)
-                            elseif race=="Skypiea" then
-                                raceCFrame=CFrame.new(28967.408203125,14918.0751953125,234.31198120117188)
-                            elseif race=="Ghoul" then
-                                raceCFrame=CFrame.new(28672.720703125,14889.1279296875,454.5961608886719)
-                            elseif race=="Human" then
-                                raceCFrame=CFrame.new(29237.294921875,14889.4267578125,-206.94955444335938)
-                            else
-                                raceCFrame=CFrame.new(29020.66015625,14889.4267578125,-379.2682800292969)
-                            end
-
-                            phase=3
-                        end)
-                    else
-                        StepFlyToCFrame(currentHrp,targetCFrame,deltaTime,activeSpeed)
-                    end
-                elseif phase==3 then
-                    if distance<=3 then
-                        if TempleFlyConnection then TempleFlyConnection:Disconnect(); TempleFlyConnection=nil end
-                        CancelActiveFlyTween()
-                        DisableAntiGravity()
-                        DisableNoclip()
-                        return
-                    else
-                        StepFlyToCFrame(currentHrp,targetCFrame,deltaTime,activeSpeed)
+CreateTabToggle(EspPage,"ESP Thuyền",EspBoatEnabled,function(Value)
+    EspBoatEnabled=Value
+    _G.BoatESP=Value
+    if not Value then
+        cachedMyBoatCore=nil
+        local boatsFolder=Workspace:FindFirstChild("Boats")
+        if boatsFolder then
+            for _,boat in ipairs(boatsFolder:GetChildren()) do
+                for _,bill in ipairs(boat:GetDescendants()) do
+                    if bill:IsA("BillboardGui") and bill.Name=="AxiomBoatESP" then
+                        bill:Destroy()
                     end
                 end
-            end)
-        end)
+            end
+        end
+    end
+    MenuConfig.EspBoatEnabled=Value
+    SaveMenuConfig()
+end,nil,3)
 
-        return
+CreateTabToggle(EspPage,"ESP Đảo Sự Kiện",MenuConfig.EspEventIslandEnabled,function(Value)
+    SetEventIslandESPEnabled(Value)
+    MenuConfig.EspEventIslandEnabled=Value
+    SaveMenuConfig()
+end,nil,4)
+
+-- ===================================================
+-- 5. TAB CÀI ĐẶT: Chế độ bay, Tốc độ bay, Tốc độ thuyền, Vũ khí, Fast Attack V1/V2, Fast Attack Fruit
+-- ===================================================
+local SettingsPage=TabPages.Settings.Frame
+
+-- Bộ chọn chế độ bay (Tween / Lerp)
+local FlyModeHolder=Instance.new("Frame",SettingsPage)
+FlyModeHolder.Name="FlyModeSelector"
+FlyModeHolder.LayoutOrder=1
+FlyModeHolder.Size=UDim2.new(0.95,0,0,48)
+FlyModeHolder.BackgroundColor3=CARD_BG
+FlyModeHolder.BackgroundTransparency=0.25
+FlyModeHolder.BorderSizePixel=0
+FlyModeHolder.ZIndex=7
+Instance.new("UICorner",FlyModeHolder).CornerRadius=UDim.new(0,6)
+
+local FlyModeStroke=Instance.new("UIStroke",FlyModeHolder)
+FlyModeStroke.Thickness=1
+FlyModeStroke.Color=CARD_STROKE
+
+local FlyModeTitle=Instance.new("TextLabel",FlyModeHolder)
+FlyModeTitle.Size=UDim2.new(1,-12,0,17)
+FlyModeTitle.Position=UDim2.new(0,7,0,3)
+FlyModeTitle.BackgroundTransparency=1
+FlyModeTitle.Text="CHẾ ĐỘ BAY"
+FlyModeTitle.Font=Enum.Font.Cartoon
+FlyModeTitle.TextSize=11
+FlyModeTitle.TextColor3=TEXT_COLOR
+FlyModeTitle.TextXAlignment=Enum.TextXAlignment.Left
+FlyModeTitle.ZIndex=8
+
+local FlyModeRow=Instance.new("Frame",FlyModeHolder)
+FlyModeRow.Size=UDim2.new(1,-14,0,21)
+FlyModeRow.Position=UDim2.new(0,7,0,22)
+FlyModeRow.BackgroundTransparency=1
+FlyModeRow.ZIndex=8
+
+local FlyModeLayout=Instance.new("UIListLayout",FlyModeRow)
+FlyModeLayout.FillDirection=Enum.FillDirection.Horizontal
+FlyModeLayout.SortOrder=Enum.SortOrder.LayoutOrder
+FlyModeLayout.Padding=UDim.new(0,6)
+
+local FlyModeButtons={}
+local function RefreshFlyModeUI(silent)
+    for key,item in pairs(FlyModeButtons) do
+        local active=(key==FlyMode)
+        item.Btn.BackgroundColor3=active and ON_BG or OFF_BG
+        item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
+        item.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
+    end
+    if not silent then
+        MenuConfig.FlyMode=FlyMode
+        SaveMenuConfig()
     end
 end
-             
--- ===================================================
--- ĐOẠN 4A: TOGGLE CHÍNH, CHỌN VŨ KHÍ & NÚT FAST ATTACK V2 / V1
--- ===================================================
-local existingTempleBtn=Scroll:FindFirstChild("TempleOfTimeBtn")
-if existingTempleBtn then existingTempleBtn:Destroy() end
 
-local Btn=Instance.new("TextButton",Scroll)
-Btn.Name="TempleOfTimeBtn"
-Btn.Size=UDim2.new(0.9,0,0,32)
-Btn.Text="Đền Thời Gian"
-Btn.Font=Enum.Font.Cartoon
-Btn.TextSize=13
-Btn.TextColor3=Color3.fromRGB(100,200,255)
-Btn.BackgroundColor3=Color3.fromRGB(25,35,50)
-Btn.BackgroundTransparency=0.3
-Btn.AutoButtonColor=false
-Instance.new("UICorner",Btn).CornerRadius=UDim.new(0,6)
+for idx,choice in ipairs({{Key="Tween",Text="Tween"},{Key="Lerp",Text="Lerp"}}) do
+    local ModeBtn=Instance.new("TextButton",FlyModeRow)
+    ModeBtn.LayoutOrder=idx
+    ModeBtn.Size=UDim2.new(0.5,-3,1,0)
+    ModeBtn.BackgroundColor3=OFF_BG
+    ModeBtn.AutoButtonColor=false
+    ModeBtn.Text=choice.Text
+    ModeBtn.Font=Enum.Font.Cartoon
+    ModeBtn.TextSize=11
+    ModeBtn.TextColor3=Color3.fromRGB(165,195,220)
+    ModeBtn.ZIndex=9
+    Instance.new("UICorner",ModeBtn).CornerRadius=UDim.new(0,5)
 
-local btnS=Instance.new("UIStroke",Btn)
-btnS.Thickness=1
-btnS.Color=Color3.fromRGB(0,120,200)
+    local ModeStroke=Instance.new("UIStroke",ModeBtn)
+    ModeStroke.Thickness=1
+    ModeStroke.Color=Color3.fromRGB(70,80,90)
 
-Btn.MouseButton1Click:Connect(function() SpawnToIsland("TempleOfTime") end)
+    FlyModeButtons[choice.Key]={Btn=ModeBtn,Stroke=ModeStroke}
 
-local BLUE=Color3.fromRGB(0,170,255)
-local OFF_BG=Color3.fromRGB(35,40,48)
-local ON_BG=Color3.fromRGB(0,170,255)
-local TEXT_COLOR=Color3.fromRGB(100,200,255)
-
-local function CreateToggle(Name,DefaultState,Callback,Subtitle)
-    local hasSubtitle=Subtitle~=nil and Subtitle~=""
-    local Holder=Instance.new("Frame",Scroll)
-    Holder.Size=UDim2.new(0.9,0,0,hasSubtitle and 50 or 38)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.3
-    Holder.BorderSizePixel=0
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
-
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
-
-    local Label=Instance.new("TextLabel",Holder)
-    Label.Size=UDim2.new(1,-65,0,22)
-    Label.Position=UDim2.new(0,6,0,hasSubtitle and 3 or 8)
-    Label.BackgroundTransparency=1
-    Label.Text=Name
-    Label.Font=Enum.Font.Cartoon
-    Label.TextSize=13
-    Label.TextColor3=TEXT_COLOR
-    Label.TextXAlignment=Enum.TextXAlignment.Left
-
-    if hasSubtitle then
-        local SubLabel=Instance.new("TextLabel",Holder)
-        SubLabel.Size=UDim2.new(1,-65,0,16)
-        SubLabel.Position=UDim2.new(0,6,0,26)
-        SubLabel.BackgroundTransparency=1
-        SubLabel.Text=Subtitle
-        SubLabel.Font=Enum.Font.Cartoon
-        SubLabel.TextSize=10
-        SubLabel.TextColor3=Color3.fromRGB(155,185,210)
-        SubLabel.TextXAlignment=Enum.TextXAlignment.Left
-    end
-
-    local Switch=Instance.new("TextButton",Holder)
-    Switch.Size=UDim2.new(0,42,0,21)
-    Switch.Position=UDim2.new(1,-47,0.5,-10.5)
-    Switch.BackgroundColor3=OFF_BG
-    Switch.AutoButtonColor=false
-    Switch.Text=""
-    Instance.new("UICorner",Switch).CornerRadius=UDim.new(1,0)
-
-    local Stroke=Instance.new("UIStroke",Switch)
-    Stroke.Thickness=1
-    Stroke.Color=Color3.fromRGB(70,80,90)
-
-    local Knob=Instance.new("Frame",Switch)
-    Knob.Size=UDim2.new(0,15,0,15)
-    Knob.Position=UDim2.new(0,3,0.5,-7.5)
-    Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-    Instance.new("UICorner",Knob).CornerRadius=UDim.new(1,0)
-
-    local Enabled=DefaultState and true or false
-
-    local function Update(silent)
-        if Enabled then
-            Switch.BackgroundColor3=ON_BG
-            Stroke.Color=BLUE
-            Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-            TweenService:Create(Knob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(1,-18,0.5,-7.5)}):Play()
-        else
-            Switch.BackgroundColor3=OFF_BG
-            Stroke.Color=Color3.fromRGB(70,80,90)
-            Knob.BackgroundColor3=Color3.fromRGB(255,255,255)
-            TweenService:Create(Knob,TweenInfo.new(0.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=UDim2.new(0,3,0.5,-7.5)}):Play()
-        end
-        if not silent then
-            Callback(Enabled)
-        end
-    end
-
-    Switch.MouseButton1Click:Connect(function()
-        Enabled=not Enabled
-        Update(false)
+    ModeBtn.MouseButton1Click:Connect(function()
+        FlyMode=choice.Key
+        CancelActiveFlyTween()
+        RefreshFlyModeUI(false)
     end)
-
-    Update(true)
-
-    return {Set=function(Value,silent) Enabled=Value; Update(silent) end,Get=function() return Enabled end}
 end
+RefreshFlyModeUI(true)
 
-local BoatToggle=CreateToggle("TỐC ĐỘ THUYỀN",MenuConfig.BoatEnabled,function(Value)
+CreateTabSlider(SettingsPage,"Tốc độ bay",150,250,_G.SPEED,function(Value)
+    _G.SPEED=Value
+    MenuConfig.Speed=Value
+    SaveMenuConfig()
+end,2)
+
+CreateTabSlider(SettingsPage,"Tốc độ thuyền",100,500,_G.BOAT_SPEED,function(Value)
+    _G.BOAT_SPEED=Value
+    MenuConfig.BoatSpeed=Value
+    SaveMenuConfig()
+end,3)
+
+CreateTabToggle(SettingsPage,"Tốc độ thuyền",MenuConfig.BoatEnabled,function(Value)
     BoatEnabled=Value
     MenuConfig.BoatEnabled=Value
     SaveMenuConfig()
-end)
-
-local FruitToggle=CreateToggle("BAY TỚI TRÁI",MenuConfig.FruitEnabled,function(Value)
-    FruitEnabled=Value
-    TargetFruit=nil
-    MenuConfig.FruitEnabled=Value
-    SaveMenuConfig()
-end)
-
-local MobToggle=CreateToggle("BAY TỚI QUÁI",MenuConfig.MobEnabled,function(Value)
-    MobEnabled=Value
-    TargetMob=nil
-    MenuConfig.MobEnabled=Value
-    SaveMenuConfig()
-end)
-
-local BoneFarmToggle=CreateToggle("FARM BONE",BoneFarmEnabled,function(Value)
-    BoneFarmEnabled=Value
-    BoneBatBring=false
-    BoneLockedMobName=nil
-    BoneCurrentMons={}
-    BoneActiveTargetCF=nil
-    MenuConfig.BoneFarmEnabled=Value
-    SaveMenuConfig()
-end,"Auto farm xương")
-
-local BoneQuestToggle=CreateToggle("NHẬN QUEST BONE",BoneAutoQuestEnabled,function(Value)
-    BoneAutoQuestEnabled=Value
-    MenuConfig.BoneAutoQuestEnabled=Value
-    SaveMenuConfig()
-end,"Tự nhận nhiệm vụ Bone")
-
-local ChestToggle=CreateToggle("FARM RƯƠNG",MenuConfig.ChestEnabled,function(Value)
-    ChestEnabled=Value
-    if Value and GetCurrentBeli then LastBeli=GetCurrentBeli() end
-    TargetChest=nil
-    TouchTimer=0
-    MenuConfig.ChestEnabled=Value
-    SaveMenuConfig()
-end)
+end,"Áp dụng tốc độ cho thuyền",4)
 
 local TOOL=(tostring(MenuConfig.FastAttackTool):lower()=="sword") and "Sword" or "Melee"
 local lastEquipTime=0
-local enabled=MenuConfig.FastAttackEnabled
+local enabled=MenuConfig.FastAttackEnabled and true or false
 local normalFastAttackEnabled=MenuConfig.NormalFastAttackEnabled and true or false
+local fruitAttackEnabled=MenuConfig.FruitAttackEnabled and true or false
 
-local function CreateWeaponSelector(DefaultTool,Callback)
-    local Holder=Instance.new("Frame",Scroll)
-    Holder.Size=UDim2.new(0.9,0,0,52)
-    Holder.BackgroundColor3=Color3.fromRGB(25,35,50)
-    Holder.BackgroundTransparency=0.3
-    Holder.BorderSizePixel=0
-    Instance.new("UICorner",Holder).CornerRadius=UDim.new(0,6)
+-- Bộ chọn vũ khí Fast Attack (Melee / Sword)
+local WeaponHolder=Instance.new("Frame",SettingsPage)
+WeaponHolder.LayoutOrder=5
+WeaponHolder.Size=UDim2.new(0.95,0,0,48)
+WeaponHolder.BackgroundColor3=CARD_BG
+WeaponHolder.BackgroundTransparency=0.25
+WeaponHolder.BorderSizePixel=0
+WeaponHolder.ZIndex=7
+Instance.new("UICorner",WeaponHolder).CornerRadius=UDim.new(0,6)
 
-    local HolderStroke=Instance.new("UIStroke",Holder)
-    HolderStroke.Thickness=1
-    HolderStroke.Color=Color3.fromRGB(0,120,200)
+local WeaponStroke=Instance.new("UIStroke",WeaponHolder)
+WeaponStroke.Thickness=1
+WeaponStroke.Color=CARD_STROKE
 
-    local TitleLabel=Instance.new("TextLabel",Holder)
-    TitleLabel.Size=UDim2.new(1,-12,0,18)
-    TitleLabel.Position=UDim2.new(0,6,0,3)
-    TitleLabel.BackgroundTransparency=1
-    TitleLabel.Text="VŨ KHÍ FAST ATTACK"
-    TitleLabel.Font=Enum.Font.Cartoon
-    TitleLabel.TextSize=11
-    TitleLabel.TextColor3=TEXT_COLOR
-    TitleLabel.TextXAlignment=Enum.TextXAlignment.Left
+local WeaponTitle=Instance.new("TextLabel",WeaponHolder)
+WeaponTitle.Size=UDim2.new(1,-12,0,17)
+WeaponTitle.Position=UDim2.new(0,7,0,3)
+WeaponTitle.BackgroundTransparency=1
+WeaponTitle.Text="VŨ KHÍ FAST ATTACK V2"
+WeaponTitle.Font=Enum.Font.Cartoon
+WeaponTitle.TextSize=10
+WeaponTitle.TextColor3=TEXT_COLOR
+WeaponTitle.TextXAlignment=Enum.TextXAlignment.Left
+WeaponTitle.ZIndex=8
 
-    local OptionsRow=Instance.new("Frame",Holder)
-    OptionsRow.Size=UDim2.new(1,-12,0,23)
-    OptionsRow.Position=UDim2.new(0,6,0,24)
-    OptionsRow.BackgroundTransparency=1
+local WeaponRow=Instance.new("Frame",WeaponHolder)
+WeaponRow.Size=UDim2.new(1,-14,0,21)
+WeaponRow.Position=UDim2.new(0,7,0,22)
+WeaponRow.BackgroundTransparency=1
+WeaponRow.ZIndex=8
 
-    local RowLayout=Instance.new("UIListLayout",OptionsRow)
-    RowLayout.FillDirection=Enum.FillDirection.Horizontal
-    RowLayout.SortOrder=Enum.SortOrder.LayoutOrder
-    RowLayout.Padding=UDim.new(0,6)
+local WeaponRowLayout=Instance.new("UIListLayout",WeaponRow)
+WeaponRowLayout.FillDirection=Enum.FillDirection.Horizontal
+WeaponRowLayout.SortOrder=Enum.SortOrder.LayoutOrder
+WeaponRowLayout.Padding=UDim.new(0,6)
 
-    local Choices={
-        {Key="Melee",Text="Melee"},
-        {Key="Sword",Text="Sword"},
-    }
-
-    local Buttons={}
-    local CurrentKey=(tostring(DefaultTool):lower()=="sword") and "Sword" or "Melee"
-
-    local function Refresh(silent)
-        for key,item in pairs(Buttons) do
-            local active=(key==CurrentKey)
-            item.Btn.BackgroundColor3=active and ON_BG or OFF_BG
-            item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
-            item.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
-        end
-
-        if not silent then
-            Callback(CurrentKey)
-        end
+local WeaponButtons={}
+local function RefreshWeaponUI(silent)
+    for key,item in pairs(WeaponButtons) do
+        local active=(key==TOOL)
+        item.Btn.BackgroundColor3=active and ON_BG or OFF_BG
+        item.Btn.TextColor3=active and Color3.fromRGB(255,255,255) or Color3.fromRGB(165,195,220)
+        item.Stroke.Color=active and BLUE or Color3.fromRGB(70,80,90)
     end
-
-    for index,choice in ipairs(Choices) do
-        local OptionBtn=Instance.new("TextButton",OptionsRow)
-        OptionBtn.LayoutOrder=index
-        OptionBtn.Size=UDim2.new(0.5,-3,1,0)
-        OptionBtn.BackgroundColor3=OFF_BG
-        OptionBtn.AutoButtonColor=false
-        OptionBtn.Text=choice.Text
-        OptionBtn.Font=Enum.Font.Cartoon
-        OptionBtn.TextSize=11
-        OptionBtn.TextColor3=Color3.fromRGB(165,195,220)
-        Instance.new("UICorner",OptionBtn).CornerRadius=UDim.new(0,5)
-
-        local OptionStroke=Instance.new("UIStroke",OptionBtn)
-        OptionStroke.Thickness=1
-        OptionStroke.Color=Color3.fromRGB(70,80,90)
-
-        Buttons[choice.Key]={Btn=OptionBtn,Stroke=OptionStroke}
-
-        OptionBtn.MouseButton1Click:Connect(function()
-            CurrentKey=choice.Key
-            Refresh(false)
-        end)
+    if not silent then
+        lastEquipTime=0
+        MenuConfig.FastAttackTool=TOOL
+        SaveMenuConfig()
     end
-
-    Refresh(true)
-    TOOL=CurrentKey
 end
 
-CreateWeaponSelector(TOOL,function(selectedTool)
-    TOOL=selectedTool
-    lastEquipTime=0
-    MenuConfig.FastAttackTool=selectedTool
-    SaveMenuConfig()
-end)
+for idx,choice in ipairs({{Key="Melee",Text="Melee"},{Key="Sword",Text="Sword"}}) do
+    local OptBtn=Instance.new("TextButton",WeaponRow)
+    OptBtn.LayoutOrder=idx
+    OptBtn.Size=UDim2.new(0.5,-3,1,0)
+    OptBtn.BackgroundColor3=OFF_BG
+    OptBtn.AutoButtonColor=false
+    OptBtn.Text=choice.Text
+    OptBtn.Font=Enum.Font.Cartoon
+    OptBtn.TextSize=11
+    OptBtn.TextColor3=Color3.fromRGB(165,195,220)
+    OptBtn.ZIndex=9
+    Instance.new("UICorner",OptBtn).CornerRadius=UDim.new(0,5)
 
-local FastAttackV2Toggle=CreateToggle("Fast Attack V2",enabled,function(Value)
+    local OptStroke=Instance.new("UIStroke",OptBtn)
+    OptStroke.Thickness=1
+    OptStroke.Color=Color3.fromRGB(70,80,90)
+
+    WeaponButtons[choice.Key]={Btn=OptBtn,Stroke=OptStroke}
+
+    OptBtn.MouseButton1Click:Connect(function()
+        TOOL=choice.Key
+        RefreshWeaponUI(false)
+    end)
+end
+RefreshWeaponUI(true)
+
+CreateTabToggle(SettingsPage,"Fast Attack V2",enabled,function(Value)
     enabled=Value
     MenuConfig.FastAttackEnabled=Value
     SaveMenuConfig()
-end,"Đánh không cần cầm võ")
+end,"Đánh không cần cầm võ",6)
 
-local FastAttackV1Toggle=CreateToggle("Fast Attack V1",normalFastAttackEnabled,function(Value)
+CreateTabToggle(SettingsPage,"Fast Attack V1",normalFastAttackEnabled,function(Value)
     normalFastAttackEnabled=Value
     MenuConfig.NormalFastAttackEnabled=Value
     SaveMenuConfig()
-end,"Đánh như bình thường")
+end,"Đánh như bình thường",7)
+
+CreateTabToggle(SettingsPage,"Fast Attack Fruit",fruitAttackEnabled,function(Value)
+    fruitAttackEnabled=Value
+    MenuConfig.FruitAttackEnabled=Value
+    SaveMenuConfig()
+end,"Đánh không cần cầm trái",8)
+
+SwitchTab(ActiveTabKey)
 
 -- ===================================================
 -- ĐOẠN 4B-1: REMOTE & HÀM XỬ LÝ FAST ATTACK V2
@@ -3014,12 +2808,16 @@ local function RunNormalFastAttackStep()
         end
     end)
 end
+
 -- ===================================================
 -- ĐOẠN 4B-3: ATTACK FRUIT & CÁC VÒNG LẶP CHẠY NỀN
 -- ===================================================
-local FRUIT_MAX_DISTANCE=30
-local fruitAttackEnabled=MenuConfig.FruitAttackEnabled and true or false
+local FRUIT_MAX_DISTANCE=50
 local lastFruitFalseTick=0
+
+if fruitAttackEnabled==nil then
+    fruitAttackEnabled=MenuConfig.FruitAttackEnabled and true or false
+end
 
 local function GetFruitRemote()
     local backpack=LocalPlayer:FindFirstChild("Backpack")
@@ -3134,12 +2932,6 @@ local function IsFruitTargetNearby()
     return false
 end
 
-local AttackFruitToggle=CreateToggle("Attack Fruit",fruitAttackEnabled,function(Value)
-    fruitAttackEnabled=Value
-    MenuConfig.FruitAttackEnabled=Value
-    SaveMenuConfig()
-end,"Đánh không cần cầm trái")
-
 task.spawn(function()
     while true do
         SendAttackAndHit()
@@ -3170,7 +2962,7 @@ task.spawn(function()
                 task.wait(0.05)
             else
                 local currentTime=tick()
-                if currentTime-lastFruitFalseTick>=2 then
+                if currentTime-lastFruitFalseTick>=1 then
                     if remote then
                         pcall(function()
                             remote:FireServer(false)
